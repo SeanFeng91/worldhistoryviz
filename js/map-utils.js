@@ -3,11 +3,13 @@
  * 用于处理GeoJSON数据，以及地图相关的操作
  */
 
-const MapUtils = {
+export class MapUtils {
+    constructor() {}
+
     /**
      * 存储地图文件年份映射 - 使用所有可用的地图文件
      */
-    mapYears: [
+    mapYears = [
         // 公元前地图
         { year: -123000, file: 'world_bc123000.geojson' },
         { year: -10000, file: 'world_bc10000.geojson' },
@@ -63,19 +65,19 @@ const MapUtils = {
         { year: 1994, file: 'world_1994.geojson' },
         { year: 2000, file: 'world_2000.geojson' },
         { year: 2010, file: 'world_2010.geojson' }
-    ],
+    ];
     
     /**
      * 本地历史地图路径
      */
-    localHistoryMapPath: './maps/geojson/',
+    localHistoryMapPath = './maps/geojson/';
     
     /**
      * 查找最接近指定年份的地图数据文件
      * @param {number} year - 目标年份(负数表示公元前)
      * @returns {Object} 最接近的地图年份对象
      */
-    findClosestMapFile: function(year) {
+    findClosestMapFile(year) {
         console.log(`查找最接近年份 ${year} 的地图文件`);
         
         // 查找最接近的年份
@@ -98,14 +100,14 @@ const MapUtils = {
         
         console.log(`最接近的年份是: ${closestYear.year}，对应文件: ${closestYear.file}`);
         return closestYear;
-    },
+    }
     
     /**
      * 加载GeoJSON数据
      * @param {string} filePath - GeoJSON文件完整路径
      * @returns {Promise} 返回解析后的GeoJSON数据的Promise
      */
-    loadGeoJSON: async function(filePath) {
+    async loadGeoJSON(filePath) {
         console.log(`尝试加载GeoJSON文件: ${filePath}`);
         
         try {
@@ -139,14 +141,14 @@ const MapUtils = {
             console.error(`加载GeoJSON文件 ${filePath} 失败:`, error);
             throw error;
         }
-    },
+    }
     
     /**
      * 从本地路径加载指定年份的GeoJSON数据
      * @param {number} year - 目标年份
      * @returns {Promise} 返回解析后的GeoJSON数据的Promise
      */
-    loadHistoricalMap: async function(year) {
+    async loadHistoricalMap(year) {
         console.log(`尝试加载年份 ${year} 的历史地图`);
         
         try {
@@ -192,14 +194,14 @@ const MapUtils = {
             // 尝试加载备用地图
             return await this.loadFallbackMap();
         }
-    },
+    }
     
     /**
      * 加载备用地图
      * @param {string} fileName - 原始文件名
      * @returns {Promise} 返回解析后的GeoJSON数据的Promise
      */
-    loadFallbackMap: async function() {
+    async loadFallbackMap() {
         console.log('尝试加载备用地图数据');
         
         // 尝试加载不同年份的地图
@@ -243,14 +245,14 @@ const MapUtils = {
             type: 'FeatureCollection',
             features: []
         };
-    },
+    }
     
     /**
      * 标准化不同格式的GeoJSON数据
      * @param {Object} data - GeoJSON数据
      * @returns {Object} 标准化后的GeoJSON数据
      */
-    normalizeGeoJSON: function(data) {
+    normalizeGeoJSON(data) {
         console.log('正在标准化GeoJSON数据');
         
         // 检查数据是否为有效的GeoJSON
@@ -310,12 +312,12 @@ const MapUtils = {
         // 如果无法识别格式，返回默认数据
         console.error('无法识别的GeoJSON格式');
         return this.getDefaultWorldMap();
-    },
+    }
     
     /**
      * 获取默认的世界地图（简化版）
      */
-    getDefaultWorldMap: function() {
+    getDefaultWorldMap() {
         console.log('返回默认世界地图');
         
         return {
@@ -336,12 +338,12 @@ const MapUtils = {
                 }
             ]
         };
-    },
+    }
     
     /**
      * 缓存GeoJSON到本地
      */
-    cacheGeoJSONLocally: function(fileName, data) {
+    cacheGeoJSONLocally(fileName, data) {
         // 这是一个模拟函数，实际实现需要考虑浏览器存储限制
         // 在真实应用中，可以使用localStorage、IndexedDB等
         console.log(`缓存GeoJSON文件 ${fileName} 到本地存储`);
@@ -352,7 +354,7 @@ const MapUtils = {
         } catch (error) {
             console.warn('缓存GeoJSON失败:', error);
         }
-    },
+    }
     
     /**
      * 过滤指定时间范围内的事件
@@ -361,11 +363,11 @@ const MapUtils = {
      * @param {number} range - 范围(正负年数)
      * @returns {Array} 过滤后的事件数组
      */
-    filterEventsByTimeRange: function(events, year, range) {
+    filterEventsByTimeRange(events, year, range) {
         return events.filter(event => {
             return Math.abs(event.year - year) <= range;
         });
-    },
+    }
     
     /**
      * 过滤指定时间内活跃的迁徙路线
@@ -373,11 +375,11 @@ const MapUtils = {
      * @param {number} year - 目标年份
      * @returns {Array} 过滤后的迁徙路线数组
      */
-    filterActiveMigrations: function(migrations, year) {
+    filterActiveMigrations(migrations, year) {
         return migrations.filter(migration => {
             return migration.startYear <= year && migration.endYear >= year;
         });
-    },
+    }
     
     /**
      * 根据时间计算迁徙路线的完成百分比
@@ -385,14 +387,14 @@ const MapUtils = {
      * @param {number} year - 目标年份
      * @returns {number} 完成百分比(0-1)
      */
-    calculateMigrationProgress: function(migration, year) {
+    calculateMigrationProgress(migration, year) {
         if (year <= migration.startYear) return 0;
         if (year >= migration.endYear) return 1;
         
         const totalDuration = migration.endYear - migration.startYear;
         const elapsedTime = year - migration.startYear;
         return elapsedTime / totalDuration;
-    },
+    }
     
     /**
      * 将迁徙路线转换为GeoJSON LineString
@@ -400,7 +402,7 @@ const MapUtils = {
      * @param {number} progress - 完成百分比(0-1)
      * @returns {Object} GeoJSON LineString对象
      */
-    migrationToGeoJSON: function(migration, progress) {
+    migrationToGeoJSON(migration, progress) {
         // 根据进度计算应该显示多少点
         const totalPoints = migration.path.length;
         const pointsToShow = Math.max(2, Math.ceil(totalPoints * progress));
@@ -423,14 +425,14 @@ const MapUtils = {
                 coordinates: visiblePath
             }
         };
-    },
+    }
     
     /**
      * 将事件数据转换为GeoJSON点
      * @param {Array} events - 事件数组
      * @returns {Object} GeoJSON FeatureCollection
      */
-    eventsToGeoJSON: function(events) {
+    eventsToGeoJSON(events) {
         if (!events || !Array.isArray(events)) {
             console.warn('传入的事件数据无效');
             return {
@@ -491,14 +493,14 @@ const MapUtils = {
             type: "FeatureCollection",
             features: features
         };
-    },
+    }
     
     /**
      * 按类别为GeoJSON特征着色
      * @param {Object} feature - GeoJSON特征
      * @returns {Object} 样式对象
      */
-    styleByCategory: function(feature) {
+    styleByCategory(feature) {
         if (!feature.properties) return {};
         
         // 颜色方案
@@ -572,14 +574,14 @@ const MapUtils = {
             color: fillColor,
             fillOpacity: opacity * 0.7
         };
-    },
+    }
     
     /**
      * 创建事件弹出框内容
      * @param {Object} feature - GeoJSON特征
      * @returns {string} HTML内容
      */
-    createEventPopupContent: function(feature) {
+    createEventPopupContent(feature) {
         const props = feature.properties;
         
         // 准备基本信息
@@ -608,14 +610,14 @@ const MapUtils = {
         popupContent += `</div>`;
         
         return popupContent;
-    },
+    }
     
     /**
      * 创建迁徙路线弹出框内容
      * @param {Object} feature - GeoJSON特征
      * @returns {string} HTML内容
      */
-    createMigrationPopupContent: function(feature) {
+    createMigrationPopupContent(feature) {
         const props = feature.properties;
         
         // 处理年份显示
@@ -673,7 +675,7 @@ const MapUtils = {
         popupContent += `</div>`;
         
         return popupContent;
-    },
+    }
     
     /**
      * 判断事件是否与当前年份相关
@@ -681,7 +683,7 @@ const MapUtils = {
      * @param {number} currentYear - 当前年份
      * @returns {boolean} 事件是否与当前年份相关
      */
-    isEventRelevantToYear: function(event, currentYear) {
+    isEventRelevantToYear(event, currentYear) {
         // 确保事件对象有效
         if (!event) {
             console.warn('事件对象为空');
@@ -744,7 +746,7 @@ const MapUtils = {
         }
         
         return false;
-    },
+    }
     
     /**
      * 检查迁徙是否与当前年份相关
@@ -752,9 +754,9 @@ const MapUtils = {
      * @param {number} currentYear - 当前年份
      * @returns {boolean} 迁徙路线是否与当前年份相关
      */
-    isMigrationRelevantToYear: function(migration, currentYear) {
+    isMigrationRelevantToYear(migration, currentYear) {
         return currentYear >= migration.startYear && currentYear <= migration.endYear;
-    },
+    }
     
     /**
      * 计算迁徙群体当前位置
@@ -762,7 +764,7 @@ const MapUtils = {
      * @param {number} progress - 完成百分比(0-1)
      * @returns {Array} 迁徙群体当前位置
      */
-    calculateCurrentPosition: function(migration, progress) {
+    calculateCurrentPosition(migration, progress) {
         if (!migration.route || migration.route.length < 2) {
             return null;
         }
@@ -788,7 +790,7 @@ const MapUtils = {
         const lng = startPoint[1] + (endPoint[1] - startPoint[1]) * segmentProgress;
         
         return [lat, lng];
-    },
+    }
     
     /**
      * 将迁徙路线转换为GeoJSON
@@ -796,7 +798,7 @@ const MapUtils = {
      * @param {number} progress - 完成百分比(0-1)
      * @returns {Object} GeoJSON LineString对象
      */
-    convertMigrationToGeoJSON: function(migration, progress = 1) {
+    convertMigrationToGeoJSON(migration, progress = 1) {
         if (!migration.route || migration.route.length < 2) {
             return null;
         }
@@ -834,21 +836,145 @@ const MapUtils = {
                 coordinates: displayedRoute.map(point => [point[1], point[0]]) // GeoJSON使用[lng, lat]格式
             }
         };
-    },
+    }
     
     /**
      * 格式化年份显示
      * @param {number} year - 年份
      * @returns {string} 格式化后的年份字符串
      */
-    formatYear: function(year) {
-        if (year <= 0) {
-            return `公元前${Math.abs(year)}年`;
-        } else {
-            return `公元${year}年`;
-        }
+    formatYear(year) {
+        const absYear = Math.abs(year);
+        return year < 0 ? `公元前 ${absYear} 年` : `公元 ${year} 年`;
     }
-};
+
+    parseYearString(yearStr) {
+        if (typeof yearStr === 'number') return yearStr;
+        
+        const match = yearStr.match(/^(公元前)?(\d+)年?$/);
+        if (!match) return null;
+        
+        const year = parseInt(match[2]);
+        return match[1] ? -year : year;
+    }
+
+    isTimeRelevant(time, currentYear, range = 100) {
+        const year = this.parseYearString(time);
+        if (year === null) return false;
+        return Math.abs(year - currentYear) <= range;
+    }
+
+    isTimeRangeRelevant(startTime, endTime, currentYear, buffer = 50) {
+        const startYear = this.parseYearString(startTime);
+        const endYear = this.parseYearString(endTime);
+        
+        if (startYear === null || endYear === null) return false;
+        
+        return currentYear >= (startYear - buffer) && currentYear <= (endYear + buffer);
+    }
+
+    calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // 地球半径（千米）
+        const dLat = this.toRad(lat2 - lat1);
+        const dLon = this.toRad(lon2 - lon1);
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(this.toRad(lat1)) * Math.cos(this.toRad(lat2)) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+
+    toRad(value) {
+        return value * Math.PI / 180;
+    }
+
+    calculateAreaSize(bounds) {
+        const width = this.calculateDistance(
+            bounds.getSouth(), bounds.getWest(),
+            bounds.getSouth(), bounds.getEast()
+        );
+        const height = this.calculateDistance(
+            bounds.getSouth(), bounds.getWest(),
+            bounds.getNorth(), bounds.getWest()
+        );
+        return width * height;
+    }
+
+    simpleHash(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash;
+        }
+        return Math.abs(hash);
+    }
+
+    uniqueArray(array, key) {
+        return Array.from(new Map(array.map(item => [item[key], item])).values());
+    }
+
+    addPulseEffect(map, latlng) {
+        const pulseIcon = L.divIcon({
+            className: 'pulse-icon',
+            html: '<div class="pulse-inner"></div>'
+        });
+
+        const marker = L.marker(latlng, {
+            icon: pulseIcon
+        }).addTo(map);
+
+        setTimeout(() => {
+            map.removeLayer(marker);
+        }, 2000);
+    }
+
+    filterByYear(items, year, options = {}) {
+        const {
+            startField = 'startYear',
+            endField = 'endYear',
+            buffer = 50
+        } = options;
+
+        return items.filter(item => {
+            const startYear = this.parseYearString(item[startField]);
+            const endYear = this.parseYearString(item[endField]);
+            
+            if (startYear === null) return false;
+            if (endYear === null) return this.isTimeRelevant(startYear, year, buffer);
+            
+            return this.isTimeRangeRelevant(startYear, endYear, year, buffer);
+        });
+    }
+
+    focusOnLocation(map, lat, lng, zoomLevel = 12) {
+        map.setView([lat, lng], zoomLevel, {
+            animate: true,
+            duration: 1
+        });
+
+        this.addPulseEffect(map, [lat, lng]);
+    }
+
+    convertCoordinates(coordinates, fromFormat, toFormat) {
+        // 支持不同坐标系统之间的转换
+        // 目前支持：经纬度、墨卡托
+        if (fromFormat === 'latLng' && toFormat === 'mercator') {
+            const lat = coordinates[0] * Math.PI / 180;
+            const lng = coordinates[1] * Math.PI / 180;
+            const x = lng;
+            const y = Math.log(Math.tan(Math.PI/4 + lat/2));
+            return [x, y];
+        } else if (fromFormat === 'mercator' && toFormat === 'latLng') {
+            const x = coordinates[0];
+            const y = coordinates[1];
+            const lng = x * 180 / Math.PI;
+            const lat = (2 * Math.atan(Math.exp(y)) - Math.PI/2) * 180 / Math.PI;
+            return [lat, lng];
+        }
+        return coordinates;
+    }
+}
 
 // 将 MapUtils 添加到 window 对象，使其成为全局可访问
 window.MapUtils = MapUtils;

@@ -8,6 +8,8 @@ import { MapManager } from './map-manager.js';
 import { TimelineManager } from './timeline-manager.js';
 import { EventsManager } from './events-manager.js';
 import { IntroManager } from './intro.js';
+import { MapCore } from './map-core.js';
+import { MapUtils } from './map-utils.js';
 
 // 添加调试日志
 console.log('CSS测试: 检查样式表是否正确加载');
@@ -19,7 +21,7 @@ document.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
  * 应用类
  * 负责协调各个模块的工作
  */
-class HistoryMapApp {
+export class App {
     /**
      * 创建世界历史可视化应用实例
      * @param {Object} options - 配置选项
@@ -52,10 +54,12 @@ class HistoryMapApp {
         this.allAgriculture = [];
         
         // 创建地图管理器
-        this.mapManager = new MapManager({
-            mapContainer: this.mapContainer,
-            initialYear: 1  // 与时间轴初始年份保持一致
-        });
+        this.mapCore = null;
+        this.utils = new MapUtils();
+        this.currentYear = -10000;
+        this.isPlaying = false;
+        this.playbackSpeed = 100; // 年/秒
+        this.lastUpdateTime = 0;
         
         // 创建时间轴管理器
         this.timelineManager = new TimelineManager({
@@ -114,7 +118,7 @@ class HistoryMapApp {
             
             // 初始化地图
             console.log('初始化地图...');
-            await this.mapManager.initialize();
+            await this.initializeMap();
             
             // 初始化时间轴
             console.log('初始化时间轴...');
@@ -138,7 +142,7 @@ class HistoryMapApp {
             
             // 设置初始年份
             const initialYear = this.timelineManager.getCurrentYear();
-            await this.updateToYear(initialYear);
+            await this.updateYear(initialYear);
             
             // 隐藏加载指示器
             this.hideLoader();
@@ -149,6 +153,17 @@ class HistoryMapApp {
             this.hideLoader();
             this.showError('初始化应用失败: ' + error.message);
         }
+    }
+    
+    /**
+     * 初始化地图
+     */
+    async initializeMap() {
+        this.mapCore = new MapCore({
+            mapContainer: this.mapContainer,
+            initialYear: this.currentYear
+        });
+        await this.mapCore.initialize();
     }
     
     /**
@@ -166,7 +181,7 @@ class HistoryMapApp {
             const event = this.data.allEvents.find(e => e.id === eventId);
             if (event) {
                 // 在地图上高亮显示该事件
-                this.mapManager.highlightEvent(event);
+                this.mapCore.highlightEvent(event);
                 // 显示详情
                 this.showEventDetails(event);
             }
@@ -194,14 +209,14 @@ class HistoryMapApp {
                     this.eventsManager.setCategory(category);
                     
                     // 更新地图标记
-                    this.mapManager.setFilterCategory(category);
+                    this.mapCore.setFilterCategory(category);
                     
                     // 重新加载当前年份的全部数据，确保筛选正确应用
                     const currentYear = this.timelineManager.getCurrentYear();
                     // 更新事件列表
                     this.eventsManager.updateEventsList(this.data.allEvents, currentYear);
                     // 重新更新地图内容
-                    this.mapManager.updateToYear(currentYear, this.data);
+                    this.mapCore.updateToYear(currentYear, this.data);
                     
                     // 更新按钮样式
                     categoryButtons.forEach(btn => btn.classList.remove('active'));
@@ -215,7 +230,7 @@ class HistoryMapApp {
      * 更新到指定年份
      * @param {number} year - 目标年份
      */
-    async updateToYear(year) {
+    async updateYear(year) {
         console.log(`开始更新到年份 ${year}`);
         
         try {
@@ -241,7 +256,7 @@ class HistoryMapApp {
             };
             
             // 更新地图
-            await this.mapManager.updateToYear(year, mapData);
+            await this.mapCore.updateToYear(year, mapData);
             
             // 更新事件列表
             if (this.eventsManager) {
@@ -362,7 +377,7 @@ class HistoryMapApp {
                 
                 // 确保按钮状态与地图图层状态一致
                 const layerName = controlId.replace('toggle-', '');
-                const isActive = this.mapManager[`show${layerName.charAt(0).toUpperCase() + layerName.slice(1)}`];
+                const isActive = this.mapCore[`show${layerName.charAt(0).toUpperCase() + layerName.slice(1)}`];
                 controlButton.classList.toggle('active', isActive);
             }
         });
@@ -387,7 +402,7 @@ class HistoryMapApp {
             this.isLoading = true;
             
             // 更新数据
-            await this.updateToYear(year);
+            await this.updateYear(year);
             
             this.hideLoader();
             this.isLoading = false;
@@ -543,17 +558,15 @@ class HistoryMapApp {
     /**
      * 切换时间轴播放状态
      */
-    togglePlay() {
-        try {
-            if (this.timelineManager.isPlaying) {
-                console.log('暂停播放时间轴');
-                this.timelineManager.stopPlayback();
-            } else {
-                console.log('开始播放时间轴');
-                this.timelineManager.startPlayback();
-            }
-        } catch (error) {
-            console.error('切换播放状态时出错:', error);
+    togglePlayback() {
+        this.isPlaying = !this.isPlaying;
+        
+        if (this.isPlaying) {
+            this.lastUpdateTime = Date.now();
+            this.playButton.innerHTML = '<i class="material-icons-round">pause</i>';
+            this.animate();
+        } else {
+            this.playButton.innerHTML = '<i class="material-icons-round">play_arrow</i>';
         }
     }
     
@@ -566,7 +579,7 @@ class HistoryMapApp {
         
         try {
             // 更新地图
-            await this.mapManager.updateToYear(year, this.data);
+            await this.mapCore.updateToYear(year, this.data);
             
             // 更新事件列表
             this.eventsManager.updateEventsList(this.data.allEvents, year);
@@ -581,7 +594,7 @@ class HistoryMapApp {
      */
     handleEventSelected(eventId) {
         // 在地图上高亮显示选中的事件
-        this.mapManager.highlightEvent(eventId);
+        this.mapCore.highlightEvent(eventId);
     }
     
     /**
@@ -602,7 +615,7 @@ class HistoryMapApp {
         this.eventsManager.showEventDetails(event);
         
         // 在地图上高亮显示该事件
-        this.mapManager.highlightEvent(eventId);
+        this.mapCore.highlightEvent(eventId);
         
         // 确保侧边栏是打开的
         if (this.sidebarCollapsed) {
@@ -620,7 +633,7 @@ class HistoryMapApp {
             const isActive = toggleButton.classList.contains('active');
             
             // 更新地图
-            this.mapManager.toggleEvents(isActive);
+            this.mapCore.toggleEvents(isActive);
             
             console.log(`事件显示状态: ${isActive ? '显示' : '隐藏'}`);
         }
@@ -636,7 +649,7 @@ class HistoryMapApp {
             const isActive = toggleButton.classList.contains('active');
             
             // 更新地图
-            this.mapManager.toggleMigrations(isActive);
+            this.mapCore.toggleMigrations(isActive);
             
             console.log(`迁徙路线显示状态: ${isActive ? '显示' : '隐藏'}`);
         }
@@ -652,7 +665,7 @@ class HistoryMapApp {
             const isActive = toggleButton.classList.contains('active');
             
             // 更新地图
-            this.mapManager.toggleTechnologies(isActive);
+            this.mapCore.toggleTechnologies(isActive);
             
             console.log(`技术发展显示状态: ${isActive ? '显示' : '隐藏'}`);
         }
@@ -668,7 +681,7 @@ class HistoryMapApp {
             const isActive = toggleButton.classList.contains('active');
             
             // 更新地图
-            this.mapManager.toggleSpecies(isActive);
+            this.mapCore.toggleSpecies(isActive);
             
             console.log(`物种显示状态: ${isActive ? '显示' : '隐藏'}`);
         }
@@ -684,7 +697,7 @@ class HistoryMapApp {
             const isActive = toggleButton.classList.contains('active');
             
             // 更新地图
-            this.mapManager.toggleWars(isActive);
+            this.mapCore.toggleWars(isActive);
             
             console.log(`战争显示状态: ${isActive ? '显示' : '隐藏'}`);
         }
@@ -700,7 +713,7 @@ class HistoryMapApp {
             const isActive = toggleButton.classList.contains('active');
             
             // 更新地图
-            this.mapManager.toggleDiseases(isActive);
+            this.mapCore.toggleDiseases(isActive);
             
             console.log(`疾病显示状态: ${isActive ? '显示' : '隐藏'}`);
         }
@@ -716,7 +729,7 @@ class HistoryMapApp {
             const isActive = toggleButton.classList.contains('active');
             
             // 更新地图
-            this.mapManager.toggleAgriculture(isActive);
+            this.mapCore.toggleAgriculture(isActive);
             
             console.log(`农业显示状态: ${isActive ? '显示' : '隐藏'}`);
         }
@@ -732,7 +745,7 @@ class HistoryMapApp {
             console.log('侧边栏状态切换');
             
             // 更新地图尺寸，确保地图控件位置正确
-            this.mapManager.map.invalidateSize();
+            this.mapCore.map.invalidateSize();
         }
     }
     
@@ -760,8 +773,8 @@ class HistoryMapApp {
         e.currentTarget.classList.add('active');
         
         // 更新地图视图
-        if (this.mapManager) {
-            this.mapManager.setView(viewType);
+        if (this.mapCore) {
+            this.mapCore.setView(viewType);
         }
     }
     
@@ -786,8 +799,8 @@ class HistoryMapApp {
         const isActive = e.currentTarget.classList.contains('active');
         
         // 更新地图图层
-        if (this.mapManager) {
-            this.mapManager.toggleLayer(layerType, isActive);
+        if (this.mapCore) {
+            this.mapCore.toggleLayer(layerType, isActive);
         }
     }
     
@@ -827,9 +840,28 @@ class HistoryMapApp {
         this.updateEventsList(results);
         
         // 在地图上标记结果
-        if (this.mapManager) {
-            this.mapManager.highlightSearchResults(results);
+        if (this.mapCore) {
+            this.mapCore.highlightSearchResults(results);
         }
+    }
+
+    animate() {
+        if (!this.isPlaying) return;
+
+        const now = Date.now();
+        const deltaTime = now - this.lastUpdateTime;
+        this.lastUpdateTime = now;
+
+        const yearChange = Math.floor((deltaTime / 1000) * this.playbackSpeed);
+        let newYear = this.currentYear + yearChange;
+
+        // 检查是否到达终点
+        if (newYear > 2023) {
+            newYear = -10000;
+        }
+
+        this.updateYear(newYear);
+        requestAnimationFrame(() => this.animate());
     }
 }
 
@@ -871,6 +903,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 创建并初始化应用
-    window.historyMapApp = new HistoryMapApp();
+    window.historyMapApp = new App();
     window.historyMapApp.initialize();
 }); 

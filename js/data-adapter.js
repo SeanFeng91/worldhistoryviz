@@ -378,4 +378,187 @@ function parseYearString(yearStr) {
     // 处理普通年份
     const year = parseInt(cleanStr.replace(/年/g, '').trim());
     return isNaN(year) ? 0 : year;
+}
+
+/**
+ * 将疾病数据适配为前端需要的格式
+ * @param {Array} diseases - 原始疾病数据
+ * @returns {Array} 适配后的疾病数据
+ */
+export function adaptDiseases(diseases) {
+    if (!diseases || !Array.isArray(diseases)) {
+        console.warn('传入的疾病数据无效');
+        return [];
+    }
+    
+    return diseases.map(disease => {
+        // 处理年份信息
+        const startYear = disease.startYear || parseYearString(disease['开始年份'] || disease['发现年份'] || '');
+        const endYear = disease.endYear || parseYearString(disease['结束年份'] || disease['控制年份'] || '');
+        
+        // 处理位置信息
+        let location = [0, 0];
+        if (disease.location) {
+            if (typeof disease.location === 'object' && disease.location.lat !== undefined) {
+                location = [disease.location.lat, disease.location.lng];
+            } else if (Array.isArray(disease.location) && disease.location.length >= 2) {
+                location = disease.location;
+            }
+        } else if (disease['起源地点'] && typeof disease['起源地点'] === 'object') {
+            location = [disease['起源地点']['纬度'], disease['起源地点']['经度']];
+        }
+        
+        return {
+            id: disease.id || disease['疾病ID'] || `disease-${Math.random().toString(36).substring(2, 9)}`,
+            name: disease.name || disease.title || disease['疾病名称'] || '未命名疾病',
+            startYear: startYear,
+            endYear: endYear || (startYear + 10), // 默认持续10年
+            location: location,
+            coordinates: location,
+            description: disease.description || disease['描述'] || '',
+            category: 'disease',
+            importance: disease.importance || disease['重要性'] || 3,
+            casualties: disease.casualties || disease['致死人数'] || '',
+            impact: disease.impact || disease['影响'] || '',
+            originalData: disease
+        };
+    });
+}
+
+/**
+ * 将战争数据适配为前端需要的格式
+ * @param {Array} wars - 原始战争数据
+ * @returns {Array} 适配后的战争数据
+ */
+export function adaptWars(wars) {
+    if (!wars || !Array.isArray(wars)) {
+        console.warn('传入的战争数据无效');
+        return [];
+    }
+    
+    return wars.map(war => {
+        // 处理年份信息
+        const startYear = war.startYear || parseYearString(war['开始年份'] || '');
+        const endYear = war.endYear || parseYearString(war['结束年份'] || '');
+        
+        // 处理位置信息
+        let location = [0, 0];
+        if (war.location) {
+            if (typeof war.location === 'object' && war.location.lat !== undefined) {
+                location = [war.location.lat, war.location.lng];
+            } else if (Array.isArray(war.location) && war.location.length >= 2) {
+                location = war.location;
+            }
+        } else if (war['主要战场'] && typeof war['主要战场'] === 'object') {
+            location = [war['主要战场']['纬度'], war['主要战场']['经度']];
+        }
+        
+        return {
+            id: war.id || war['战争ID'] || `war-${Math.random().toString(36).substring(2, 9)}`,
+            name: war.name || war.title || war['战争名称'] || '未命名战争',
+            startYear: startYear,
+            endYear: endYear || (startYear + 1), // 默认持续1年
+            location: location,
+            coordinates: location,
+            description: war.description || war['描述'] || '',
+            category: 'war',
+            importance: war.importance || war['重要性'] || 3,
+            participants: war.participants || war['参战方'] || '',
+            outcome: war.outcome || war['结果'] || '',
+            casualties: war.casualties || war['伤亡人数'] || '',
+            impact: war.impact || war['影响'] || '',
+            originalData: war
+        };
+    });
+}
+
+/**
+ * 将文明/社会组织数据适配为前端需要的格式
+ * @param {Array} civilizations - 原始文明数据
+ * @returns {Array} 适配后的文明数据
+ */
+export function adaptCivilizations(civilizations) {
+    if (!civilizations || !Array.isArray(civilizations)) {
+        console.warn('传入的文明数据无效');
+        return [];
+    }
+    
+    return civilizations.map(civ => {
+        // 处理年份信息
+        const startYear = civ.startYear || parseYearString(civ['开始年份'] || civ['兴起年份'] || '');
+        const endYear = civ.endYear || parseYearString(civ['结束年份'] || civ['衰亡年份'] || '');
+        
+        // 处理位置信息
+        let location = [0, 0];
+        if (civ.location) {
+            if (typeof civ.location === 'object' && civ.location.lat !== undefined) {
+                location = [civ.location.lat, civ.location.lng];
+            } else if (Array.isArray(civ.location) && civ.location.length >= 2) {
+                location = civ.location;
+            }
+        } else if (civ['中心位置'] && typeof civ['中心位置'] === 'object') {
+            location = [civ['中心位置']['纬度'], civ['中心位置']['经度']];
+        }
+        
+        return {
+            id: civ.id || civ['文明ID'] || `civilization-${Math.random().toString(36).substring(2, 9)}`,
+            name: civ.name || civ.title || civ['文明名称'] || '未命名文明',
+            startYear: startYear,
+            endYear: endYear || (startYear + 500), // 默认持续500年
+            location: location,
+            coordinates: location,
+            description: civ.description || civ['描述'] || '',
+            category: 'civilization',
+            importance: civ.importance || civ['重要性'] || 3,
+            characteristics: civ.characteristics || civ['特点'] || '',
+            achievements: civ.achievements || civ['成就'] || '',
+            impact: civ.impact || civ['影响'] || '',
+            originalData: civ
+        };
+    });
+}
+
+/**
+ * 将农业数据适配为前端需要的格式
+ * @param {Array} agriculture - 原始农业数据
+ * @returns {Array} 适配后的农业数据
+ */
+export function adaptAgriculture(agriculture) {
+    if (!agriculture || !Array.isArray(agriculture)) {
+        console.warn('传入的农业数据无效');
+        return [];
+    }
+    
+    return agriculture.map(agri => {
+        // 处理年份信息
+        const startYear = agri.startYear || parseYearString(agri['开始年份'] || agri['驯化年份'] || '');
+        const endYear = agri.endYear || parseYearString(agri['结束年份'] || agri['普及年份'] || '');
+        
+        // 处理位置信息
+        let location = [0, 0];
+        if (agri.location) {
+            if (typeof agri.location === 'object' && agri.location.lat !== undefined) {
+                location = [agri.location.lat, agri.location.lng];
+            } else if (Array.isArray(agri.location) && agri.location.length >= 2) {
+                location = agri.location;
+            }
+        } else if (agri['起源地点'] && typeof agri['起源地点'] === 'object') {
+            location = [agri['起源地点']['纬度'], agri['起源地点']['经度']];
+        }
+        
+        return {
+            id: agri.id || agri['农业ID'] || `agriculture-${Math.random().toString(36).substring(2, 9)}`,
+            name: agri.name || agri.title || agri['作物/技术名称'] || '未命名农业技术',
+            startYear: startYear,
+            endYear: endYear || (startYear + 100), // 默认持续100年
+            location: location,
+            coordinates: location,
+            description: agri.description || agri['描述'] || '',
+            category: 'agriculture',
+            importance: agri.importance || agri['重要性'] || 3,
+            cropType: agri.cropType || agri['作物类型'] || '',
+            impact: agri.impact || agri['影响'] || '',
+            originalData: agri
+        };
+    });
 } 

@@ -2,7 +2,7 @@
  * 主入口文件
  */
 
-import { HistoryMapApp } from './app.js';
+import { App } from './map-exports.js';
 
 // 当DOM加载完成后初始化应用
 document.addEventListener('DOMContentLoaded', async () => {
@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     try {
         // 实例化并初始化应用
-        const app = new HistoryMapApp();
+        const app = new App();
         
         // 将应用实例存储在全局变量中，方便其他模块访问
         window.historyMapApp = app;

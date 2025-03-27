@@ -1,68 +1,63 @@
 /**
- * 地图工具导出文件
- * 从MapUtils导出所需的所有函数
+ * 地图模块导出文件
+ * 此文件将所有地图相关模块统一导出，方便其他文件引用
  */
 
-// 导入MapUtils对象
-import MapUtils from './map-utils.js';
+// 导出核心模块
+export { MapCore } from './map-core.js';
 
-// 导出所有需要的函数
-export function getMapForYear(year) {
-    return MapUtils.loadHistoricalMap(year);
-}
+// 导出地图事件模块
+export { 
+    addEventMarkers,
+    createEventPopupContent,
+    filterEventsByTimeRange,
+    highlightEvent,
+    getRelevantEvents,
+    toggleEventMarkers
+} from './map-events.js';
 
-export function isEventRelevant(event, currentYear) {
-    return MapUtils.isEventRelevantToYear(event, currentYear);
-}
+// 导出地图迁移模块
+export {
+    addMigrationRoutes,
+    createMigrationPopupContent,
+    filterActiveMigrations,
+    calculateMigrationProgress,
+    toggleMigrationRoutes
+} from './map-migrations.js';
 
-export function isMigrationRelevant(migration, currentYear) {
-    return MapUtils.isMigrationRelevantToYear(migration, currentYear);
-}
+// 导出地图特性模块
+export {
+    addFeatureMarkers,
+    createFeaturePopupContent,
+    getRelevantFeatures,
+    toggleFeatureMarkers
+} from './map-features.js';
 
-export function getKeyYears() {
-    return MapUtils.mapYears.map(item => item.year);
-}
+// 导出地图样式模块
+export {
+    getMapStyle,
+    styleByCategory,
+    getCountryColor,
+    getCategoryIcon,
+    createCustomMarker
+} from './map-styles.js';
 
-export function findClosestMapFile(year) {
-    return MapUtils.findClosestMapFile(year);
-}
+// 导出地图工具模块
+export {
+    formatYear,
+    getMapForYear,
+    loadGeoJSON,
+    loadHistoricalMap,
+    convertCoordinates,
+    calculateDistance,
+    isTimeRangeRelevant,
+    parseYearString,
+    eventsToGeoJSON,
+    migrationToGeoJSON
+} from './map-utils.js';
 
-export function formatYear(year) {
-    return MapUtils.formatYear(year);
-}
+// 导出主应用
+export { App } from './app.js';
 
-export function styleByCategory(feature) {
-    return MapUtils.styleByCategory(feature);
-}
-
-export function createEventPopupContent(feature) {
-    return MapUtils.createEventPopupContent(feature);
-}
-
-export function createMigrationPopupContent(feature) {
-    return MapUtils.createMigrationPopupContent(feature);
-}
-
-export function eventsToGeoJSON(events) {
-    return MapUtils.eventsToGeoJSON(events);
-}
-
-export function filterEventsByTimeRange(events, year, range) {
-    return MapUtils.filterEventsByTimeRange(events, year, range);
-}
-
-export function filterActiveMigrations(migrations, year) {
-    return MapUtils.filterActiveMigrations(migrations, year);
-}
-
-export function calculateMigrationProgress(migration, year) {
-    return MapUtils.calculateMigrationProgress(migration, year);
-}
-
-export function migrationToGeoJSON(migration, progress) {
-    return MapUtils.migrationToGeoJSON(migration, progress);
-}
-
-export function convertMigrationToGeoJSON(migration, progress) {
-    return MapUtils.convertMigrationToGeoJSON(migration, progress);
-}
+// 为兼容保留旧版接口
+export { MapManager } from './map-manager.js';
