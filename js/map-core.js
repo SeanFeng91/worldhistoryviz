@@ -57,28 +57,20 @@ export class MapCore {
             noWrap: true,
             bounds: bounds
         }).addTo(this.map);
+        
+        // 添加缩放控件，但放在右下角
+        L.control.zoom({
+            position: 'bottomright'
+        }).addTo(this.map);
 
-        // 监听缩放事件，确保地图视图始终展示完整世界
+        // 监听缩放事件，确保地图视图始终保持在合适的显示范围内
         this.map.on('zoom', () => {
-            // 获取当前地图视图的边界
-            const currentBounds = this.map.getBounds();
-            const currentZoom = this.map.getZoom();
-            
-            // 如果在较低的缩放级别，确保地图水平方向完全填充
-            if (currentZoom <= 3) {
-                // 调整地图中心，保持在合理的经度范围内
-                const center = this.map.getCenter();
-                let lng = center.lng;
-                
-                // 限制经度范围在[-180, 180]之间
-                if (lng < -180) lng = -180;
-                if (lng > 180) lng = 180;
-                
-                // 重设中心点但保持纬度不变
-                if (lng !== center.lng) {
-                    this.map.setView([center.lat, lng], currentZoom, {animate: false});
-                }
-            }
+            this.enforceMapConstraints();
+        });
+        
+        // 监听拖动结束事件，确保地图边界正确
+        this.map.on('moveend', () => {
+            this.enforceMapConstraints();
         });
 
         // 加载初始GeoJSON数据
@@ -90,6 +82,9 @@ export class MapCore {
             this.migrations.initialize(),
             this.features.initialize()
         ]);
+        
+        // 确保地图初始视图是一个全球视图
+        this.resetMapView();
     }
 
     async updateToYear(year) {
@@ -170,6 +165,66 @@ export class MapCore {
             style: (feature) => this.styles.getGeoJSONStyle(feature),
             onEachFeature: (feature, layer) => this.styles.onEachFeature(feature, layer, this)
         }).addTo(this.map);
+    }
+
+    // 强制执行地图约束，确保地图视图在合理范围内
+    enforceMapConstraints() {
+        // 获取当前地图视图的边界
+        const currentBounds = this.map.getBounds();
+        const currentZoom = this.map.getZoom();
+        
+        // 获取当前中心点
+        const center = this.map.getCenter();
+        let lat = center.lat;
+        let lng = center.lng;
+        let needsUpdate = false;
+        
+        // 限制经度范围在[-180, 180]之间
+        if (lng < -180) {
+            lng = -180;
+            needsUpdate = true;
+        }
+        if (lng > 180) {
+            lng = 180;
+            needsUpdate = true;
+        }
+        
+        // 限制纬度范围在[-85, 85]之间，以避免墨卡托投影变形
+        if (lat < -85) {
+            lat = -85;
+            needsUpdate = true;
+        }
+        if (lat > 85) {
+            lat = 85;
+            needsUpdate = true;
+        }
+        
+        // 如果是小缩放级别（全球视图），确保可以看到整个世界地图
+        if (currentZoom <= 2) {
+            // 计算世界地图的理想中心，可能需要根据你的地图内容调整
+            const idealCenter = [20, 0]; // 一个大致在全球中央的位置
+            const viewportWidth = currentBounds.getEast() - currentBounds.getWest();
+            
+            // 如果视口宽度不足以看到整个世界，调整缩放级别
+            if (viewportWidth < 360) {
+                this.map.setZoom(2);
+                needsUpdate = false; // 缩放会自动触发moveend，避免重复更新
+            }
+            
+            // 如果需要更新视图位置
+            if (needsUpdate) {
+                this.map.setView([lat, lng], currentZoom, {animate: false});
+            }
+        } else if (needsUpdate) {
+            // 对于其他缩放级别，如果需要更新，则更新中心点
+            this.map.setView([lat, lng], currentZoom, {animate: false});
+        }
+    }
+    
+    // 重置地图视图到全球视图
+    resetMapView() {
+        this.map.setView(this.defaultCenter, this.defaultZoom, {animate: false});
+        this.enforceMapConstraints();
     }
 
     // 其他核心方法...
