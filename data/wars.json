@@ -1,0 +1,302 @@
+[
+  {
+    "id": "WAR001",
+    "title": "伯罗奔尼撒战争",
+    "category": "战争",
+    "startYear": -431,
+    "endYear": -404,
+    "location": {
+      "lat": 37.9,
+      "lng": 23.7
+    },
+    "region": "古希腊",
+    "description": "雅典与斯巴达领导的城邦联盟之间的冲突",
+    "importance": 4,
+    "impact": "削弱了希腊城邦的力量，导致雅典霸权的终结，为后来马其顿崛起铺平了道路"
+  },
+  {
+    "id": "WAR002",
+    "title": "亚历山大东征",
+    "category": "战争",
+    "startYear": -334,
+    "endYear": -323,
+    "location": {
+      "lat": 33.0,
+      "lng": 44.0
+    },
+    "region": "欧亚大陆",
+    "description": "马其顿亚历山大对波斯帝国的征服",
+    "importance": 5,
+    "impact": "摧毁了波斯帝国，将希腊文化传播到亚洲，创建了横跨欧亚的帝国"
+  },
+  {
+    "id": "WAR003",
+    "title": "布匿战争",
+    "category": "战争",
+    "startYear": -264,
+    "endYear": -146,
+    "location": {
+      "lat": 37.5,
+      "lng": 14.0
+    },
+    "region": "地中海",
+    "description": "罗马共和国与迦太基之间的三次战争",
+    "importance": 5,
+    "impact": "确立了罗马在地中海的霸权，摧毁了迦太基文明，为罗马帝国奠定基础"
+  },
+  {
+    "id": "WAR004",
+    "title": "高卢战争",
+    "category": "战争",
+    "startYear": -58,
+    "endYear": -50,
+    "location": {
+      "lat": 47.0,
+      "lng": 2.0
+    },
+    "region": "今法国和比利时",
+    "description": "恺撒对高卢地区的军事征服",
+    "importance": 4,
+    "impact": "扩展了罗马对西欧的控制，使恺撒获得了巨大的军事威望，间接导致罗马共和国灭亡"
+  },
+  {
+    "id": "WAR005",
+    "title": "阿拉伯征服",
+    "category": "战争",
+    "startYear": 632,
+    "endYear": 750,
+    "location": {
+      "lat": 30.0,
+      "lng": 35.0
+    },
+    "region": "中东、北非和伊比利亚半岛",
+    "description": "穆罕默德去世后，伊斯兰帝国对周边地区的军事扩张",
+    "importance": 5,
+    "impact": "建立了横跨三大洲的伊斯兰哈里发帝国，改变了中东和北非的文化与宗教格局"
+  },
+  {
+    "id": "WAR006",
+    "title": "十字军东征",
+    "category": "战争",
+    "startYear": 1095,
+    "endYear": 1291,
+    "location": {
+      "lat": 31.8,
+      "lng": 35.2
+    },
+    "region": "中东",
+    "description": "基督教欧洲对穆斯林控制下的圣地的军事远征",
+    "importance": 5,
+    "impact": "增强了教皇权威，促进了欧洲与中东的文化交流，影响了双方的政治发展"
+  },
+  {
+    "id": "WAR007",
+    "title": "百年战争",
+    "category": "战争",
+    "startYear": 1337,
+    "endYear": 1453,
+    "location": {
+      "lat": 48.8,
+      "lng": 2.3
+    },
+    "region": "法国和英格兰",
+    "description": "英格兰与法国之间关于法国王位继承权和领土控制的长期冲突",
+    "importance": 4,
+    "impact": "促进了英法民族意识的觉醒，改变了战争方式，为近代民族国家的产生奠定基础"
+  },
+  {
+    "id": "WAR008",
+    "title": "西班牙征服美洲",
+    "category": "战争",
+    "startYear": 1519,
+    "endYear": 1533,
+    "location": {
+      "lat": 19.4,
+      "lng": -99.1
+    },
+    "region": "中美洲和南美洲",
+    "description": "科尔特斯和皮萨罗领导的对阿兹特克和印加帝国的军事征服",
+    "importance": 5,
+    "impact": "摧毁了阿兹特克和印加文明，开启了美洲的欧洲殖民时代，深刻改变了世界格局"
+  },
+  {
+    "id": "WAR009",
+    "title": "三十年战争",
+    "category": "战争",
+    "startYear": 1618,
+    "endYear": 1648,
+    "location": {
+      "lat": 51.0,
+      "lng": 10.0
+    },
+    "region": "中欧",
+    "description": "始于神圣罗马帝国内部的宗教冲突，演变为欧洲列强的权力斗争",
+    "importance": 5,
+    "impact": "奠定了欧洲现代国家体系的基础，确立了主权国家平等原则，结束了宗教战争时代"
+  },
+  {
+    "id": "WAR010",
+    "title": "拿破仑战争",
+    "category": "战争",
+    "startYear": 1803,
+    "endYear": 1815,
+    "location": {
+      "lat": 48.9,
+      "lng": 2.3
+    },
+    "region": "欧洲",
+    "description": "拿破仑领导的法国与欧洲列强之间的一系列战争",
+    "importance": 5,
+    "impact": "重新划定了欧洲边界，传播了法国大革命的理念，促进了民族主义思想的发展"
+  },
+  {
+    "id": "WAR011",
+    "title": "美国内战",
+    "category": "战争",
+    "startYear": 1861,
+    "endYear": 1865,
+    "location": {
+      "lat": 39.0,
+      "lng": -90.0
+    },
+    "region": "美国",
+    "description": "美国北方联邦与南方邦联之间的内战",
+    "importance": 4,
+    "impact": "废除了奴隶制，维护了美国统一，加速了工业化和国家集权化进程"
+  },
+  {
+    "id": "WAR012",
+    "title": "第一次世界大战",
+    "category": "战争",
+    "startYear": 1914,
+    "endYear": 1918,
+    "location": {
+      "lat": 50.0,
+      "lng": 5.0
+    },
+    "region": "全球，主要在欧洲",
+    "description": "以欧洲为主导的全球冲突，由民族矛盾和帝国竞争引发",
+    "importance": 5,
+    "impact": "导致四大帝国瓦解，改变了欧洲和中东的政治地图，催生了共产主义革命"
+  },
+  {
+    "id": "WAR013",
+    "title": "第二次世界大战",
+    "category": "战争",
+    "startYear": 1939,
+    "endYear": 1945,
+    "location": {
+      "lat": 52.5,
+      "lng": 13.4
+    },
+    "region": "全球",
+    "description": "轴心国与同盟国之间的全球性战争",
+    "importance": 5,
+    "impact": "造成约7000万人死亡，导致殖民体系瓦解，形成美苏两极格局，联合国成立"
+  },
+  {
+    "id": "WAR014",
+    "title": "冷战",
+    "category": "战争",
+    "startYear": 1947,
+    "endYear": 1991,
+    "location": {
+      "lat": 0.0,
+      "lng": 0.0
+    },
+    "region": "全球",
+    "description": "美国和苏联领导的西方阵营与东方阵营之间的政治、经济和意识形态对抗",
+    "importance": 5,
+    "impact": "导致世界两极分化，间接引发诸多地区冲突，推动了军备竞赛和太空竞赛"
+  },
+  {
+    "id": "WAR015",
+    "title": "海湾战争",
+    "category": "战争",
+    "startYear": 1990,
+    "endYear": 1991,
+    "location": {
+      "lat": 29.3,
+      "lng": 47.5
+    },
+    "region": "中东",
+    "description": "伊拉克入侵科威特后，美国领导的多国部队对伊拉克的军事行动",
+    "importance": 4,
+    "impact": "展示了冷战后美国的军事主导地位，改变了中东地区的政治格局"
+  },
+  {
+    "id": "WAR016",
+    "title": "秦统一中国",
+    "category": "战争",
+    "startYear": -230,
+    "endYear": -221,
+    "location": {
+      "lat": 34.3,
+      "lng": 108.9
+    },
+    "region": "中国",
+    "description": "秦国征服其他六国，结束战国时期",
+    "importance": 5,
+    "impact": "结束了春秋战国分裂局面，建立了中国历史上第一个中央集权帝国"
+  },
+  {
+    "id": "WAR017",
+    "title": "蒙古征服中国",
+    "category": "战争",
+    "startYear": 1206,
+    "endYear": 1279,
+    "location": {
+      "lat": 39.9,
+      "lng": 116.4
+    },
+    "region": "中国和蒙古",
+    "description": "蒙古帝国征服宋朝和其他中国地区政权",
+    "importance": 5,
+    "impact": "结束了宋朝统治，建立了元朝，将中国纳入更大的蒙古帝国体系"
+  },
+  {
+    "id": "WAR018",
+    "title": "鸦片战争",
+    "category": "战争",
+    "startYear": 1839,
+    "endYear": 1842,
+    "location": {
+      "lat": 22.3,
+      "lng": 114.2
+    },
+    "region": "中国东南沿海",
+    "description": "英国与清朝之间因鸦片贸易引发的军事冲突",
+    "importance": 5,
+    "impact": "开启了中国近代史，迫使清朝签订不平等条约，开始了西方列强对中国的侵略"
+  },
+  {
+    "id": "WAR019",
+    "title": "太平洋战争",
+    "category": "战争",
+    "startYear": 1941,
+    "endYear": 1945,
+    "location": {
+      "lat": 15.0,
+      "lng": 145.0
+    },
+    "region": "太平洋地区",
+    "description": "第二次世界大战期间日本与美国及其盟友在太平洋地区的战争",
+    "importance": 5,
+    "impact": "结束了日本的帝国扩张，导致原子弹的使用，改变了亚太地区的政治格局"
+  },
+  {
+    "id": "WAR020",
+    "title": "越南战争",
+    "category": "战争",
+    "startYear": 1955,
+    "endYear": 1975,
+    "location": {
+      "lat": 16.0,
+      "lng": 108.0
+    },
+    "region": "越南",
+    "description": "美国支持的南越与共产党支持的北越之间的冲突",
+    "importance": 4,
+    "impact": "导致越南统一，但在美国引发反战运动，影响了美国的外交政策和公众对战争的态度"
+  }
+] 

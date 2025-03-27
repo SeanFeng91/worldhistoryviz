@@ -1,0 +1,59 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2023-10-18",
+  "description": "世界历史事件汇总索引，包含所有事件的ID和所属分类",
+  "categories": [
+    {
+      "name": "技术",
+      "file": "technologies.json",
+      "prefix": "TECH",
+      "count": 20
+    },
+    {
+      "name": "农业",
+      "file": "agriculture.json",
+      "prefix": "AGR",
+      "count": 15
+    },
+    {
+      "name": "迁徙",
+      "file": "migrations.json",
+      "prefix": "MIG",
+      "count": 15
+    },
+    {
+      "name": "疾病",
+      "file": "diseases.json",
+      "prefix": "DIS",
+      "count": 15
+    },
+    {
+      "name": "战争",
+      "file": "wars.json",
+      "prefix": "WAR",
+      "count": 20
+    },
+    {
+      "name": "文明",
+      "file": "civilizations.json",
+      "prefix": "CIV",
+      "count": 20
+    },
+    {
+      "name": "物种",
+      "file": "species.json",
+      "prefix": "SPE",
+      "count": 20
+    }
+  ],
+  "totalEvents": 125,
+  "eventsByCategory": {
+    "技术": ["TECH001", "TECH002", "TECH003", "TECH004", "TECH005", "TECH006", "TECH007", "TECH008", "TECH009", "TECH010", "TECH011", "TECH012", "TECH013", "TECH014", "TECH015", "TECH016", "TECH017", "TECH018", "TECH019", "TECH020"],
+    "农业": ["AGR001", "AGR002", "AGR003", "AGR004", "AGR005", "AGR006", "AGR007", "AGR008", "AGR009", "AGR010", "AGR011", "AGR012", "AGR013", "AGR014", "AGR015"],
+    "迁徙": ["MIG001", "MIG002", "MIG003", "MIG004", "MIG005", "MIG006", "MIG007", "MIG008", "MIG009", "MIG010", "MIG011", "MIG012", "MIG013", "MIG014", "MIG015"],
+    "疾病": ["DIS001", "DIS002", "DIS003", "DIS004", "DIS005", "DIS006", "DIS007", "DIS008", "DIS009", "DIS010", "DIS011", "DIS012", "DIS013", "DIS014", "DIS015"],
+    "战争": ["WAR001", "WAR002", "WAR003", "WAR004", "WAR005", "WAR006", "WAR007", "WAR008", "WAR009", "WAR010", "WAR011", "WAR012", "WAR013", "WAR014", "WAR015", "WAR016", "WAR017", "WAR018", "WAR019", "WAR020"],
+    "文明": ["CIV001", "CIV002", "CIV003", "CIV004", "CIV005", "CIV006", "CIV007", "CIV008", "CIV009", "CIV010", "CIV011", "CIV012", "CIV013", "CIV014", "CIV015", "CIV016", "CIV017", "CIV018", "CIV019", "CIV020"],
+    "物种": ["SPE001", "SPE002", "SPE003", "SPE004", "SPE005", "SPE006", "SPE007", "SPE008", "SPE009", "SPE010", "SPE011", "SPE012", "SPE013", "SPE014", "SPE015", "SPE016", "SPE017", "SPE018", "SPE019", "SPE020"]
+  }
+} 

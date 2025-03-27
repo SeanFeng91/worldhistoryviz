@@ -1,0 +1,332 @@
+[
+  {
+    "id": "TECH001",
+    "title": "农业技术",
+    "category": "技术",
+    "startYear": -11000,
+    "endYear": -5000,
+    "location": {
+      "lat": 35.0,
+      "lng": 39.0
+    },
+    "region": "新月沃地等多个独立中心",
+    "description": "包括作物种植、土壤管理、灌溉和收获的综合知识体系",
+    "importance": 5,
+    "impact": "农业支持了人口增长和定居生活，导致社会分化、专业化和更复杂的政治结构"
+  },
+  {
+    "id": "TECH002",
+    "title": "陶器制造",
+    "category": "技术",
+    "startYear": -20000,
+    "endYear": -10000,
+    "location": {
+      "lat": 30.0,
+      "lng": 115.0
+    },
+    "region": "东亚和日本",
+    "description": "使用黏土烧制坚硬的容器和工具，早期通常与定居生活方式相关联",
+    "importance": 4,
+    "impact": "陶器提供了储存、烹饪和运输食物的容器，促进了饮食文化的多样化和文化表达"
+  },
+  {
+    "id": "TECH003",
+    "title": "冶铜技术",
+    "category": "技术",
+    "startYear": -7000,
+    "endYear": -5000,
+    "location": {
+      "lat": 38.0,
+      "lng": 45.0
+    },
+    "region": "安纳托利亚和巴尔干地区",
+    "description": "使用高温处理铜矿石，铸造工具、武器和装饰品",
+    "importance": 4,
+    "impact": "金属工具的引入提高了农业和手工业生产力，创造了新的社会分层和贸易网络"
+  },
+  {
+    "id": "TECH004",
+    "title": "青铜冶炼",
+    "category": "技术",
+    "startYear": -3300,
+    "endYear": -3300,
+    "location": {
+      "lat": 37.0,
+      "lng": 43.0
+    },
+    "region": "中东地区",
+    "description": "将铜与锡或砷合金制造更坚硬、更耐用的青铜，用于工具和武器",
+    "importance": 4,
+    "impact": "青铜器的出现提高了农业生产力和军事能力，加速了社会分化和复杂化"
+  },
+  {
+    "id": "TECH005",
+    "title": "文字系统",
+    "category": "技术",
+    "startYear": -3200,
+    "endYear": -3200,
+    "location": {
+      "lat": 31.0,
+      "lng": 31.0
+    },
+    "region": "古埃及和美索不达米亚",
+    "description": "记录和传递信息的符号系统，最早主要用于行政和宗教记录",
+    "importance": 5,
+    "impact": "文字使知识能够超越口传记忆限制，支持了复杂行政系统和知识积累"
+  },
+  {
+    "id": "TECH006",
+    "title": "轮子和车辆",
+    "category": "技术",
+    "startYear": -3500,
+    "endYear": -3500,
+    "location": {
+      "lat": 32.0,
+      "lng": 44.0
+    },
+    "region": "美索不达米亚",
+    "description": "使用轮子的交通工具，从早期重型货车到轻型战车",
+    "importance": 5,
+    "impact": "轮式交通革命性地改变了陆地运输和战争形式，扩大了人类活动范围"
+  },
+  {
+    "id": "TECH007",
+    "title": "灌溉系统",
+    "category": "技术",
+    "startYear": -6000,
+    "endYear": -3000,
+    "location": {
+      "lat": 30.0,
+      "lng": 45.0
+    },
+    "region": "美索不达米亚和埃及",
+    "description": "复杂的水资源管理系统，包括运河、水坝和水井，用于农业生产",
+    "importance": 5,
+    "impact": "大规模灌溉支持了更高的人口密度和国家形成，但也创造了管理复杂性和环境挑战"
+  },
+  {
+    "id": "TECH008",
+    "title": "铁器技术",
+    "category": "技术",
+    "startYear": -1200,
+    "endYear": -500,
+    "location": {
+      "lat": 39.0,
+      "lng": 35.0
+    },
+    "region": "小亚细亚(赫梯人)",
+    "description": "铁矿石的开采、冶炼和铁器制造技术，最终导致钢的生产",
+    "importance": 5,
+    "impact": "铁器更便宜、更坚固，使技术革新更广泛地传播到普通人中，改变了农业和战争方式"
+  },
+  {
+    "id": "TECH009",
+    "title": "海洋航行技术",
+    "category": "技术",
+    "startYear": -1500,
+    "endYear": -1000,
+    "location": {
+      "lat": 34.0,
+      "lng": 35.5
+    },
+    "region": "地中海东部(腓尼基人)",
+    "description": "开阔水域航行的船只设计和导航技术，使远距离海上贸易成为可能",
+    "importance": 4,
+    "impact": "海洋航行技术拓展了贸易网络和文化交流的范围，使沿海城市繁荣发展"
+  },
+  {
+    "id": "TECH010",
+    "title": "纸张制造",
+    "category": "技术",
+    "startYear": 105,
+    "endYear": 105,
+    "location": {
+      "lat": 34.0,
+      "lng": 108.0
+    },
+    "region": "中国",
+    "description": "使用植物纤维制造轻便、价格低廉的书写材料",
+    "importance": 4,
+    "impact": "纸张大幅降低了知识记录和传播的成本，提高了文化、宗教和科学文本的流通"
+  },
+  {
+    "id": "TECH011",
+    "title": "指南针",
+    "category": "技术",
+    "startYear": 100,
+    "endYear": 1200,
+    "location": {
+      "lat": 35.0,
+      "lng": 110.0
+    },
+    "region": "中国，后传入欧洲",
+    "description": "利用地磁场指示方向的导航工具",
+    "importance": 4,
+    "impact": "指南针使远洋航行更加安全可靠，为后来的大航海时代奠定基础"
+  },
+  {
+    "id": "TECH012",
+    "title": "火药",
+    "category": "技术",
+    "startYear": 900,
+    "endYear": 1300,
+    "location": {
+      "lat": 35.0,
+      "lng": 110.0
+    },
+    "region": "中国，后传入欧洲",
+    "description": "由硝石、硫磺和木炭制成的爆炸性混合物，以及基于火药的武器技术",
+    "importance": 5,
+    "impact": "革命性地改变了战争形态，瓦解了骑士阶层和城堡防御，是欧洲扩张的关键技术"
+  },
+  {
+    "id": "TECH013",
+    "title": "活字印刷术",
+    "category": "技术",
+    "startYear": 1040,
+    "endYear": 1450,
+    "location": {
+      "lat": 35.0,
+      "lng": 110.0
+    },
+    "region": "中国(最早)和德国(欧洲改进)",
+    "description": "使用可移动活字的机械印刷技术",
+    "importance": 5,
+    "impact": "印刷革命极大地降低了书籍生产成本，加速了知识传播和文化变革"
+  },
+  {
+    "id": "TECH014",
+    "title": "远洋航海技术",
+    "category": "技术",
+    "startYear": 1400,
+    "endYear": 1500,
+    "location": {
+      "lat": 38.7,
+      "lng": -9.1
+    },
+    "region": "葡萄牙和西班牙",
+    "description": "适合跨洋航行的船只设计、导航技术和航海知识系统",
+    "importance": 5,
+    "impact": "使欧洲探险家能够横渡大西洋和印度洋，开启全球殖民和贸易网络"
+  },
+  {
+    "id": "TECH015",
+    "title": "蒸汽动力",
+    "category": "技术",
+    "startYear": 1712,
+    "endYear": 1769,
+    "location": {
+      "lat": 52.5,
+      "lng": -1.9
+    },
+    "region": "英国",
+    "description": "将热能转化为机械能的技术，从早期抽水机到改良的旋转式蒸汽机",
+    "importance": 5,
+    "impact": "蒸汽动力推动了工业革命，彻底改变了制造、交通和社会组织方式"
+  },
+  {
+    "id": "TECH016",
+    "title": "电力技术",
+    "category": "技术",
+    "startYear": 1880,
+    "endYear": 1890,
+    "location": {
+      "lat": 40.7,
+      "lng": -74.0
+    },
+    "region": "美国和欧洲",
+    "description": "发电、输电和电力应用技术，从电灯到电动机",
+    "importance": 5,
+    "impact": "电力彻底改变了工业生产、城市生活和家庭环境，开创了第二次工业革命"
+  },
+  {
+    "id": "TECH017",
+    "title": "内燃机",
+    "category": "技术",
+    "startYear": 1876,
+    "endYear": 1876,
+    "location": {
+      "lat": 49.0,
+      "lng": 8.4
+    },
+    "region": "德国",
+    "description": "在气缸内燃烧燃料产生动力的发动机，用于汽车和其他交通工具",
+    "importance": 5,
+    "impact": "内燃机革命性地改变了交通方式，创造了汽车文化和全球石油经济"
+  },
+  {
+    "id": "TECH018",
+    "title": "无线通信",
+    "category": "技术",
+    "startYear": 1895,
+    "endYear": 1920,
+    "location": {
+      "lat": 45.0,
+      "lng": 10.0
+    },
+    "region": "意大利(早期发明)和多国发展",
+    "description": "使用电磁波进行远距离通信的技术，从早期电报到广播和电视",
+    "importance": 4,
+    "impact": "无线通信创造了全球信息网络，彻底改变了新闻传播、文化交流和战争方式"
+  },
+  {
+    "id": "TECH019",
+    "title": "航空技术",
+    "category": "技术",
+    "startYear": 1903,
+    "endYear": 1903,
+    "location": {
+      "lat": 35.9,
+      "lng": -75.7
+    },
+    "region": "美国",
+    "description": "人类动力飞行的技术，从莱特兄弟的简单飞机到现代喷气式飞机",
+    "importance": 5,
+    "impact": "航空技术彻底改变了交通方式、战争和全球联系，使世界'变小'"
+  },
+  {
+    "id": "TECH020",
+    "title": "计算机技术",
+    "category": "技术",
+    "startYear": 1945,
+    "endYear": 1970,
+    "location": {
+      "lat": 40.0,
+      "lng": -75.0
+    },
+    "region": "美国和欧洲",
+    "description": "电子计算设备的发展，从早期大型计算机到个人计算机",
+    "importance": 5,
+    "impact": "计算机技术从根本上改变了信息处理方式，创造了数字经济和互联网时代"
+  },
+  {
+    "id": "TECH021",
+    "title": "互联网",
+    "category": "技术",
+    "startYear": 1969,
+    "endYear": 1990,
+    "location": {
+      "lat": 37.4,
+      "lng": -122.1
+    },
+    "region": "美国，后全球扩散",
+    "description": "全球计算机网络系统，连接世界各地的计算机和信息系统",
+    "importance": 5,
+    "impact": "互联网创造了全球信息共享平台，改变了通信、商业、教育和社交方式"
+  },
+  {
+    "id": "TECH022",
+    "title": "生物技术",
+    "category": "技术",
+    "startYear": 1953,
+    "endYear": 2000,
+    "location": {
+      "lat": 52.2,
+      "lng": 0.1
+    },
+    "region": "全球(早期在英国和美国)",
+    "description": "基于生物学原理的技术，从DNA结构发现到基因工程和克隆技术",
+    "importance": 5,
+    "impact": "生物技术创造了新的医疗手段、农业方法和伦理挑战"
+  }
+] 

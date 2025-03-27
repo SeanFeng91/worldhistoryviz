@@ -1,0 +1,227 @@
+[
+  {
+    "id": "AGR001",
+    "title": "农业革命",
+    "category": "农业",
+    "startYear": -10000,
+    "endYear": -8000,
+    "location": {
+      "lat": 35.0,
+      "lng": 39.0
+    },
+    "region": "新月沃地",
+    "description": "人类从狩猎采集向定居农业的过渡，包括作物驯化和定居生活方式的开始",
+    "importance": 5,
+    "impact": "农业革命使人类能够生产食物剩余，支持人口增长和专业分工，最终导致城市和文明的出现"
+  },
+  {
+    "id": "AGR002",
+    "title": "东亚农业起源",
+    "category": "农业",
+    "startYear": -7000,
+    "endYear": -7000,
+    "location": {
+      "lat": 29.0,
+      "lng": 113.0
+    },
+    "region": "中国长江流域",
+    "description": "稻作农业的发展和中国早期农业社会的形成",
+    "importance": 4,
+    "impact": "东亚农业模式的发展支持了中国文明的形成，创造了独特的农业技术体系"
+  },
+  {
+    "id": "AGR003",
+    "title": "美洲农业起源",
+    "category": "农业",
+    "startYear": -7000,
+    "endYear": -7000,
+    "location": {
+      "lat": 19.0,
+      "lng": -99.0
+    },
+    "region": "墨西哥中部",
+    "description": "玉米、南瓜和豆类的驯化以及美洲独特农业系统的发展",
+    "importance": 4,
+    "impact": "美洲独立发展的农业系统支持了后来的玛雅、阿兹特克和印加等复杂文明"
+  },
+  {
+    "id": "AGR004",
+    "title": "马匹驯化",
+    "category": "农业",
+    "startYear": -5500,
+    "endYear": -5500,
+    "location": {
+      "lat": 50.0,
+      "lng": 55.0
+    },
+    "region": "欧亚草原",
+    "description": "人类驯化野马，开始用于运输和后来的骑乘",
+    "importance": 5,
+    "impact": "马匹驯化从根本上改变了人类的移动能力、贸易和战争方式，加速了技术和文化交流"
+  },
+  {
+    "id": "AGR005",
+    "title": "埃及尼罗河谷灌溉系统",
+    "category": "农业",
+    "startYear": -3000,
+    "endYear": -3000,
+    "location": {
+      "lat": 26.0,
+      "lng": 32.0
+    },
+    "region": "尼罗河流域",
+    "description": "埃及人开发的基于尼罗河泛滥的高效灌溉和农业系统",
+    "importance": 4,
+    "impact": "尼罗河灌溉系统支持了古埃及文明的繁荣，提供了稳定的粮食供应和人口增长基础"
+  },
+  {
+    "id": "AGR006",
+    "title": "水牛驯化与亚洲水稻种植",
+    "category": "农业",
+    "startYear": -4000,
+    "endYear": -2000,
+    "location": {
+      "lat": 24.0,
+      "lng": 110.0
+    },
+    "region": "东亚",
+    "description": "水牛的驯化和用于稻田耕作的技术发展",
+    "importance": 4,
+    "impact": "水牛耕田大幅提高了水稻产量，支持了东亚地区的人口增长和文明发展"
+  },
+  {
+    "id": "AGR007",
+    "title": "轮作制度发明",
+    "category": "农业",
+    "startYear": -1000,
+    "endYear": -1000,
+    "location": {
+      "lat": 45.0,
+      "lng": 10.0
+    },
+    "region": "欧洲",
+    "description": "土地轮作使用的农业技术，避免土地耗竭",
+    "importance": 3,
+    "impact": "轮作制度提高了土地利用效率，减少了农业对环境的压力，提高了粮食产量"
+  },
+  {
+    "id": "AGR008",
+    "title": "中国水利工程",
+    "category": "农业",
+    "startYear": -256,
+    "endYear": -256,
+    "location": {
+      "lat": 31.0,
+      "lng": 104.0
+    },
+    "region": "中国四川",
+    "description": "都江堰等大型水利工程的修建，用于灌溉和防洪",
+    "importance": 4,
+    "impact": "中国的大型水利工程创造了稳定高产的农业系统，支持了中国长期的人口增长"
+  },
+  {
+    "id": "AGR009",
+    "title": "中世纪欧洲三田制",
+    "category": "农业",
+    "startYear": 800,
+    "endYear": 800,
+    "location": {
+      "lat": 48.0,
+      "lng": 2.0
+    },
+    "region": "西欧",
+    "description": "中世纪欧洲采用的农田三年轮作系统",
+    "importance": 3,
+    "impact": "三田制提高了欧洲的农业生产力，支持了中世纪城市的发展和人口增长"
+  },
+  {
+    "id": "AGR010",
+    "title": "哥伦布交换",
+    "category": "农业",
+    "startYear": 1492,
+    "endYear": 1650,
+    "location": {
+      "lat": 0.0,
+      "lng": -40.0
+    },
+    "region": "美洲与欧亚大陆之间",
+    "description": "新旧大陆之间的生物物种、农作物、疾病和技术交流",
+    "importance": 5,
+    "impact": "全球范围内的作物交换，如马铃薯传入欧洲，小麦传入美洲，改变了世界农业和饮食模式"
+  },
+  {
+    "id": "AGR011",
+    "title": "英国农业革命",
+    "category": "农业",
+    "startYear": 1700,
+    "endYear": 1850,
+    "location": {
+      "lat": 52.0,
+      "lng": -1.0
+    },
+    "region": "英国",
+    "description": "包括新作物轮作、牲畜选择性育种、农田围封和新农业机械的一系列创新",
+    "importance": 4,
+    "impact": "英国农业革命大幅提高了粮食产量，为工业革命提供了劳动力和粮食保障"
+  },
+  {
+    "id": "AGR012",
+    "title": "机械化农业",
+    "category": "农业",
+    "startYear": 1850,
+    "endYear": 1915,
+    "location": {
+      "lat": 40.0,
+      "lng": -90.0
+    },
+    "region": "北美",
+    "description": "拖拉机和各种机械农具的发明和广泛应用",
+    "importance": 4,
+    "impact": "机械化农业提高了生产效率，减少了农业劳动力需求，加速了城市化进程"
+  },
+  {
+    "id": "AGR013",
+    "title": "绿色革命",
+    "category": "农业",
+    "startYear": 1950,
+    "endYear": 1970,
+    "location": {
+      "lat": 20.0,
+      "lng": 77.0
+    },
+    "region": "全球，特别是发展中国家",
+    "description": "高产作物品种、灌溉基础设施、现代管理技术、合成肥料和农药的综合应用",
+    "importance": 5,
+    "impact": "绿色革命极大地提高了全球粮食产量，避免了预测中的饥荒，但也带来了环境和社会挑战"
+  },
+  {
+    "id": "AGR014",
+    "title": "转基因作物应用",
+    "category": "农业",
+    "startYear": 1994,
+    "endYear": 1994,
+    "location": {
+      "lat": 38.0,
+      "lng": -90.0
+    },
+    "region": "全球，起源于美国",
+    "description": "基因改造作物的商业化种植和应用",
+    "importance": 4,
+    "impact": "转基因技术提高了作物产量和抗性，但也引发了环境和健康方面的争议"
+  },
+  {
+    "id": "AGR015",
+    "title": "可持续农业运动",
+    "category": "农业",
+    "startYear": 1980,
+    "endYear": 2000,
+    "location": {
+      "lat": 0.0,
+      "lng": 0.0
+    },
+    "region": "全球",
+    "description": "强调环境保护、社会公平和经济可行性的农业生产方式",
+    "importance": 3,
+    "impact": "可持续农业促进了环境友好型农业实践，推动了有机农业和当地食品系统的发展"
+  }
+] 

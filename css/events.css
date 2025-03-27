@@ -1,0 +1,370 @@
+/* 事件面板样式 */
+.events-panel {
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.events-panel h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 18px;
+    color: #333;
+}
+
+.filter-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.filter-controls select {
+    flex: 1;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    background-color: #f5f5f5;
+}
+
+.events-container {
+    max-height: calc(100vh - 180px);
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* 事件列表容器 */
+.events-list {
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* 事件卡片 */
+.event-card {
+    background-color: white;
+    border-radius: 0.5rem;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s;
+    cursor: pointer;
+    transform: translateX(0);
+}
+
+.event-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: #93c5fd;
+    transform: translateX(0.25rem);
+}
+
+.dark .event-card {
+    background-color: #1e293b;
+    border-color: #334155;
+}
+
+.dark .event-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25);
+    border-color: #3b82f6;
+}
+
+.event-card-inner {
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* 事件标题 */
+.event-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dark .event-title {
+    color: #f1f5f9;
+}
+
+.event-title i {
+    font-size: 1.125rem;
+}
+
+/* 事件元信息 */
+.event-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.dark .event-meta {
+    color: #94a3b8;
+}
+
+.event-date {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.event-importance {
+    display: flex;
+    align-items: center;
+    gap: 0.125rem;
+    color: #f59e0b;
+}
+
+/* 事件描述 */
+.event-description {
+    font-size: 0.75rem;
+    color: #475569;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.dark .event-description {
+    color: #cbd5e1;
+}
+
+/* 事件类别标签 */
+.event-category {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.event-category.农业 {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.event-category.技术 {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.event-category.文明 {
+    background-color: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
+}
+
+.event-category.征服 {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.event-category.疾病 {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.event-category.迁徙 {
+    background-color: rgba(124, 58, 237, 0.1);
+    color: #7c3aed;
+}
+
+.dark .event-category.农业 {
+    background-color: rgba(6, 95, 70, 0.2);
+    color: #34d399;
+}
+
+.dark .event-category.技术 {
+    background-color: rgba(30, 64, 175, 0.2);
+    color: #60a5fa;
+}
+
+.dark .event-category.文明 {
+    background-color: rgba(91, 33, 182, 0.2);
+    color: #a78bfa;
+}
+
+.dark .event-category.征服 {
+    background-color: rgba(185, 28, 28, 0.2);
+    color: #f87171;
+}
+
+.dark .event-category.疾病 {
+    background-color: rgba(180, 83, 9, 0.2);
+    color: #fbbf24;
+}
+
+.dark .event-category.迁徙 {
+    background-color: rgba(124, 58, 237, 0.2);
+    color: #a78bfa;
+}
+
+/* 事件列表头部 */
+.events-list-header {
+    position: sticky;
+    top: 0;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    padding: 0.75rem 0;
+    z-index: 10;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 1rem;
+}
+
+.dark .events-list-header {
+    background-color: rgba(30, 41, 59, 0.95);
+    border-color: #334155;
+}
+
+/* 没有事件提示 */
+#no-events-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 0;
+    color: #64748b;
+    text-align: center;
+}
+
+.dark #no-events-message {
+    color: #94a3b8;
+}
+
+/* 事件详情面板 */
+.event-details {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    max-width: 32rem;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.event-details-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.event-details-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.event-details-content {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.event-details-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.event-details-section-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #334155;
+}
+
+.event-details-section-content {
+    font-size: 0.875rem;
+    color: #475569;
+}
+
+/* 事件关系图 */
+.event-relations {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #f8fafc;
+    border-radius: 0.5rem;
+    border: 1px solid #e2e8f0;
+}
+
+.relation-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.relation-item:last-child {
+    border-bottom: none;
+}
+
+.relation-icon {
+    font-size: 1.125rem;
+    color: #94a3b8;
+}
+
+.relation-text {
+    font-size: 0.875rem;
+    color: #475569;
+}
+
+/* 动画效果 */
+.event-card-enter {
+    animation: slideIn 0.3s ease-out;
+}
+
+.event-card-exit {
+    animation: slideOut 0.3s ease-in;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(10px);
+    }
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .events-container {
+        max-height: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .event-card-inner {
+        padding: 0.5rem;
+    }
+    
+    .event-title {
+        font-size: 0.8rem;
+    }
+    
+    .event-meta, .event-description {
+        font-size: 0.7rem;
+    }
+} 

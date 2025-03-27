@@ -1,0 +1,302 @@
+[
+  {
+    "id": "SPE001",
+    "title": "人类起源",
+    "category": "物种",
+    "startYear": -300000,
+    "endYear": -200000,
+    "location": {
+      "lat": -3.0,
+      "lng": 35.0
+    },
+    "region": "东非",
+    "description": "现代人类（智人）在非洲的起源和早期进化",
+    "importance": 5,
+    "impact": "智人具备语言能力和使用复杂工具的能力，最终成为全球最主导的物种"
+  },
+  {
+    "id": "SPE002",
+    "title": "尼安德特人出现",
+    "category": "物种",
+    "startYear": -400000,
+    "endYear": -350000,
+    "location": {
+      "lat": 50.0,
+      "lng": 10.0
+    },
+    "region": "欧洲和西亚",
+    "description": "尼安德特人作为人类的近亲物种在欧洲和西亚进化",
+    "importance": 4,
+    "impact": "尼安德特人对欧亚环境高度适应，发展了工具使用和初步文化"
+  },
+  {
+    "id": "SPE003",
+    "title": "尼安德特人灭绝",
+    "category": "物种",
+    "startYear": -40000,
+    "endYear": -28000,
+    "location": {
+      "lat": 45.0,
+      "lng": 20.0
+    },
+    "region": "欧洲",
+    "description": "尼安德特人消失，可能与现代人类扩张有关",
+    "importance": 4,
+    "impact": "尼安德特人灭绝使现代人类成为唯一幸存的人类物种，但其DNA仍存在于欧亚人群中"
+  },
+  {
+    "id": "SPE004",
+    "title": "丹尼索瓦人发现",
+    "category": "物种",
+    "startYear": -40000,
+    "endYear": -40000,
+    "location": {
+      "lat": 51.2,
+      "lng": 84.7
+    },
+    "region": "西伯利亚",
+    "description": "通过DNA分析发现的古人类物种",
+    "importance": 3,
+    "impact": "丹尼索瓦人的基因在现代美拉尼西亚人和亚洲部分人群中有所保留"
+  },
+  {
+    "id": "SPE005",
+    "title": "小黑猩猩(倭黑猩猩)分化",
+    "category": "物种",
+    "startYear": -2000000,
+    "endYear": -1000000,
+    "location": {
+      "lat": -2.0,
+      "lng": 23.0
+    },
+    "region": "中非",
+    "description": "灵长类动物中与人类关系最近的物种之一的形成",
+    "importance": 3,
+    "impact": "倭黑猩猩提供了了解人类进化和社会行为的重要参考"
+  },
+  {
+    "id": "SPE006",
+    "title": "大型野牛家养化",
+    "category": "物种",
+    "startYear": -10000,
+    "endYear": -8000,
+    "location": {
+      "lat": 37.0,
+      "lng": 40.0
+    },
+    "region": "中东和安纳托利亚",
+    "description": "人类驯化野牛成为家养牛",
+    "importance": 4,
+    "impact": "牛的驯化为人类提供了稳定的肉食和奶制品来源，改变了饮食和农业实践"
+  },
+  {
+    "id": "SPE007",
+    "title": "狗驯化",
+    "category": "物种",
+    "startYear": -33000,
+    "endYear": -15000,
+    "location": {
+      "lat": 55.0,
+      "lng": 60.0
+    },
+    "region": "欧亚大陆",
+    "description": "狼被人类驯化成为第一种家养动物",
+    "importance": 4,
+    "impact": "狗成为人类的狩猎伙伴和守护者，是人类最早的动物伙伴"
+  },
+  {
+    "id": "SPE008",
+    "title": "猫驯化",
+    "category": "物种",
+    "startYear": -9500,
+    "endYear": -4000,
+    "location": {
+      "lat": 30.0,
+      "lng": 31.0
+    },
+    "region": "近东和埃及",
+    "description": "野猫被农业社会的人类驯化",
+    "importance": 3,
+    "impact": "猫帮助控制鼠害，保护粮食储备，后成为文化和宗教象征"
+  },
+  {
+    "id": "SPE009",
+    "title": "美洲大型哺乳动物灭绝",
+    "category": "物种",
+    "startYear": -13000,
+    "endYear": -10000,
+    "location": {
+      "lat": 40.0,
+      "lng": -100.0
+    },
+    "region": "北美和南美",
+    "description": "包括猛犸象、剑齿虎等大型哺乳动物的集体灭绝",
+    "importance": 4,
+    "impact": "改变了美洲生态系统，可能与人类狩猎和气候变化有关"
+  },
+  {
+    "id": "SPE010",
+    "title": "小麦驯化",
+    "category": "物种",
+    "startYear": -9500,
+    "endYear": -7500,
+    "location": {
+      "lat": 35.0,
+      "lng": 40.0
+    },
+    "region": "肥沃新月地带",
+    "description": "野生小麦被驯化成作物",
+    "importance": 5,
+    "impact": "小麦成为西方文明的主食，支持了复杂社会的发展"
+  },
+  {
+    "id": "SPE011",
+    "title": "水稻驯化",
+    "category": "物种",
+    "startYear": -9000,
+    "endYear": -7000,
+    "location": {
+      "lat": 30.0,
+      "lng": 112.0
+    },
+    "region": "中国长江流域",
+    "description": "野生稻被驯化成水稻",
+    "importance": 5,
+    "impact": "水稻成为亚洲人口的主食，支持了高人口密度的社会"
+  },
+  {
+    "id": "SPE012",
+    "title": "马驯化",
+    "category": "物种",
+    "startYear": -5500,
+    "endYear": -4000,
+    "location": {
+      "lat": 48.0,
+      "lng": 36.0
+    },
+    "region": "欧亚草原",
+    "description": "野马被驯化为运输和军事用途",
+    "importance": 5,
+    "impact": "改变了人类运输、贸易和战争方式，促进了文明间的联系"
+  },
+  {
+    "id": "SPE013",
+    "title": "黑死病传播",
+    "category": "物种",
+    "startYear": 1347,
+    "endYear": 1353,
+    "location": {
+      "lat": 45.0,
+      "lng": 15.0
+    },
+    "region": "欧洲、北非和亚洲",
+    "description": "鼠疫杆菌通过跳蚤和老鼠传播，引起全球大流行",
+    "importance": 5,
+    "impact": "导致欧洲人口减少三分之一，改变了社会和经济结构"
+  },
+  {
+    "id": "SPE014",
+    "title": "天花根除",
+    "category": "物种",
+    "startYear": 1980,
+    "endYear": 1980,
+    "location": {
+      "lat": 9.0,
+      "lng": 38.0
+    },
+    "region": "全球，最后一例在索马里",
+    "description": "人类历史上首次成功消灭一种传染病",
+    "importance": 5,
+    "impact": "展示了疫苗和全球合作的力量，拯救了无数生命"
+  },
+  {
+    "id": "SPE015",
+    "title": "现代农作物杂交改良",
+    "category": "物种",
+    "startYear": 1930,
+    "endYear": 1970,
+    "location": {
+      "lat": 30.0,
+      "lng": -100.0
+    },
+    "region": "全球",
+    "description": "通过选择性育种和杂交改良主要农作物",
+    "importance": 5,
+    "impact": "绿色革命大幅提高粮食产量，养活了不断增长的全球人口"
+  },
+  {
+    "id": "SPE016",
+    "title": "羊驯化",
+    "category": "物种",
+    "startYear": -10500,
+    "endYear": -9000,
+    "location": {
+      "lat": 36.0,
+      "lng": 43.0
+    },
+    "region": "中东",
+    "description": "野生羊被驯化为肉食、毛皮和绒毛来源",
+    "importance": 4,
+    "impact": "提供了稳定的肉食、奶制品和毛纺原料，支持了游牧文化和文明发展"
+  },
+  {
+    "id": "SPE017",
+    "title": "克隆羊多莉诞生",
+    "category": "物种",
+    "startYear": 1996,
+    "endYear": 1996,
+    "location": {
+      "lat": 55.9,
+      "lng": -3.2
+    },
+    "region": "苏格兰",
+    "description": "首个成功克隆的哺乳动物",
+    "importance": 4,
+    "impact": "开启了生物技术新时代，引发了关于克隆技术的伦理争议"
+  },
+  {
+    "id": "SPE018",
+    "title": "人类基因组测序完成",
+    "category": "物种",
+    "startYear": 2003,
+    "endYear": 2003,
+    "location": {
+      "lat": 38.9,
+      "lng": -77.0
+    },
+    "region": "全球合作",
+    "description": "完成对人类基因组的全面测序",
+    "importance": 5,
+    "impact": "为理解人类进化和疾病机制提供了基础，开创了个性化医疗时代"
+  },
+  {
+    "id": "SPE019",
+    "title": "转基因作物商业化",
+    "category": "物种",
+    "startYear": 1994,
+    "endYear": 1996,
+    "location": {
+      "lat": 40.0,
+      "lng": -90.0
+    },
+    "region": "北美",
+    "description": "首批转基因作物获准商业种植",
+    "importance": 4,
+    "impact": "改变了现代农业，引发了关于食品安全和生物多样性的争议"
+  },
+  {
+    "id": "SPE020",
+    "title": "耐除草剂作物开发",
+    "category": "物种",
+    "startYear": 1996,
+    "endYear": 2000,
+    "location": {
+      "lat": 38.6,
+      "lng": -90.2
+    },
+    "region": "美国",
+    "description": "开发抗除草剂的大豆、玉米等作物",
+    "importance": 3,
+    "impact": "简化了农业管理，但也引发了超级杂草和生态影响的担忧"
+  }
+] 

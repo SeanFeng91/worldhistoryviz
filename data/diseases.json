@@ -1,0 +1,227 @@
+[
+  {
+    "id": "DIS001",
+    "title": "安东尼瘟疫",
+    "category": "疾病",
+    "startYear": 165,
+    "endYear": 180,
+    "location": {
+      "lat": 41.9,
+      "lng": 12.5
+    },
+    "region": "罗马帝国",
+    "description": "可能是天花或麻疹的瘟疫席卷罗马帝国",
+    "importance": 4,
+    "impact": "导致罗马帝国人口大幅下降，可能有500万人死亡，削弱了罗马军队和经济"
+  },
+  {
+    "id": "DIS002",
+    "title": "查士丁尼瘟疫",
+    "category": "疾病",
+    "startYear": 541,
+    "endYear": 549,
+    "location": {
+      "lat": 41.0,
+      "lng": 28.9
+    },
+    "region": "拜占庭帝国及周边地区",
+    "description": "第一次记录在案的鼠疫大流行",
+    "importance": 5,
+    "impact": "导致拜占庭帝国人口锐减25-50%，阻碍了查士丁尼恢复罗马帝国的计划"
+  },
+  {
+    "id": "DIS003",
+    "title": "黑死病",
+    "category": "疾病",
+    "startYear": 1347,
+    "endYear": 1351,
+    "location": {
+      "lat": 45.0,
+      "lng": 15.0
+    },
+    "region": "欧洲、北非和亚洲",
+    "description": "历史上最致命的鼠疫大流行之一",
+    "importance": 5,
+    "impact": "导致欧洲人口减少30-60%，改变了经济和社会结构，加速了封建主义的衰落"
+  },
+  {
+    "id": "DIS004",
+    "title": "美洲天花流行",
+    "category": "疾病",
+    "startYear": 1520,
+    "endYear": 1600,
+    "location": {
+      "lat": 20.0,
+      "lng": -90.0
+    },
+    "region": "美洲",
+    "description": "欧洲殖民者带入美洲的天花导致当地人口灾难性下降",
+    "importance": 5,
+    "impact": "导致美洲原住民人口减少高达90%，为欧洲殖民铺平了道路"
+  },
+  {
+    "id": "DIS005",
+    "title": "第三次霍乱大流行",
+    "category": "疾病",
+    "startYear": 1846,
+    "endYear": 1860,
+    "location": {
+      "lat": 22.0,
+      "lng": 79.0
+    },
+    "region": "亚洲、欧洲、北美和非洲",
+    "description": "起源于印度的霍乱通过贸易和军事活动传播到全球",
+    "importance": 4,
+    "impact": "夺走了100多万人的生命，促使现代公共卫生和城市基础设施的发展"
+  },
+  {
+    "id": "DIS006",
+    "title": "西班牙流感",
+    "category": "疾病",
+    "startYear": 1918,
+    "endYear": 1920,
+    "location": {
+      "lat": 40.0,
+      "lng": 0.0
+    },
+    "region": "全球",
+    "description": "历史上最致命的流感大流行",
+    "importance": 5,
+    "impact": "感染了全球1/3的人口，导致5000万至1亿人死亡，超过一战战死人数"
+  },
+  {
+    "id": "DIS007",
+    "title": "艾滋病爆发",
+    "category": "疾病",
+    "startYear": 1981,
+    "endYear": 2000,
+    "location": {
+      "lat": 0.0,
+      "lng": 25.0
+    },
+    "region": "全球，起源于非洲",
+    "description": "由HIV病毒引起的新型传染病全球传播",
+    "importance": 4,
+    "impact": "已导致3500万人死亡，改变了公共卫生政策和性行为态度"
+  },
+  {
+    "id": "DIS008",
+    "title": "SARS爆发",
+    "category": "疾病",
+    "startYear": 2002,
+    "endYear": 2004,
+    "location": {
+      "lat": 22.5,
+      "lng": 114.0
+    },
+    "region": "中国广东及全球多地",
+    "description": "由SARS冠状病毒引起的严重急性呼吸综合征",
+    "importance": 3,
+    "impact": "虽感染人数有限，但对全球公共卫生体系和应对新发传染病的机制产生深远影响"
+  },
+  {
+    "id": "DIS009",
+    "title": "2009年H1N1流感大流行",
+    "category": "疾病",
+    "startYear": 2009,
+    "endYear": 2010,
+    "location": {
+      "lat": 19.4,
+      "lng": -99.1
+    },
+    "region": "全球，起源于墨西哥",
+    "description": "由新型H1N1流感病毒引起的全球流感大流行",
+    "importance": 3,
+    "impact": "全球感染约1-2亿人，展示了现代全球卫生体系应对大流行的能力与挑战"
+  },
+  {
+    "id": "DIS010",
+    "title": "新冠肺炎大流行",
+    "category": "疾病",
+    "startYear": 2019,
+    "endYear": 2023,
+    "location": {
+      "lat": 30.6,
+      "lng": 114.3
+    },
+    "region": "全球，起源于中国",
+    "description": "由SARS-CoV-2病毒引起的前所未有的全球大流行",
+    "importance": 5,
+    "impact": "导致全球600多万人死亡，引发经济衰退，改变了工作方式和国际关系"
+  },
+  {
+    "id": "DIS011",
+    "title": "第一次鼠疫大流行",
+    "category": "疾病",
+    "startYear": 541,
+    "endYear": 750,
+    "location": {
+      "lat": 30.0,
+      "lng": 30.0
+    },
+    "region": "地中海地区和中东",
+    "description": "从查士丁尼瘟疫开始的长期鼠疫流行",
+    "importance": 5,
+    "impact": "削弱了拜占庭和萨珊帝国，为阿拉伯帝国的崛起创造了条件"
+  },
+  {
+    "id": "DIS012",
+    "title": "第二次鼠疫大流行",
+    "category": "疾病",
+    "startYear": 1347,
+    "endYear": 1750,
+    "location": {
+      "lat": 45.0,
+      "lng": 20.0
+    },
+    "region": "欧亚大陆",
+    "description": "从黑死病开始持续数个世纪的鼠疫流行",
+    "importance": 5,
+    "impact": "数百年内反复爆发，深刻影响了欧洲社会、宗教和艺术"
+  },
+  {
+    "id": "DIS013",
+    "title": "麻风病在中世纪欧洲",
+    "category": "疾病",
+    "startYear": 1000,
+    "endYear": 1400,
+    "location": {
+      "lat": 48.0,
+      "lng": 2.0
+    },
+    "region": "欧洲",
+    "description": "麻风病在中世纪欧洲的普遍流行",
+    "importance": 3,
+    "impact": "导致社会隔离和专门麻风病院的建立，深刻影响了医疗和宗教实践"
+  },
+  {
+    "id": "DIS014",
+    "title": "结核病工业时代流行",
+    "category": "疾病",
+    "startYear": 1800,
+    "endYear": 1900,
+    "location": {
+      "lat": 51.5,
+      "lng": -0.1
+    },
+    "region": "西方工业化国家",
+    "description": "工业革命期间城市中结核病的大规模流行",
+    "importance": 4,
+    "impact": "被称为'白色瘟疫'，导致都市贫民大量死亡，影响了社会卫生政策和城市规划"
+  },
+  {
+    "id": "DIS015",
+    "title": "埃博拉病毒西非爆发",
+    "category": "疾病",
+    "startYear": 2014,
+    "endYear": 2016,
+    "location": {
+      "lat": 8.5,
+      "lng": -11.5
+    },
+    "region": "西非",
+    "description": "历史上规模最大的埃博拉病毒疫情",
+    "importance": 3,
+    "impact": "导致11,000多人死亡，暴露了全球卫生体系应对新兴疾病的不足"
+  }
+] 

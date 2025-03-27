@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全球历史地图 - 地理视角下的世界历史变迁</title>
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- TailwindCSS 3.0+ -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <!-- Font Awesome (免费版) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/timeline.css">
+    <link rel="stylesheet" href="css/events.css">
+    <!-- 动画库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
+    <style>
+        /* 基础样式重置 */
+        body {
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        
+        body.dark {
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        
+        /* Linear App 风格的滚动条 */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 9999px;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb {
+            background-color: #475569;
+        }
+        
+        /* 事件图标样式现代化 */
+        .event-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(4px);
+            background-color: rgba(255, 255, 255, 0.9);
+            font-size: 1.125rem;
+            transition: all 0.3s;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .dark .event-icon {
+            background-color: rgba(30, 41, 59, 0.9);
+            border-color: #334155;
+        }
+        
+        .event-icon.农业 { color: #10b981; border-color: #d1fae5; }
+        .event-icon.技术 { color: #3b82f6; border-color: #dbeafe; }
+        .event-icon.文明 { color: #8b5cf6; border-color: #ede9fe; }
+        .event-icon.征服 { color: #ef4444; border-color: #fee2e2; }
+        .event-icon.疾病 { color: #f59e0b; border-color: #fef3c7; }
+        .event-icon.迁徙 { color: #7c3aed; border-color: #ede9fe; }
+        
+        .dark .event-icon.农业 { border-color: #065f46; }
+        .dark .event-icon.技术 { border-color: #1e40af; }
+        .dark .event-icon.文明 { border-color: #5b21b6; }
+        .dark .event-icon.征服 { border-color: #b91c1c; }
+        .dark .event-icon.疾病 { border-color: #b45309; }
+        .dark .event-icon.迁徙 { border-color: #5b21b6; }
+        
+        /* 迁徙路径样式 */
+        .migration-path {
+            stroke-width: 2;
+            stroke: rgba(71, 85, 105, 0.5);
+            fill: none;
+            stroke-dasharray: 6;
+            animation: dash 20s linear infinite;
+        }
+        
+        .dark .migration-path {
+            stroke: rgba(148, 163, 184, 0.5);
+        }
+        
+        @keyframes dash {
+            to {
+                stroke-dashoffset: 100;
+            }
+        }
+        
+        /* 事件标记样式 */
+        .event-marker {
+            transition: all 0.3s;
+        }
+        
+        .event-marker:hover {
+            transform: scale(1.1);
+        }
+        
+        /* 时间轴样式现代化 */
+        #year-slider {
+            height: 0.5rem;
+            border-radius: 9999px;
+            background-color: #e2e8f0;
+            accent-color: #3b82f6;
+        }
+        
+        .dark #year-slider {
+            background-color: #334155;
+            accent-color: #3b82f6;
+        }
+        
+        /* 按钮基础样式 */
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+        
+        .btn:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+        }
+        
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        
+        .btn-primary:focus {
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+        }
+        
+        .btn-secondary {
+            background-color: #e2e8f0;
+            color: #334155;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #cbd5e1;
+        }
+        
+        .dark .btn-secondary {
+            background-color: #334155;
+            color: #e2e8f0;
+        }
+        
+        .dark .btn-secondary:hover {
+            background-color: #475569;
+        }
+        
+        .dark .btn-secondary:focus {
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex flex-col h-screen max-h-screen overflow-hidden">
+        <!-- 顶部导航栏 - 降低高度 -->
+        <header class="bg-white bg-opacity-80 border-b border-gray-200 py-2 px-4 backdrop-filter backdrop-blur-sm">
+            <div class="container mx-auto flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-lg font-semibold text-gray-900">
+                        全球历史地图
+                        <span class="text-sm font-normal text-gray-500 ml-2">
+                            枪炮、病毒与钢铁的视角
+                        </span>
+                    </h1>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button id="theme-toggle" class="btn btn-secondary !p-2" title="切换主题">
+                        <i class="material-icons-round text-xl">dark_mode</i>
+                    </button>
+                    <button id="help-button" class="btn btn-secondary">
+                        <i class="material-icons-round mr-1">help_outline</i>
+                        帮助
+                    </button>
+                </div>
+            </div>
+        </header>
+        
+        <!-- 事件类别过滤器 - 降低高度 -->
+        <div class="bg-white bg-opacity-50 border-b border-gray-200 py-1 backdrop-filter backdrop-blur-sm">
+            <div class="container mx-auto flex justify-center items-center space-x-4">
+                <div class="text-sm font-medium text-gray-500">显示类别:</div>
+                <div class="flex flex-wrap justify-center gap-2">
+                    <button class="category-btn active btn btn-secondary !py-1 !px-3" data-category="all">
+                        <i class="material-icons-round text-blue-600 !text-sm">public</i>
+                        <span class="ml-1">全部</span>
+                    </button>
+                    <button class="category-btn btn btn-secondary !py-1 !px-3" data-category="农业">
+                        <i class="material-icons-round text-green-600 !text-sm">grass</i>
+                        <span class="ml-1">农业</span>
+                    </button>
+                    <button class="category-btn btn btn-secondary !py-1 !px-3" data-category="技术">
+                        <i class="material-icons-round text-blue-600 !text-sm">precision_manufacturing</i>
+                        <span class="ml-1">技术</span>
+                    </button>
+                    <button class="category-btn btn btn-secondary !py-1 !px-3" data-category="文明">
+                        <i class="material-icons-round text-purple-600 !text-sm">account_balance</i>
+                        <span class="ml-1">文明</span>
+                    </button>
+                    <button class="category-btn btn btn-secondary !py-1 !px-3" data-category="征服">
+                        <i class="material-icons-round text-red-600 !text-sm">gavel</i>
+                        <span class="ml-1">征服</span>
+                    </button>
+                    <button class="category-btn btn btn-secondary !py-1 !px-3" data-category="疾病">
+                        <i class="material-icons-round text-yellow-600 !text-sm">coronavirus</i>
+                        <span class="ml-1">疾病</span>
+                    </button>
+                    <button class="category-btn btn btn-secondary !py-1 !px-3" data-category="迁徙">
+                        <i class="material-icons-round text-purple-600 !text-sm">timeline</i>
+                        <span class="ml-1">迁徙</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+                
+        <!-- 主要内容区域：左侧事件列表和右侧地图 -->
+        <main class="flex-1 flex overflow-hidden">
+            <!-- 左侧事件列表 -->
+            <aside id="events-list" class="w-[300px] h-full border-r border-gray-200 bg-white bg-opacity-50 overflow-y-auto p-4">
+                <!-- 侧边栏切换按钮 -->
+                <div id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="material-icons-round">chevron_left</i>
+                </div>
+                
+                <div class="events-list-header mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900">历史事件</h2>
+                    <p class="text-sm text-gray-500">显示当前年份的相关历史事件</p>
+                </div>
+                <div id="no-events-message" class="hidden text-center py-8 text-gray-500">
+                    <i class="material-icons-round text-3xl mb-2">history</i>
+                    <p>当前年份没有相关事件</p>
+                </div>
+                <div id="events-container" class="space-y-3"></div>
+            </aside>
+            
+            <!-- 右侧地图 -->
+            <div class="map-container flex-1 relative overflow-hidden">
+                <div id="map" class="w-full h-full"></div>
+                
+                <!-- 时间轴遮罩层，防止地图在时间轴区域的拖动 -->
+                <div class="timeline-overlay"></div>
+                
+                <!-- 地图控件 -->
+                <div class="absolute top-4 right-4 space-y-2 z-10">
+                    <div class="bg-white bg-opacity-90 backdrop-filter backdrop-blur-sm shadow-md rounded-lg p-2 flex flex-col space-y-2">
+                        <button id="toggle-events" class="control-btn active" title="显示/隐藏事件">
+                            <i class="material-icons-round">event</i>
+                        </button>
+                        <button id="toggle-migrations" class="control-btn active" title="显示/隐藏迁徙路线">
+                            <i class="material-icons-round">timeline</i>
+                        </button>
+                        <button id="toggle-technologies" class="control-btn" title="显示/隐藏技术发展">
+                            <i class="material-icons-round">precision_manufacturing</i>
+                        </button>
+                        <button id="toggle-species" class="control-btn" title="显示/隐藏物种">
+                            <i class="material-icons-round">pets</i>
+                        </button>
+                        <button id="toggle-wars" class="control-btn" title="显示/隐藏战争">
+                            <i class="material-icons-round">gavel</i>
+                        </button>
+                        <button id="toggle-diseases" class="control-btn" title="显示/隐藏疾病">
+                            <i class="material-icons-round">coronavirus</i>
+                        </button>
+                        <button id="toggle-agriculture" class="control-btn" title="显示/隐藏农业">
+                            <i class="material-icons-round">grass</i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- 加载指示器 -->
+    <div id="loading-indicator" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 backdrop-filter backdrop-blur-sm">
+        <div class="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center animate__animated animate__fadeIn">
+            <div class="spinner mb-3"></div>
+            <p class="text-gray-900">加载中...</p>
+        </div>
+    </div>
+    
+    <!-- 错误提示 -->
+    <div id="error-container" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 backdrop-filter backdrop-blur-sm">
+        <div class="bg-white p-6 rounded-lg shadow-lg max-w-md w-full animate__animated animate__fadeInUp">
+            <div class="flex items-center mb-4">
+                <i class="material-icons-round text-red-600 text-3xl mr-3">error_outline</i>
+                <h3 class="text-xl font-bold text-gray-900">出错了</h3>
+            </div>
+            <p id="error-message" class="mb-4 text-gray-600"></p>
+            <div class="flex justify-end">
+                <button id="dismiss-error" class="btn btn-primary">
+                    确定
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 脚本 -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html> 

@@ -1,0 +1,302 @@
+[
+  {
+    "id": "CIV001",
+    "title": "苏美尔文明兴起",
+    "category": "文明",
+    "startYear": -4500,
+    "endYear": -4000,
+    "location": {
+      "lat": 31.0,
+      "lng": 46.0
+    },
+    "region": "美索不达米亚南部",
+    "description": "世界上最早的城市文明之一在两河流域兴起",
+    "importance": 5,
+    "impact": "发明了楔形文字，创建了早期城市国家体系，发展了复杂的灌溉系统和社会组织"
+  },
+  {
+    "id": "CIV002",
+    "title": "古埃及文明形成",
+    "category": "文明",
+    "startYear": -3200,
+    "endYear": -3000,
+    "location": {
+      "lat": 30.0,
+      "lng": 31.0
+    },
+    "region": "尼罗河流域",
+    "description": "埃及上下王国统一，形成世界上最早的中央集权国家之一",
+    "importance": 5,
+    "impact": "创建了持续三千年的文明，发展了象形文字、金字塔建筑和复杂的宗教体系"
+  },
+  {
+    "id": "CIV003",
+    "title": "印度河流域文明兴起",
+    "category": "文明",
+    "startYear": -3300,
+    "endYear": -2600,
+    "location": {
+      "lat": 27.0,
+      "lng": 68.0
+    },
+    "region": "印度河流域",
+    "description": "哈拉帕和莫亨佐-达罗等城市的建立和发展",
+    "importance": 5,
+    "impact": "创建了南亚最早的城市文明，发展了城市规划、排水系统和贸易网络"
+  },
+  {
+    "id": "CIV004",
+    "title": "中国夏朝建立",
+    "category": "文明",
+    "startYear": -2100,
+    "endYear": -1600,
+    "location": {
+      "lat": 34.7,
+      "lng": 112.5
+    },
+    "region": "中国黄河流域",
+    "description": "传说中的中国第一个王朝建立",
+    "importance": 4,
+    "impact": "标志着中国文明从神话时代步入历史时期，形成了早期国家组织"
+  },
+  {
+    "id": "CIV005",
+    "title": "米诺斯文明繁荣",
+    "category": "文明",
+    "startYear": -2000,
+    "endYear": -1500,
+    "location": {
+      "lat": 35.3,
+      "lng": 25.1
+    },
+    "region": "克里特岛",
+    "description": "以克诺索斯宫殿为中心的爱琴海早期文明",
+    "importance": 4,
+    "impact": "开创了欧洲第一个高度发达的文明，发展了复杂的宫殿文化和海上贸易网络"
+  },
+  {
+    "id": "CIV006",
+    "title": "迈锡尼文明兴起",
+    "category": "文明",
+    "startYear": -1600,
+    "endYear": -1100,
+    "location": {
+      "lat": 37.7,
+      "lng": 22.8
+    },
+    "region": "希腊大陆",
+    "description": "以迈锡尼、梯林斯等城市为中心的希腊早期文明",
+    "importance": 4,
+    "impact": "为后来的古典希腊文明奠定基础，是荷马史诗中特洛伊战争的历史背景"
+  },
+  {
+    "id": "CIV007",
+    "title": "奥尔梅克文明兴起",
+    "category": "文明",
+    "startYear": -1500,
+    "endYear": -400,
+    "location": {
+      "lat": 18.0,
+      "lng": -95.0
+    },
+    "region": "墨西哥湾沿岸",
+    "description": "美洲大陆最早的复杂社会之一",
+    "importance": 4,
+    "impact": "被视为中美洲'母体文明'，影响了后来的玛雅、特奥蒂瓦坎等文明"
+  },
+  {
+    "id": "CIV008",
+    "title": "腓尼基文明扩张",
+    "category": "文明",
+    "startYear": -1200,
+    "endYear": -800,
+    "location": {
+      "lat": 33.9,
+      "lng": 35.5
+    },
+    "region": "地中海东岸",
+    "description": "以航海和贸易为主的腓尼基城邦在地中海的扩张",
+    "importance": 4,
+    "impact": "传播了字母文字，建立了广泛的贸易网络，创建了迦太基等重要殖民地"
+  },
+  {
+    "id": "CIV009",
+    "title": "古典希腊文明繁荣",
+    "category": "文明",
+    "startYear": -800,
+    "endYear": -323,
+    "location": {
+      "lat": 37.9,
+      "lng": 23.7
+    },
+    "region": "希腊半岛及爱琴海",
+    "description": "以雅典为代表的希腊城邦文明的黄金时代",
+    "importance": 5,
+    "impact": "发展了民主政治、西方哲学、戏剧、科学和艺术，奠定了西方文明的基础"
+  },
+  {
+    "id": "CIV010",
+    "title": "罗马共和国建立",
+    "category": "文明",
+    "startYear": -509,
+    "endYear": -509,
+    "location": {
+      "lat": 41.9,
+      "lng": 12.5
+    },
+    "region": "意大利半岛中部",
+    "description": "罗马王政结束，共和制开始",
+    "importance": 5,
+    "impact": "建立了以元老院和公民大会为特色的共和政体，为罗马的扩张奠定了政治基础"
+  },
+  {
+    "id": "CIV011",
+    "title": "秦朝统一中国",
+    "category": "文明",
+    "startYear": -221,
+    "endYear": -221,
+    "location": {
+      "lat": 34.3,
+      "lng": 108.9
+    },
+    "region": "中国",
+    "description": "秦始皇统一六国，建立中国第一个统一帝国",
+    "importance": 5,
+    "impact": "统一文字、度量衡和货币，建立中央集权制度，奠定了中国两千多年政治制度的基础"
+  },
+  {
+    "id": "CIV012",
+    "title": "罗马帝国建立",
+    "category": "文明",
+    "startYear": -27,
+    "endYear": -27,
+    "location": {
+      "lat": 41.9,
+      "lng": 12.5
+    },
+    "region": "地中海世界",
+    "description": "奥古斯都结束内战，建立元首制",
+    "importance": 5,
+    "impact": "开创了'罗马和平'时期，罗马文明达到顶峰，建立了横跨欧亚非的庞大帝国"
+  },
+  {
+    "id": "CIV013",
+    "title": "玛雅文明古典期",
+    "category": "文明",
+    "startYear": 250,
+    "endYear": 900,
+    "location": {
+      "lat": 17.2,
+      "lng": -89.6
+    },
+    "region": "中美洲",
+    "description": "玛雅城邦国家体系的鼎盛时期",
+    "importance": 4,
+    "impact": "建立了复杂的城市中心，发展了精确的历法、数学和象形文字系统"
+  },
+  {
+    "id": "CIV014",
+    "title": "拜占庭帝国形成",
+    "category": "文明",
+    "startYear": 330,
+    "endYear": 395,
+    "location": {
+      "lat": 41.0,
+      "lng": 28.9
+    },
+    "region": "东地中海",
+    "description": "君士坦丁建立新都君士坦丁堡，罗马帝国分裂",
+    "importance": 4,
+    "impact": "保存和发展了希腊罗马文化传统，成为东正教文明的中心，影响了东欧和俄罗斯"
+  },
+  {
+    "id": "CIV015",
+    "title": "伊斯兰文明兴起",
+    "category": "文明",
+    "startYear": 622,
+    "endYear": 750,
+    "location": {
+      "lat": 24.5,
+      "lng": 39.6
+    },
+    "region": "阿拉伯半岛及中东",
+    "description": "穆罕默德创建伊斯兰教，阿拉伯帝国迅速扩张",
+    "importance": 5,
+    "impact": "传播了一神教信仰，建立了横跨三大洲的帝国，发展了独特的艺术和科学传统"
+  },
+  {
+    "id": "CIV016",
+    "title": "唐朝建立",
+    "category": "文明",
+    "startYear": 618,
+    "endYear": 618,
+    "location": {
+      "lat": 34.3,
+      "lng": 108.9
+    },
+    "region": "中国",
+    "description": "隋末动乱后，李渊建立唐朝",
+    "importance": 5,
+    "impact": "开创了中国历史上最为开放和繁荣的时代之一，对东亚文化圈产生深远影响"
+  },
+  {
+    "id": "CIV017",
+    "title": "阿兹特克帝国形成",
+    "category": "文明",
+    "startYear": 1325,
+    "endYear": 1428,
+    "location": {
+      "lat": 19.4,
+      "lng": -99.1
+    },
+    "region": "墨西哥中部",
+    "description": "特诺奇提特兰建立，三城同盟形成",
+    "importance": 4,
+    "impact": "建立了中美洲最强大的帝国，发展了复杂的贡赋制度和城市规划"
+  },
+  {
+    "id": "CIV018",
+    "title": "文艺复兴开始",
+    "category": "文明",
+    "startYear": 1350,
+    "endYear": 1400,
+    "location": {
+      "lat": 43.8,
+      "lng": 11.3
+    },
+    "region": "意大利佛罗伦萨",
+    "description": "欧洲文化和科学的复兴运动",
+    "importance": 5,
+    "impact": "重新发现古典文化，开创了人文主义思潮，为现代科学和艺术奠定基础"
+  },
+  {
+    "id": "CIV019",
+    "title": "印加帝国兴起",
+    "category": "文明",
+    "startYear": 1438,
+    "endYear": 1471,
+    "location": {
+      "lat": -13.5,
+      "lng": -71.9
+    },
+    "region": "南美洲安第斯山脉",
+    "description": "帕恰库蒂大规模扩张印加领土",
+    "importance": 4,
+    "impact": "创建了南美洲最大的前哥伦布时期帝国，发展了先进的道路系统和梯田农业"
+  },
+  {
+    "id": "CIV020",
+    "title": "启蒙运动",
+    "category": "文明",
+    "startYear": 1685,
+    "endYear": 1800,
+    "location": {
+      "lat": 48.8,
+      "lng": 2.3
+    },
+    "region": "欧洲",
+    "description": "强调理性和个人自由的思想运动",
+    "importance": 5,
+    "impact": "挑战了传统权威，促进了科学方法的应用，为现代民主制度奠定了思想基础"
+  }
+] 

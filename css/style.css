@@ -1,0 +1,1481 @@
+/* 全局样式 */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    overflow-x: hidden;
+}
+
+/* 应用容器 */
+.app-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 10px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 页眉 */
+header {
+    text-align: center;
+    margin-bottom: 0;
+    padding: 8px 0;
+    height: auto;
+    min-height: 50px;
+}
+
+header h1 {
+    font-size: 20px;
+    color: #333;
+}
+
+.subtitle {
+    font-size: 14px;
+    font-weight: normal;
+    color: #666;
+}
+
+/* 主要内容区域 */
+main {
+    display: flex;
+    gap: 0;
+    flex: 1;
+    min-height: 600px;
+    height: calc(100% - 80px);
+    position: relative;
+}
+
+/* 侧边栏 */
+.sidebar, #events-list {
+    width: 300px;
+    min-width: 300px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    max-height: 100%;
+    background-color: #fff;
+    border-right: 1px solid #e5e7eb;
+    transition: transform 0.3s ease, width 0.3s ease;
+    position: relative;
+    z-index: 10;
+}
+
+/* 折叠侧边栏 */
+.sidebar.collapsed, #events-list.collapsed {
+    transform: translateX(-100%);
+    width: 0;
+    min-width: 0;
+}
+
+/* 侧边栏切换按钮 */
+.sidebar-toggle {
+    position: absolute;
+    right: -40px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background-color: #fff;
+    border-radius: 0 8px 8px 0;
+    border: 1px solid #e5e7eb;
+    border-left: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 15;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-toggle i {
+    font-size: 20px;
+    color: #64748b;
+}
+
+.dark .sidebar-toggle {
+    background-color: #1e293b;
+    border-color: #334155;
+}
+
+.dark .sidebar-toggle i {
+    color: #94a3b8;
+}
+
+/* 地图容器 */
+.map-container {
+    flex: 1;
+    position: relative;
+    border-radius: 0;
+    overflow: hidden;
+    box-shadow: none;
+    background-color: #fff;
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+}
+
+.map {
+    flex: 1;
+    height: 100%;
+    min-height: 600px;
+    width: 100%;
+    z-index: 10;
+    background-color: #f8f8f8;
+}
+
+/* 确保Leaflet地图正确显示 */
+.leaflet-container {
+    height: 100% !important;
+    width: 100%;
+    background-color: #dce7f0 !important;
+}
+
+.dark .leaflet-container {
+    background-color: #1a2234 !important;
+}
+
+/* 地图控件 */
+.map-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 500;
+}
+
+.toggle-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.control-btn {
+    padding: 8px 12px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.control-btn:hover {
+    background-color: #f5f5f5;
+}
+
+.control-btn.active {
+    background-color: #4a89dc;
+    color: white;
+    border-color: #3a79cc;
+}
+
+/* 页脚 */
+footer {
+    text-align: center;
+    margin-top: 10px;
+    padding: 5px;
+    color: #666;
+    font-size: 14px;
+}
+
+/* 加载指示器 */
+.loading-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.loading-indicator.hidden {
+    display: none;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 错误容器 */
+.error-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+}
+
+.error-container.hidden {
+    display: none;
+}
+
+.error-box {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+}
+
+.error-box h3 {
+    color: #e74c3c;
+    margin-bottom: 10px;
+}
+
+.error-box .btn {
+    padding: 8px 16px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    margin-top: 15px;
+    cursor: pointer;
+}
+
+/* 地图弹窗样式 */
+.map-popup {
+    max-width: 250px;
+}
+
+.map-popup h3 {
+    margin: 0 0 5px 0;
+    color: #333;
+    font-size: 16px;
+}
+
+.map-popup p {
+    margin: 5px 0;
+    font-size: 13px;
+}
+
+/* 事件弹窗样式 */
+.event-popup {
+    max-width: 320px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    padding: 5px;
+}
+
+.event-popup h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 18px;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+.event-popup p {
+    margin: 5px 0;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.event-popup strong {
+    color: #444;
+}
+
+/* 迁徙弹窗样式 */
+.migration-popup {
+    max-width: 350px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    padding: 5px;
+}
+
+.migration-popup h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 18px;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+.migration-popup p {
+    margin: 6px 0;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.migration-popup strong {
+    color: #444;
+}
+
+/* 地图加载器 */
+.map-loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 500;
+}
+
+.loader-spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+}
+
+.loader-text {
+    font-size: 14px;
+    color: #333;
+}
+
+/* 响应式设计 */
+@media (max-width: 1000px) {
+    main {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+    }
+    
+    .map {
+        height: 500px;
+    }
+}
+
+/* 国家标签样式 */
+.country-label {
+    background-color: transparent !important;
+    border: none !important;
+    pointer-events: none;
+    z-index: 500;
+}
+
+.country-name {
+    font-size: 11px;
+    font-weight: bold;
+    color: #333;
+    text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff,
+                 2px 2px 2px #fff, -2px -2px 2px #fff, 2px -2px 2px #fff, -2px 2px 2px #fff;
+    white-space: nowrap;
+    text-align: center;
+    background-color: transparent;
+    padding: 0;
+    pointer-events: none;
+    letter-spacing: 0.5px;
+}
+
+/* 地图区域悬停效果 */
+.leaflet-interactive:hover {
+    cursor: pointer;
+}
+
+/* 介绍页面样式 */
+.intro-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 600px;
+    max-height: 80vh;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    z-index: 2000;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.intro-header {
+    background-color: #3b82f6;
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.intro-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.intro-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.intro-content {
+    padding: 20px;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.intro-content h3 {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    color: #3b82f6;
+}
+
+.intro-content p {
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.intro-content ul {
+    margin-bottom: 1rem;
+    padding-left: 20px;
+}
+
+.intro-content li {
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+}
+
+.intro-footer {
+    padding: 15px 20px;
+    background-color: #f3f4f6;
+    display: flex;
+    justify-content: space-between;
+}
+
+.intro-nav-button {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.intro-nav-button:hover {
+    background-color: #2563eb;
+}
+
+.intro-nav-button:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+}
+
+.intro-dot-nav {
+    display: flex;
+    gap: 5px;
+    margin-top: 15px;
+    justify-content: center;
+}
+
+.intro-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #d1d5db;
+    cursor: pointer;
+}
+
+.intro-dot.active {
+    background-color: #3b82f6;
+}
+
+/* 增强帮助按钮 */
+#help-button {
+    background-color: #3498db;
+    color: white;
+}
+
+#help-button:hover {
+    background-color: #2980b9;
+}
+
+/* 添加自定义标记的样式 */
+.custom-icon {
+    background-color: transparent !important;
+    border: none !important;
+}
+
+.icon-inner {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+}
+
+/* 为不同类别设置颜色 */
+.icon-inner.技术 { background-color: #2196F3; }
+.icon-inner.农业 { background-color: #4CAF50; }
+.icon-inner.文明 { background-color: #9C27B0; }
+.icon-inner.征服 { background-color: #F44336; }
+.icon-inner.疾病 { background-color: #FF9800; }
+.icon-inner.迁徙 { background-color: #795548; }
+
+/* 弹出窗口样式 */
+.custom-popup {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 4px;
+    border: none;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.15);
+    backdrop-filter: blur(4px);
+    max-width: 300px;
+    padding: 0;
+    overflow: hidden;
+}
+
+.custom-popup .leaflet-popup-content-wrapper {
+    background: transparent;
+    border-radius: 4px;
+    padding: 0;
+    box-shadow: none;
+}
+
+.custom-popup .leaflet-popup-content {
+    margin: 0;
+    width: 100% !important;
+}
+
+.custom-popup .leaflet-popup-tip {
+    background-color: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 3px 14px rgba(0,0,0,0.15);
+}
+
+.dark .custom-popup {
+    background-color: rgba(30, 41, 59, 0.95);
+}
+
+.dark .custom-popup .leaflet-popup-tip {
+    background-color: rgba(30, 41, 59, 0.95);
+}
+
+.popup-header {
+    padding: 8px 12px;
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.popup-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+}
+
+.popup-close {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #64748b;
+    padding: 0;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.popup-close:hover {
+    color: #ef4444;
+}
+
+.popup-content {
+    padding: 12px;
+}
+
+.popup-content p {
+    margin: 0 0 8px;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #334155;
+}
+
+.popup-footer {
+    padding: 8px 12px;
+    background-color: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    text-align: right;
+}
+
+.popup-footer button {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.popup-footer button:hover {
+    background-color: #2563eb;
+}
+
+.dark .popup-header {
+    background-color: #1e293b;
+    border-bottom: 1px solid #334155;
+}
+
+.dark .popup-title {
+    color: #f8fafc;
+}
+
+.dark .popup-close {
+    color: #94a3b8;
+}
+
+.dark .popup-close:hover {
+    color: #ef4444;
+}
+
+.dark .popup-content p {
+    color: #cbd5e1;
+}
+
+.dark .popup-footer {
+    background-color: #1e293b;
+    border-top: 1px solid #334155;
+}
+
+/* 脉冲效果样式 */
+.pulse-marker {
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.pulse-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(59, 130, 246, 0.2);
+    border: 2px solid rgba(59, 130, 246, 0.5);
+    animation: pulse 2s infinite;
+    transform-origin: center;
+}
+
+.dark .pulse-circle {
+    background-color: rgba(96, 165, 250, 0.2);
+    border: 2px solid rgba(96, 165, 250, 0.5);
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.5);
+        opacity: 1;
+    }
+    70% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+}
+
+/* 高亮样式 */
+.map-marker.highlighted {
+    z-index: 1000 !important;
+    transform: scale(1.2) !important;
+}
+
+.map-marker.highlighted .marker-icon {
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.8) !important;
+    border: 2px solid #fff !important;
+}
+
+.dark .map-marker.highlighted .marker-icon {
+    box-shadow: 0 0 15px rgba(96, 165, 250, 0.8) !important;
+    border: 2px solid #1e293b !important;
+}
+
+/* 标记标签样式 */
+.marker-label {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 12px;
+    padding: 3px 6px;
+    margin-top: 5px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 1000;
+    pointer-events: none;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.map-marker:hover .marker-label {
+    opacity: 1;
+}
+
+.dark .marker-label {
+    background-color: rgba(30, 41, 59, 0.9);
+    color: #f1f5f9;
+    border-color: rgba(51, 65, 85, 0.8);
+}
+
+/* 改进标记图标样式 */
+.marker-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border: 2px solid transparent;
+    transition: all 0.3s;
+    color: #1e293b;
+}
+
+/* 修复弹窗消失问题 */
+.leaflet-popup {
+    pointer-events: auto !important;
+}
+
+.leaflet-popup-content-wrapper {
+    pointer-events: auto !important;
+}
+
+.leaflet-popup-content {
+    pointer-events: auto !important;
+}
+
+.event-popup {
+    pointer-events: auto !important;
+}
+
+/* 基础样式 */
+:root {
+    --primary: #3b82f6;
+    --primary-dark: #2563eb;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #6366f1;
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 9999px;
+}
+
+/* 事件列表样式 */
+.events-container {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* 事件类别标题 */
+.category-header {
+    margin-top: 15px;
+    margin-bottom: 8px;
+    padding: 0 10px;
+}
+
+.category-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #334155;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.dark .category-title {
+    color: #f1f5f9;
+    border-bottom-color: #334155;
+}
+
+.category-count {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: normal;
+}
+
+.dark .category-count {
+    color: #94a3b8;
+}
+
+/* 改进事件卡片样式 */
+.event-card {
+    background-color: white;
+    border-radius: 6px;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s;
+    cursor: pointer;
+    margin-bottom: 8px;
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+}
+
+.event-card:hover {
+    border-color: #93c5fd;
+    transform: translateX(5px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.event-card-inner {
+    flex: 1;
+}
+
+.event-id-badge {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: 12px;
+    margin-right: 10px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.event-id-badge.农业 { background-color: rgba(16, 185, 129, 0.15); color: #059669; }
+.event-id-badge.技术 { background-color: rgba(59, 130, 246, 0.15); color: #2563eb; }
+.event-id-badge.文明 { background-color: rgba(139, 92, 246, 0.15); color: #7c3aed; }
+.event-id-badge.征服 { background-color: rgba(239, 68, 68, 0.15); color: #dc2626; }
+.event-id-badge.疾病 { background-color: rgba(245, 158, 11, 0.15); color: #d97706; }
+.event-id-badge.迁徙 { background-color: rgba(124, 58, 237, 0.15); color: #6d28d9; }
+.event-id-badge.其他 { background-color: rgba(107, 114, 128, 0.15); color: #4b5563; }
+
+.dark .event-id-badge.农业 { background-color: rgba(16, 185, 129, 0.2); color: #34d399; }
+.dark .event-id-badge.技术 { background-color: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+.dark .event-id-badge.文明 { background-color: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+.dark .event-id-badge.征服 { background-color: rgba(239, 68, 68, 0.2); color: #f87171; }
+.dark .event-id-badge.疾病 { background-color: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+.dark .event-id-badge.迁徙 { background-color: rgba(124, 58, 237, 0.2); color: #8b5cf6; }
+.dark .event-id-badge.其他 { background-color: rgba(107, 114, 128, 0.2); color: #9ca3af; }
+
+.event-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1e293b;
+    line-height: 1.3;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dark .event-title {
+    color: #f1f5f9;
+}
+
+.event-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 6px;
+}
+
+.dark .event-meta {
+    color: #94a3b8;
+}
+
+.event-date, .event-importance {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.event-description {
+    font-size: 13px;
+    color: #475569;
+    margin-top: 6px;
+    line-height: 1.4;
+}
+
+.dark .event-description {
+    color: #cbd5e1;
+}
+
+.dark .event-card {
+    background-color: #1e293b;
+    border-color: #334155;
+}
+
+.dark .event-card:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+/* 添加事件标记样式 */
+.map-marker {
+    transition: all 0.3s ease-in-out;
+    position: relative;
+}
+
+.map-marker:hover {
+    transform: scale(1.15);
+    z-index: 1000 !important;
+}
+
+.marker-icon {
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.marker-icon i {
+    font-size: 16px;
+}
+
+.marker-label {
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.map-marker:hover .marker-label {
+    opacity: 1 !important;
+}
+
+/* 类别特定样式 */
+.event-marker[data-category="农业"] .marker-icon {
+    background-color: #10b981;
+}
+
+.event-marker[data-category="技术"] .marker-icon {
+    background-color: #3b82f6;
+}
+
+.event-marker[data-category="文明"] .marker-icon {
+    background-color: #8b5cf6;
+}
+
+.event-marker[data-category="战争"] .marker-icon {
+    background-color: #ef4444;
+}
+
+.event-marker[data-category="疾病"] .marker-icon {
+    background-color: #f59e0b;
+}
+
+.event-marker[data-category="迁徙"] .marker-icon {
+    background-color: #7c3aed;
+}
+
+.event-marker[data-category="物种"] .marker-icon {
+    background-color: #14b8a6;
+}
+
+/* 事件标题标签 - 原版带白色背景 */
+.event-title-label {
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 5px 8px;
+    border-radius: 4px;
+    text-align: center;
+    pointer-events: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transform: translateY(-100%);
+    white-space: nowrap;
+}
+
+/* 事件标题文本 */
+.event-title-text {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* 事件年份 */
+.event-title-year {
+    font-size: 12px;
+    color: #666;
+    margin-left: 4px;
+}
+
+/* 事件标题描边效果 - 新版无背景，直接文字描边 */
+.event-title-text-outline {
+    pointer-events: none;
+    transform: translateY(-100%);
+    white-space: nowrap;
+    text-align: center;
+    font-weight: bold;
+    text-shadow: 
+        -1px -1px 0 white,
+        1px -1px 0 white,
+        -1px 1px 0 white,
+        1px 1px 0 white,
+        0 -2px 2px rgba(255, 255, 255, 0.8),
+        0 2px 2px rgba(255, 255, 255, 0.8),
+        -2px 0 2px rgba(255, 255, 255, 0.8),
+        2px 0 2px rgba(255, 255, 255, 0.8);
+}
+
+/* 事件名称描边效果 */
+.event-title-text-outline .event-name {
+    font-size: 14px;
+    color: #000;
+}
+
+/* 事件年份描边效果 */
+.event-title-text-outline .event-year {
+    font-size: 12px;
+    color: #444;
+    margin-left: 4px;
+}
+
+/* 迁徙路径样式 */
+.migration-path {
+    stroke-dasharray: 5;
+    stroke-dashoffset: 0;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    animation: dash 30s linear infinite;
+    pointer-events: stroke;
+}
+
+.migration-path:hover {
+    stroke-width: 4 !important;
+    stroke-opacity: 0.9 !important;
+}
+
+@keyframes dash {
+    to {
+        stroke-dashoffset: -200;
+    }
+}
+
+.migration-arrow {
+    z-index: 500;
+    pointer-events: none;
+}
+
+.migration-arrow i {
+    font-size: 14px;
+    filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.dark .migration-arrow i {
+    filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.5));
+}
+
+.migration-label {
+    pointer-events: none;
+    z-index: 500;
+}
+
+.migration-label-text {
+    font-size: 11px;
+    font-weight: 600;
+    color: #1e293b;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-align: center;
+    white-space: nowrap;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    transform: translateY(-10px);
+}
+
+.dark .migration-label-text {
+    color: #f8fafc;
+    background-color: rgba(30, 41, 59, 0.9);
+    border-color: rgba(51, 65, 85, 0.8);
+}
+
+/* 地区边界样式 */
+.region-boundary {
+    fill: transparent;
+    stroke: rgba(51, 65, 85, 0.5);
+    stroke-width: 1.5;
+    stroke-dasharray: none;
+    transition: all 0.3s ease;
+    pointer-events: all;
+    cursor: pointer;
+}
+
+.region-boundary:hover {
+    fill: rgba(203, 213, 225, 0.15);
+    stroke: rgba(51, 65, 85, 0.8);
+    stroke-width: 2;
+}
+
+.dark .region-boundary {
+    stroke: rgba(148, 163, 184, 0.5);
+}
+
+.dark .region-boundary:hover {
+    fill: rgba(71, 85, 105, 0.15);
+    stroke: rgba(203, 213, 225, 0.8);
+}
+
+/* 历史区域/国家区域样式 */
+.historical-region {
+    fill: rgba(203, 213, 225, 0.15);
+    stroke: rgba(51, 65, 85, 0.6);
+    stroke-width: 1;
+    stroke-dasharray: 2,2;
+    transition: all 0.3s ease;
+    pointer-events: all;
+    cursor: pointer;
+}
+
+.historical-region:hover {
+    fill: rgba(203, 213, 225, 0.25);
+    stroke: rgba(51, 65, 85, 0.9);
+    stroke-width: 1.5;
+}
+
+.dark .historical-region {
+    fill: rgba(71, 85, 105, 0.15);
+    stroke: rgba(148, 163, 184, 0.6);
+}
+
+.dark .historical-region:hover {
+    fill: rgba(71, 85, 105, 0.3);
+    stroke: rgba(203, 213, 225, 0.9);
+}
+
+/* 国家/势力标签样式 */
+.region-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #334155;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    white-space: nowrap;
+    text-shadow: 0 0 2px white, 0 0 2px white, 0 0 2px white, 0 0 2px white;
+    letter-spacing: 0.5px;
+}
+
+.dark .region-label {
+    color: #cbd5e1;
+    text-shadow: 0 0 2px #1e293b, 0 0 2px #1e293b, 0 0 2px #1e293b, 0 0 2px #1e293b;
+}
+
+/* 时间点标记样式 */
+.time-marker {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #ef4444;
+    border: 2px solid white;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+}
+
+.dark .time-marker {
+    border-color: #1e293b;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.1);
+}
+
+/* 弹出窗口样式改进 */
+.custom-popup {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 4px;
+    border: none;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.15);
+    backdrop-filter: blur(4px);
+    max-width: 300px;
+    padding: 0;
+    overflow: hidden;
+}
+
+.custom-popup .leaflet-popup-content-wrapper {
+    background: transparent;
+    border-radius: 4px;
+    padding: 0;
+    box-shadow: none;
+}
+
+.custom-popup .leaflet-popup-content {
+    margin: 0;
+    width: 100% !important;
+}
+
+.custom-popup .leaflet-popup-tip {
+    background-color: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 3px 14px rgba(0,0,0,0.15);
+}
+
+.dark .custom-popup {
+    background-color: rgba(30, 41, 59, 0.95);
+}
+
+.dark .custom-popup .leaflet-popup-tip {
+    background-color: rgba(30, 41, 59, 0.95);
+}
+
+.popup-header {
+    padding: 8px 12px;
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.popup-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+}
+
+.popup-close {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #64748b;
+    padding: 0;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.popup-close:hover {
+    color: #ef4444;
+}
+
+.popup-content {
+    padding: 12px;
+}
+
+.popup-content p {
+    margin: 0 0 8px;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #334155;
+}
+
+.popup-footer {
+    padding: 8px 12px;
+    background-color: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    text-align: right;
+}
+
+.popup-footer button {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.popup-footer button:hover {
+    background-color: #2563eb;
+}
+
+.dark .popup-header {
+    background-color: #1e293b;
+    border-bottom: 1px solid #334155;
+}
+
+.dark .popup-title {
+    color: #f8fafc;
+}
+
+.dark .popup-close {
+    color: #94a3b8;
+}
+
+.dark .popup-close:hover {
+    color: #ef4444;
+}
+
+.dark .popup-content p {
+    color: #cbd5e1;
+}
+
+.dark .popup-footer {
+    background-color: #1e293b;
+    border-top: 1px solid #334155;
+}
+
+/* 脉冲效果样式 */
+.pulse-marker {
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.pulse-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(59, 130, 246, 0.2);
+    border: 2px solid rgba(59, 130, 246, 0.5);
+    animation: pulse 2s infinite;
+    transform-origin: center;
+}
+
+.dark .pulse-circle {
+    background-color: rgba(96, 165, 250, 0.2);
+    border: 2px solid rgba(96, 165, 250, 0.5);
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.5);
+        opacity: 1;
+    }
+    70% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+}
+
+/* 高亮样式 */
+.map-marker.highlighted {
+    z-index: 1000 !important;
+    transform: scale(1.2) !important;
+}
+
+.map-marker.highlighted .marker-icon {
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.8) !important;
+    border: 2px solid #fff !important;
+}
+
+.dark .map-marker.highlighted .marker-icon {
+    box-shadow: 0 0 15px rgba(96, 165, 250, 0.8) !important;
+    border: 2px solid #1e293b !important;
+}
+
+/* 标记标签样式 */
+.marker-label {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 12px;
+    padding: 3px 6px;
+    margin-top: 5px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 1000;
+    pointer-events: none;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.map-marker:hover .marker-label {
+    opacity: 1;
+}
+
+.dark .marker-label {
+    background-color: rgba(30, 41, 59, 0.9);
+    color: #f1f5f9;
+    border-color: rgba(51, 65, 85, 0.8);
+}
+
+/* 改进标记图标样式 */
+.marker-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border: 2px solid transparent;
+    transition: all 0.3s;
+    color: #1e293b;
+} 

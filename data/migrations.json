@@ -1,0 +1,227 @@
+[
+  {
+    "id": "MIG001",
+    "title": "现代人类走出非洲",
+    "category": "迁徙",
+    "startYear": -70000,
+    "endYear": -40000,
+    "location": {
+      "lat": 5.0,
+      "lng": 35.0
+    },
+    "region": "东非至欧亚大陆",
+    "description": "智人从非洲扩散到欧亚大陆各地",
+    "importance": 5,
+    "impact": "导致现代人类取代了尼安德特人和其他古人类，并最终扩散到全球所有大陆"
+  },
+  {
+    "id": "MIG002",
+    "title": "人类进入美洲",
+    "category": "迁徙",
+    "startYear": -20000,
+    "endYear": -10000,
+    "location": {
+      "lat": 65.0,
+      "lng": 178.0
+    },
+    "region": "白令海峡至南美洲",
+    "description": "通过白令海峡陆桥从亚洲进入美洲的人类迁徙",
+    "importance": 5,
+    "impact": "人类进入美洲大陆，开始了美洲人类历史，适应各种新环境"
+  },
+  {
+    "id": "MIG003",
+    "title": "农业扩散至欧洲",
+    "category": "迁徙",
+    "startYear": -7000,
+    "endYear": -3000,
+    "location": {
+      "lat": 37.0,
+      "lng": 37.0
+    },
+    "region": "新月沃地至欧洲",
+    "description": "农业技术和生活方式从中东向欧洲的扩散",
+    "importance": 4,
+    "impact": "农业知识和技术逐渐从中东向欧洲扩散，取代了当地狩猎采集方式"
+  },
+  {
+    "id": "MIG004",
+    "title": "印欧语系人群扩张",
+    "category": "迁徙",
+    "startYear": -4000,
+    "endYear": -1000,
+    "location": {
+      "lat": 50.0,
+      "lng": 40.0
+    },
+    "region": "乌克兰/俄罗斯草原至欧洲和南亚",
+    "description": "讲印欧语系语言的人群向欧洲、中东和南亚的扩散",
+    "importance": 4,
+    "impact": "导致印欧语系在欧洲和南亚大范围扩散，形成了从凯尔特语到梵语的语言连续体"
+  },
+  {
+    "id": "MIG005",
+    "title": "腓尼基人的地中海扩张",
+    "category": "迁徙",
+    "startYear": -1200,
+    "endYear": -700,
+    "location": {
+      "lat": 33.9,
+      "lng": 35.5
+    },
+    "region": "黎巴嫩沿岸至地中海各地",
+    "description": "腓尼基航海者和商人在地中海建立贸易网络和殖民地",
+    "importance": 4,
+    "impact": "腓尼基人在地中海建立了广泛的殖民网络，传播了字母文字并促进了文化交流"
+  },
+  {
+    "id": "MIG006",
+    "title": "班图人扩张",
+    "category": "迁徙",
+    "startYear": -1000,
+    "endYear": 1000,
+    "location": {
+      "lat": 5.0,
+      "lng": 10.0
+    },
+    "region": "西非至南非",
+    "description": "说班图语的农业民族从西非向中部和南部非洲的扩散",
+    "importance": 4,
+    "impact": "班图人的扩张改变了撒哈拉以南非洲的人口、语言和技术格局，取代或同化了当地的狩猎采集群体"
+  },
+  {
+    "id": "MIG007",
+    "title": "罗马帝国边疆民族迁徙",
+    "category": "迁徙",
+    "startYear": 370,
+    "endYear": 568,
+    "location": {
+      "lat": 50.0,
+      "lng": 35.0
+    },
+    "region": "中亚和东欧草原至西欧",
+    "description": "日耳曼部落、匈人等民族向罗马帝国领土的大规模迁移",
+    "importance": 5,
+    "impact": "游牧民族和日耳曼部落的大规模迁徙导致西罗马帝国灭亡，欧洲进入中世纪"
+  },
+  {
+    "id": "MIG008",
+    "title": "波利尼西亚人扩张",
+    "category": "迁徙",
+    "startYear": -1500,
+    "endYear": 1300,
+    "location": {
+      "lat": -15.0,
+      "lng": 170.0
+    },
+    "region": "萨摩亚和汤加至太平洋各岛屿",
+    "description": "波利尼西亚人乘坐独木舟向太平洋各岛屿的扩散和定居",
+    "importance": 4,
+    "impact": "波利尼西亚人成功殖民了太平洋上最偏远的岛屿，展示了令人惊叹的航海能力"
+  },
+  {
+    "id": "MIG009",
+    "title": "维京人扩张",
+    "category": "迁徙",
+    "startYear": 800,
+    "endYear": 1100,
+    "location": {
+      "lat": 60.0,
+      "lng": 10.0
+    },
+    "region": "斯堪的纳维亚至欧洲、冰岛、格陵兰乃至北美",
+    "description": "北欧维京人向外扩张，建立贸易网络和定居点",
+    "importance": 4,
+    "impact": "维京人在欧洲建立了定居点，发现并短暂殖民了北美洲，改变了中世纪欧洲的政治格局"
+  },
+  {
+    "id": "MIG010",
+    "title": "蒙古人西征",
+    "category": "迁徙",
+    "startYear": 1206,
+    "endYear": 1259,
+    "location": {
+      "lat": 47.0,
+      "lng": 103.0
+    },
+    "region": "蒙古高原至东欧",
+    "description": "成吉思汗及其后继者建立跨越欧亚的蒙古帝国",
+    "importance": 5,
+    "impact": "蒙古西征摧毁了许多文明古国，但建立了横跨欧亚的和平贸易网络，促进了文化交流"
+  },
+  {
+    "id": "MIG011",
+    "title": "欧洲对美洲殖民",
+    "category": "迁徙",
+    "startYear": 1492,
+    "endYear": 1700,
+    "location": {
+      "lat": 40.0,
+      "lng": -5.0
+    },
+    "region": "西欧至美洲",
+    "description": "欧洲人向美洲的迁移和殖民",
+    "importance": 5,
+    "impact": "欧洲移民带去了疾病和技术，彻底改变了美洲原住民社会，建立了殖民地社会"
+  },
+  {
+    "id": "MIG012",
+    "title": "非洲奴隶贸易",
+    "category": "迁徙",
+    "startYear": 1525,
+    "endYear": 1866,
+    "location": {
+      "lat": 8.0,
+      "lng": 1.0
+    },
+    "region": "西非和中非至美洲",
+    "description": "通过跨大西洋奴隶贸易，非洲人被强制迁移到美洲",
+    "importance": 5,
+    "impact": "大规模强制迁移改变了美洲人口结构，对非洲社会造成严重影响，创造了混合文化"
+  },
+  {
+    "id": "MIG013",
+    "title": "欧洲向新世界大规模移民",
+    "category": "迁徙",
+    "startYear": 1800,
+    "endYear": 1930,
+    "location": {
+      "lat": 50.0,
+      "lng": 10.0
+    },
+    "region": "欧洲至北美、南美和大洋洲",
+    "description": "19世纪和20世纪初欧洲人向美洲和大洋洲的大规模移民",
+    "importance": 4,
+    "impact": "欧洲移民改变了接收国的人口结构和文化，建立了欧洲裔主导的社会"
+  },
+  {
+    "id": "MIG014",
+    "title": "二战后人口迁移",
+    "category": "迁徙",
+    "startYear": 1945,
+    "endYear": 1960,
+    "location": {
+      "lat": 50.0,
+      "lng": 20.0
+    },
+    "region": "全球",
+    "description": "二战后由于政治边界变化、殖民地独立和冷战而产生的大规模人口迁移",
+    "importance": 4,
+    "impact": "二战后移民改变了许多国家的人口结构，创造了更加多元化的社会"
+  },
+  {
+    "id": "MIG015",
+    "title": "全球化时代的移民",
+    "category": "迁徙",
+    "startYear": 1990,
+    "endYear": 2020,
+    "location": {
+      "lat": 0.0,
+      "lng": 0.0
+    },
+    "region": "全球",
+    "description": "全球化带来的劳动力流动、难民流动和人才迁移",
+    "importance": 4,
+    "impact": "现代移民改变了全球人口分布，引发了文化多样性和认同政治等新挑战"
+  }
+] 

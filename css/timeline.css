@@ -1,0 +1,531 @@
+/* 时间线样式 */
+.time-control {
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 5px;
+}
+
+.time-buttons {
+    margin-bottom: 15px;
+}
+
+.preset-years {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.year-btn {
+    font-size: 12px;
+    padding: 5px 8px;
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.year-btn:hover {
+    background-color: #d0d0d0;
+}
+
+.year-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.year-navigation button {
+    padding: 5px 10px;
+    background-color: #4a89dc;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.year-navigation button:hover {
+    background-color: #3a79cc;
+}
+
+#year-display {
+    font-size: 16px;
+    font-weight: bold;
+    padding: 5px 10px;
+    background-color: #f0f0f0;
+    border-radius: 3px;
+}
+
+.timeline {
+    position: relative;
+    height: 40px;
+    background-color: #e0e0e0;
+    border-radius: 3px;
+    margin: 10px 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background-color: #666;
+    transform: translateX(-50%);
+    cursor: pointer;
+}
+
+.marker-text {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    white-space: nowrap;
+    color: #333;
+    padding: 2px 4px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 2px;
+    display: none;
+}
+
+.timeline-marker:hover .marker-text {
+    display: block;
+}
+
+.timeline-slider {
+    width: 100%;
+    margin: 10px 0;
+}
+
+/* 控制面板样式 */
+.control-panel {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.control-panel h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 18px;
+    color: #333;
+}
+
+/* 时间轴样式 */
+
+/* 时间轴容器 */
+.timeline-container {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    max-width: 800px;
+    z-index: 1000;
+    background-color: rgba(255, 255, 255, 0.6);
+    border-radius: 6px;
+    padding: 8px 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(226, 232, 240, 0.6);
+    transition: all 0.3s ease;
+    pointer-events: auto !important;
+}
+
+/* 添加一个透明遮罩，在时间轴区域捕获点击事件，防止触发地图拖动 */
+.timeline-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 120px; /* 时间轴高度加上一些额外空间 */
+    z-index: 999; /* 低于时间轴但高于地图 */
+    pointer-events: none; /* 默认不阻拦事件 */
+}
+
+/* 暗色模式时间轴 */
+.dark .timeline-container {
+    background-color: rgba(30, 41, 59, 0.6);
+    border-color: rgba(51, 65, 85, 0.6);
+}
+
+/* 当前年份显示 */
+.current-year-display {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+    text-align: center;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+}
+
+.dark .current-year-display {
+    color: #f1f5f9;
+}
+
+/* 时间轴刻度容器 */
+.timeline-ticks-container {
+    position: relative;
+    width: 100%;
+    height: 30px;
+    margin: 0 60px;
+}
+
+/* 时间轴刻度 */
+.timeline-ticks {
+    position: absolute;
+    top: 15px;
+    width: 100%;
+    height: 3px;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.timeline-tick {
+    position: absolute;
+    top: -3px;
+    width: 1px;
+    height: 8px;
+    background-color: rgba(100, 116, 139, 0.4);
+    transform: translateX(-50%);
+}
+
+.timeline-tick.major {
+    height: 12px;
+    width: 1px;
+    background-color: rgba(71, 85, 105, 0.7);
+    top: -5px;
+}
+
+.timeline-tick-label {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    white-space: nowrap;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.dark .timeline-tick {
+    background-color: rgba(148, 163, 184, 0.5);
+}
+
+.dark .timeline-tick.major {
+    background-color: rgba(203, 213, 225, 0.7);
+}
+
+.dark .timeline-tick-label {
+    color: #94a3b8;
+}
+
+/* 滑块轨道 */
+.timeline-slider-container {
+    position: relative;
+    width: 100%;
+    height: 35px;
+    margin: 10px 0 12px;
+}
+
+/* 时间轴滑块 */
+.timeline-slider {
+    position: absolute;
+    top: 15px;
+    width: 100%;
+    z-index: 10;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 3px;
+    background: rgba(203, 213, 225, 0.5);
+    outline: none;
+    border-radius: 2px;
+}
+
+/* 滑块样式 */
+.timeline-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s;
+}
+
+.timeline-slider::-webkit-slider-thumb:hover {
+    background: #2563eb;
+    transform: scale(1.2);
+}
+
+.timeline-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s;
+}
+
+.timeline-slider::-moz-range-thumb:hover {
+    background: #2563eb;
+    transform: scale(1.2);
+}
+
+/* 暗色模式滑块 */
+.dark .timeline-slider {
+    background: rgba(71, 85, 105, 0.6);
+}
+
+.dark .timeline-slider::-webkit-slider-thumb {
+    background: #3b82f6;
+    border-color: #1e293b;
+}
+
+.dark .timeline-slider::-webkit-slider-thumb:hover {
+    background: #60a5fa;
+}
+
+.dark .timeline-slider::-moz-range-thumb {
+    background: #3b82f6;
+    border-color: #1e293b;
+}
+
+.dark .timeline-slider::-moz-range-thumb:hover {
+    background: #60a5fa;
+}
+
+/* 时间轴控制按钮 */
+.timeline-controls {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.timeline-control-btn {
+    background-color: rgba(226, 232, 240, 0.8);
+    border: none;
+    color: #1e293b;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.timeline-control-btn:hover {
+    background-color: rgba(203, 213, 225, 0.9);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.timeline-control-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+#play-btn {
+    background-color: #3b82f6;
+    color: white;
+    width: 36px;
+    height: 36px;
+}
+
+#play-btn:hover {
+    background-color: #2563eb;
+}
+
+#play-btn.playing {
+    background-color: #ef4444;
+}
+
+#play-btn.playing:hover {
+    background-color: #dc2626;
+}
+
+.dark .timeline-control-btn {
+    background-color: rgba(71, 85, 105, 0.8);
+    color: #f1f5f9;
+}
+
+.dark .timeline-control-btn:hover {
+    background-color: rgba(51, 65, 85, 0.9);
+}
+
+.dark #play-btn {
+    background-color: #3b82f6;
+}
+
+.dark #play-btn:hover {
+    background-color: #60a5fa;
+}
+
+.dark #play-btn.playing {
+    background-color: #ef4444;
+}
+
+.dark #play-btn.playing:hover {
+    background-color: #f87171;
+}
+
+/* 按照时期标记的区域 */
+.timeline-period-markers {
+    position: absolute;
+    top: 25px;
+    width: 100%;
+    height: 20px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.period-marker {
+    position: absolute;
+    height: 6px;
+    background-color: rgba(165, 180, 252, 0.3);
+    border-radius: 3px;
+    top: -19px;
+}
+
+.period-marker-label {
+    position: absolute;
+    top: -32px;
+    transform: translateX(-50%);
+    font-size: 9px;
+    color: #6366f1;
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 2px 4px;
+    border-radius: 2px;
+    white-space: nowrap;
+    text-align: center;
+    font-weight: 600;
+    pointer-events: auto;
+    cursor: help;
+}
+
+.dark .period-marker {
+    background-color: rgba(99, 102, 241, 0.2);
+}
+
+.dark .period-marker-label {
+    color: #a5b4fc;
+    background-color: rgba(30, 41, 59, 0.7);
+}
+
+/* 年代标记的时间点 */
+.timeline-year-marker {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background-color: #ef4444;
+    border: 2px solid white;
+    border-radius: 50%;
+    top: 13px;
+    transform: translateX(-50%);
+    z-index: 15;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+}
+
+.timeline-year-marker:hover {
+    transform: translateX(-50%) scale(1.5);
+    background-color: #dc2626;
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.3);
+}
+
+.dark .timeline-year-marker {
+    border-color: #1e293b;
+    background-color: #dc2626;
+}
+
+.dark .timeline-year-marker:hover {
+    background-color: #ef4444;
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .timeline-container {
+        width: 95%;
+        padding: 10px 15px;
+        bottom: 20px;
+    }
+    
+    .current-year-display {
+        font-size: 20px;
+        margin-bottom: 8px;
+    }
+    
+    .timeline-slider-container {
+        height: 40px;
+        margin: 10px 0 15px;
+    }
+    
+    .timeline-controls {
+        gap: 8px;
+    }
+    
+    .timeline-control-btn {
+        width: 32px;
+        height: 32px;
+    }
+    
+    #play-btn {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .timeline-tick-label {
+        display: none;
+    }
+    
+    .period-marker-label {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .timeline-container {
+        padding: 8px 10px;
+        bottom: 15px;
+    }
+    
+    .current-year-display {
+        font-size: 18px;
+        margin-bottom: 6px;
+    }
+    
+    .timeline-slider-container {
+        height: 30px;
+        margin: 8px 0 12px;
+    }
+    
+    .timeline-control-btn {
+        width: 28px;
+        height: 28px;
+    }
+    
+    #play-btn {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .timeline-control-btn i {
+        font-size: 18px;
+    }
+} 

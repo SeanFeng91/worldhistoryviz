@@ -1,0 +1,56 @@
+{
+  "categories": [
+    {
+      "name": "技术",
+      "file": "technologies.json",
+      "description": "人类重要技术发展和创新事件"
+    },
+    {
+      "name": "农业",
+      "file": "agriculture.json",
+      "description": "农业发展和创新的重要事件"
+    },
+    {
+      "name": "迁徙",
+      "file": "migrations.json",
+      "description": "人类迁徙和人口流动相关的重要事件"
+    },
+    {
+      "name": "疾病",
+      "file": "diseases.json",
+      "description": "影响人类历史的重要疾病和瘟疫事件"
+    },
+    {
+      "name": "战争",
+      "file": "wars.json",
+      "description": "重大战争和军事冲突事件"
+    },
+    {
+      "name": "文明",
+      "file": "civilizations.json",
+      "description": "重要文明的兴起、发展和衰落事件"
+    },
+    {
+      "name": "物种",
+      "file": "species.json",
+      "description": "与人类相关的重要物种和生物学事件"
+    }
+  ],
+  "schema": {
+    "id": "唯一标识符",
+    "title": "事件名称",
+    "category": "事件类别",
+    "startYear": "事件开始年份（负数表示公元前）",
+    "endYear": "事件结束年份（负数表示公元前）",
+    "location": {
+      "lat": "纬度",
+      "lng": "经度"
+    },
+    "region": "地理区域描述",
+    "description": "事件详细描述",
+    "importance": "重要性评分（1-5）",
+    "impact": "事件影响描述"
+  },
+  "version": "1.0",
+  "lastUpdated": "2023-10-18"
+} 
