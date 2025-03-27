@@ -107,16 +107,39 @@ export class EventsManager {
         this.events = events || [];
         this.currentYear = year;
         
+        console.log('更新事件列表，事件数量:', events ? events.length : 0);
+        
         // 清空事件列表
         if (this.eventsListElement) {
             this.eventsListElement.innerHTML = '';
+            
+            // 添加折叠按钮
+            const toggleBtn = document.createElement('div');
+            toggleBtn.id = 'sidebar-toggle';
+            toggleBtn.className = 'sidebar-toggle';
+            toggleBtn.innerHTML = `<i class="material-icons-round">chevron_left</i>`;
+            this.eventsListElement.appendChild(toggleBtn);
+            
+        } else {
+            console.warn('事件列表元素不存在');
+            return;
         }
         
         // 获取与当前类别相关的事件
         const relevantEvents = this.filterEvents(events, year);
+        console.log('过滤后的相关事件数量:', relevantEvents.length);
         
         // 显示年份范围
         this.updateYearRangeDisplay(year);
+        
+        // 添加事件列表标题
+        const listHeader = document.createElement('div');
+        listHeader.className = 'events-list-header';
+        listHeader.innerHTML = `
+            <h2 class="text-lg font-semibold text-gray-900">历史事件</h2>
+            <p class="text-sm text-gray-500">当前年份: ${year < 0 ? `公元前 ${Math.abs(year)}` : `公元 ${year}`} 年</p>
+        `;
+        this.eventsListElement.appendChild(listHeader);
         
         // 如果没有相关事件，显示提示信息
         if (relevantEvents.length === 0) {
@@ -140,12 +163,18 @@ export class EventsManager {
             '其他': []
         };
         
+        // 限制显示的事件数量，每个类别最多显示5个，总共不超过30个
+        const MAX_EVENTS_PER_CATEGORY = 5;
+        const MAX_TOTAL_EVENTS = 30;
+        let totalEventsAdded = 0;
+        
         relevantEvents.forEach(event => {
+            if (totalEventsAdded >= MAX_TOTAL_EVENTS) return;
+            
             const category = event.category || '其他';
-            if (categories[category]) {
+            if (categories[category] && categories[category].length < MAX_EVENTS_PER_CATEGORY) {
                 categories[category].push(event);
-            } else {
-                categories['其他'].push(event);
+                totalEventsAdded++;
             }
         });
         
@@ -176,6 +205,7 @@ export class EventsManager {
         // 添加到DOM
         if (this.eventsListElement) {
             this.eventsListElement.appendChild(eventsContainer);
+            console.log('已添加事件列表到DOM');
         }
     }
     
@@ -200,74 +230,102 @@ export class EventsManager {
     }
     
     /**
-     * 筛选事件
+     * 过滤事件列表
      * @param {Array} events - 事件数组
-     * @param {number} year - 年份
-     * @returns {Array} 筛选后的事件数组
+     * @param {number} year - 当前年份
+     * @returns {Array} 过滤后的事件数组
      */
     filterEvents(events, year) {
-        if (!events || !Array.isArray(events)) return [];
-        
-        console.log(`筛选事件，类别: ${this.currentCategory}`);
-        
-        let filtered = events;
-        
-        // 按类别筛选
-        if (this.currentCategory !== 'all') {
-            filtered = filtered.filter(event => {
-                if (!event.category) return false;
-                return event.category === this.currentCategory;
-            });
+        if (!events || !Array.isArray(events)) {
+            console.warn('过滤事件: 无效的事件数组');
+            return [];
         }
         
-        // 按时间区间筛选
-        filtered = filtered.filter(event => {
-            const startYear = event.startYear !== undefined ? event.startYear : event.year;
-            const endYear = event.endYear || startYear;
-            
-            const range = 100; // 默认范围
-            
-            // 如果事件在当前年份的区间内
-            if (year >= startYear && year <= endYear) {
-                return true;
-            }
-            
-            // 如果事件接近当前年份
-            if (Math.abs(startYear - year) <= range || Math.abs(endYear - year) <= range) {
-                return true;
-            }
-            
-            // 根据重要性扩大范围
-            if (event.importance && event.importance >= 4) {
-                const importanceRange = event.importance * 100;
-                return Math.abs(startYear - year) <= importanceRange || Math.abs(endYear - year) <= importanceRange;
-            }
-            
-            return false;
-        });
+        console.log(`过滤事件: 年份=${year}, 类别=${this.currentCategory}, 重要性=${this.currentImportance}, 事件总数=${events.length}`);
         
-        // 按重要性排序
-        filtered.sort((a, b) => {
-            // 首先按重要性降序排序
-            if (b.importance !== a.importance) {
-                return b.importance - a.importance;
-            }
-            
-            // 然后按年份排序
-            const aYear = a.startYear !== undefined ? a.startYear : a.year;
-            const bYear = b.startYear !== undefined ? b.startYear : b.year;
-            
-            if (aYear !== bYear) {
-                return aYear - bYear;
-            }
-            
-            // 最后按名称排序，处理title为undefined的情况
-            const aTitle = a.title || '';
-            const bTitle = b.title || '';
-            return aTitle.localeCompare(bTitle);
-        });
-        
-        return filtered;
+        // 计算事件与当前年份的相关性并排序
+        return events
+            .map(event => {
+                // 确保数据的一致性
+                const startYear = event.startYear !== undefined ? event.startYear : event.year;
+                const endYear = event.endYear !== undefined ? event.endYear : startYear;
+                
+                // 计算事件与当前年份的距离
+                let distance = Infinity;
+                
+                // 如果事件在当前年份范围内，距离为0
+                if (year >= startYear && year <= endYear) {
+                    distance = 0;
+                } else {
+                    // 否则计算距离最近时间点的距离
+                    distance = Math.min(
+                        Math.abs(startYear - year),
+                        Math.abs(endYear - year)
+                    );
+                }
+                
+                // 根据距离计算相关性
+                let relevance = 1.0;
+                if (distance > 0) {
+                    // 根据时代调整相关性计算的时间尺度
+                    // 远古时代使用更大的时间尺度
+                    let timeScale = 100; // 默认为100年
+                    
+                    if (Math.abs(year) > 5000) {
+                        timeScale = 1000; // 史前时代 >5000年前
+                    } else if (Math.abs(year) > 2000) {
+                        timeScale = 500;  // 古代 >2000年前
+                    } else if (Math.abs(year) > 500) {
+                        timeScale = 200;  // 中世纪 >500年前
+                    }
+                    
+                    // 计算相关性，随距离增加而线性减少
+                    relevance = Math.max(0, 1 - (distance / timeScale));
+                    
+                    // 提升重要事件的相关性
+                    const importance = event.importance || 3;
+                    if (importance >= 4) {
+                        relevance = Math.min(1, relevance * 1.5); // 提升50%
+                    }
+                }
+                
+                return {
+                    ...event,
+                    relevance,
+                    distance
+                };
+            })
+            .filter(event => {
+                // 根据相关性过滤 - 降低阈值使更多事件显示
+                if (event.relevance < 0.05) return false;
+                
+                // 根据类别过滤
+                if (this.currentCategory !== 'all' && event.category !== this.currentCategory) {
+                    return false;
+                }
+                
+                // 根据重要性过滤
+                if (this.currentImportance !== 'all') {
+                    const minImportance = parseInt(this.currentImportance);
+                    if (event.importance < minImportance) {
+                        return false;
+                    }
+                }
+                
+                return true;
+            })
+            .sort((a, b) => {
+                // 首先按相关性降序排列
+                const relevanceDiff = b.relevance - a.relevance;
+                if (Math.abs(relevanceDiff) > 0.2) {
+                    return relevanceDiff;
+                }
+                
+                // 如果相关性接近，按重要性排序
+                const importanceA = a.importance || 3;
+                const importanceB = b.importance || 3;
+                return importanceB - importanceA;
+            });
     }
     
     /**

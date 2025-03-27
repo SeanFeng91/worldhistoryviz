@@ -15,6 +15,39 @@ export function adaptHistoricalEvents(events) {
     }
     
     return events.map(event => {
+        // 检查是否是新格式数据
+        if (event.id && event.title && event.startYear !== undefined) {
+            // 处理新格式数据
+            // 转换位置信息
+            let coordinates = [0, 0]; // 默认位置
+            if (event.location) {
+                if (typeof event.location === 'object' && event.location.lat !== undefined && event.location.lng !== undefined) {
+                    coordinates = [event.location.lat, event.location.lng];
+                } else if (Array.isArray(event.location) && event.location.length >= 2) {
+                    coordinates = [event.location[0], event.location[1]];
+                }
+            }
+            
+            return {
+                id: event.id,
+                title: event.title,
+                year: event.startYear,
+                endYear: event.endYear || event.startYear,
+                description: event.description || '',
+                category: event.category || '其他',
+                importance: event.importance || 3,
+                coordinates: coordinates,
+                location: coordinates,
+                region: event.region || '',
+                impact: event.impact || '',
+                relatedTechnologies: event.relatedTechnologies || [],
+                relatedSpecies: event.relatedSpecies || [],
+                period: event.period || '',
+                originalData: event
+            };
+        }
+        
+        // 处理旧格式数据
         // 解析年份
         const timeStr = event['发生时间'] || '';
         let startYear = 0, endYear = 0;
@@ -46,6 +79,7 @@ export function adaptHistoricalEvents(events) {
             category: event['事件类型'],
             importance: event['历史重要性'],
             location: location,
+            coordinates: location, // 添加兼容性字段
             relatedTechnologies: event['关联技术'] || [],
             relatedSpecies: event['关联物种'] || [],
             period: event['时期']
@@ -65,6 +99,58 @@ export function adaptMigrations(migrations) {
     }
     
     return migrations.map(migration => {
+        // 检查是否是新格式数据 (直接包含startYear和endYear字段)
+        if (migration.startYear !== undefined) {
+            // 处理新格式数据
+            let startCoordinates = null;
+            let endCoordinates = null;
+            
+            // 解析坐标
+            if (migration.location && migration.endLocation) {
+                // 使用location和endLocation字段
+                if (migration.location.lat !== undefined && migration.location.lng !== undefined) {
+                    startCoordinates = [migration.location.lat, migration.location.lng];
+                }
+                if (migration.endLocation.lat !== undefined && migration.endLocation.lng !== undefined) {
+                    endCoordinates = [migration.endLocation.lat, migration.endLocation.lng];
+                }
+            } else if (migration.path && Array.isArray(migration.path) && migration.path.length >= 2) {
+                // 从路径提取起点和终点
+                startCoordinates = [migration.path[0].lat, migration.path[0].lng];
+                endCoordinates = [migration.path[migration.path.length-1].lat, migration.path[migration.path.length-1].lng];
+            }
+            
+            // 构建路径
+            const path = [];
+            if (migration.path && Array.isArray(migration.path)) {
+                migration.path.forEach(point => {
+                    if (point.lat !== undefined && point.lng !== undefined) {
+                        path.push([point.lng, point.lat]);
+                    }
+                });
+            }
+            
+            return {
+                id: migration.id || `migration-${Math.random().toString(36).substring(2, 9)}`,
+                name: migration.title || migration.name || '未命名迁徙',
+                startYear: migration.startYear,
+                endYear: migration.endYear || (migration.startYear + 100), // 默认持续100年
+                path: path,
+                route: path.map(p => [p[1], p[0]]),
+                startCoordinates: startCoordinates,
+                endCoordinates: endCoordinates,
+                startLocation: migration.startLocation || migration.from || '未知起点',
+                endLocation: migration.endLocation || migration.to || '未知终点',
+                description: migration.description || migration.reason || '',
+                group: migration.group || migration.population || '',
+                category: migration.category || '人口迁徙',
+                importance: migration.importance || 3,
+                impact: migration.impact || migration.significance || '',
+                originalData: migration
+            };
+        }
+        
+        // 旧格式数据处理
         // 解析年份
         const startTimeStr = migration['起始时间'] || '';
         const endTimeStr = migration['结束时间'] || '';

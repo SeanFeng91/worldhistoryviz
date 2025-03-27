@@ -9,15 +9,29 @@
 export class TimelineManager {
     /**
      * 构造函数
-     * @param {Object} options - 配置选项
-     * @param {number} options.minYear - 最小年份
-     * @param {number} options.maxYear - 最大年份
-     * @param {number} options.initialYear - 初始年份
+     * @param {string|Object} options - 滑块ID或配置选项
+     * @param {string} [yearInput] - 年份输入框ID
+     * @param {number} [initialYear] - 初始年份
      */
-    constructor(options = {}) {
-        this.minYear = options.minYear || -10000;
-        this.maxYear = options.maxYear || 2000;
-        this.currentYear = options.initialYear || 0;
+    constructor(options, yearInput, initialYear) {
+        // 检查参数类型,支持两种构造方式
+        if (typeof options === 'string') {
+            // 通过单独的参数构造
+            this.yearSliderId = options;
+            this.yearInputId = yearInput;
+            this.minYear = -15000;
+            this.maxYear = 2000;
+            this.currentYear = initialYear || 1; // 使用公元1年作为默认初始年份,避免使用不存在的公元0年
+        } else {
+            // 通过选项对象构造
+            options = options || {};
+            this.yearSliderId = options.sliderId;
+            this.yearInputId = options.inputId;
+            this.minYear = options.minYear || -15000;
+            this.maxYear = options.maxYear || 2000;
+            this.currentYear = options.initialYear || 1; // 使用公元1年作为默认初始年份
+        }
+        
         this.isPlaying = false;
         this.playInterval = null;
         this.playSpeed = 50; // 默认每帧前进50年
@@ -62,7 +76,16 @@ export class TimelineManager {
         this.createTimelineContainer();
         
         // 获取DOM元素
-        this.yearSlider = document.getElementById('year-slider');
+        if (this.yearSliderId) {
+            this.yearSlider = document.getElementById(this.yearSliderId);
+        } else {
+            this.yearSlider = document.getElementById('year-slider');
+        }
+        
+        if (this.yearInputId) {
+            this.yearInput = document.getElementById(this.yearInputId);
+        }
+        
         this.yearDisplay = document.getElementById('year-display');
         this.playBtn = document.getElementById('play-btn');
         
@@ -75,6 +98,22 @@ export class TimelineManager {
         this.yearSlider.min = this.minYear;
         this.yearSlider.max = this.maxYear;
         this.yearSlider.value = this.currentYear;
+        
+        // 如果存在年份输入框,设置其值
+        if (this.yearInput) {
+            this.yearInput.value = this.currentYear;
+            
+            // 监听年份输入框变化
+            this.yearInput.addEventListener('change', (e) => {
+                let year = parseInt(e.target.value);
+                // 确保年份在有效范围内
+                if (isNaN(year)) year = this.currentYear;
+                if (year < this.minYear) year = this.minYear;
+                if (year > this.maxYear) year = this.maxYear;
+                
+                this.updateToYear(year);
+            });
+        }
         
         // 更新年份显示
         this.updateYearDisplay();
@@ -389,7 +428,7 @@ export class TimelineManager {
      * 设置年份变化回调
      * @param {Function} callback - 回调函数
      */
-    setYearChangedCallback(callback) {
+    setYearChangeCallback(callback) {
         this.yearChangedCallback = callback;
     }
     

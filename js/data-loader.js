@@ -10,7 +10,7 @@ import { adaptHistoricalEvents, adaptMigrations, adaptTechnologies, adaptSpecies
  * @param {string} filename - 数据文件名
  * @returns {Promise} 包含解析后的JSON数据的Promise
  */
-async function loadJSONData(filename) {
+export async function loadJSONData(filename) {
     console.log(`正在加载数据文件：${filename}`);
     try {
         // 使用相对路径加载数据文件，适应不同部署环境
@@ -59,16 +59,16 @@ export async function loadAllData() {
         
         console.log('所有数据加载完成');
         
-        // 返回所有数据
+        // 返回所有数据,并确保应用适配器到所有数据类型
         return {
-            allEvents,
+            allEvents, // 已经在loadAllEvents中应用了适配器
             migrations: adaptMigrations(migrations),
             technologies: adaptTechnologies(technologies),
             species: adaptSpecies(species),
-            civilizations,
-            wars,
-            diseases,
-            agriculture
+            civilizations: adaptCivilizations(civilizations),
+            wars: adaptWars(wars),
+            diseases: adaptDiseases(diseases),
+            agriculture: adaptAgriculture(agriculture)
         };
     } catch (error) {
         console.error('加载数据时出错:', error);
@@ -81,7 +81,9 @@ export async function loadAllData() {
  * @returns {Promise<Array>} 历史事件数组
  */
 async function loadAllEvents() {
-    return loadJSONData('all_events.json');
+    const events = await loadJSONData('all_events.json');
+    // 确保对加载的事件数据进行适配，转换为应用可用的格式
+    return adaptHistoricalEvents(events);
 }
 
 /**
@@ -284,4 +286,88 @@ export async function loadCategories() {
         console.error('加载分类数据失败:', error);
         return [];
     }
+}
+
+/**
+ * 适配疾病数据
+ * @param {Array} diseases - 原始疾病数据
+ * @returns {Array} 适配后的疾病数据
+ */
+function adaptDiseases(diseases) {
+    if (!diseases || !Array.isArray(diseases)) {
+        return [];
+    }
+    
+    return diseases.map(disease => {
+        return {
+            ...disease,
+            category: '疾病',
+            title: disease.title || disease.name || '未知疾病',
+            // 确保位置数据正确
+            location: disease.location || null
+        };
+    });
+}
+
+/**
+ * 适配战争数据
+ * @param {Array} wars - 原始战争数据
+ * @returns {Array} 适配后的战争数据
+ */
+function adaptWars(wars) {
+    if (!wars || !Array.isArray(wars)) {
+        return [];
+    }
+    
+    return wars.map(war => {
+        return {
+            ...war,
+            category: '战争',
+            title: war.title || war.name || '未知战争',
+            // 确保位置数据正确
+            location: war.location || null
+        };
+    });
+}
+
+/**
+ * 适配文明数据
+ * @param {Array} civilizations - 原始文明数据
+ * @returns {Array} 适配后的文明数据
+ */
+function adaptCivilizations(civilizations) {
+    if (!civilizations || !Array.isArray(civilizations)) {
+        return [];
+    }
+    
+    return civilizations.map(civ => {
+        return {
+            ...civ,
+            category: civ.category || '文明',
+            title: civ.title || civ.name || '未知文明',
+            // 确保位置数据正确
+            location: civ.location || null
+        };
+    });
+}
+
+/**
+ * 适配农业数据
+ * @param {Array} agriculture - 原始农业数据
+ * @returns {Array} 适配后的农业数据
+ */
+function adaptAgriculture(agriculture) {
+    if (!agriculture || !Array.isArray(agriculture)) {
+        return [];
+    }
+    
+    return agriculture.map(agri => {
+        return {
+            ...agri,
+            category: '农业',
+            title: agri.title || agri.name || '未知农业发展',
+            // 确保位置数据正确
+            location: agri.location || null
+        };
+    });
 }

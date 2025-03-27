@@ -27,14 +27,24 @@ import {
  */
 export class MapManager {
     /**
-     * 构造函数
-     * @param {string} mapElementId - 地图容器ID
+     * 地图管理器构造函数
+     * @param {Object} options - 配置选项
      */
-    constructor(mapElementId = 'map') {
-        this.mapElementId = mapElementId;
+    constructor(options = {}) {
+        // 地图元素ID
+        this.mapElementId = options.mapContainer || 'map';
+        
+        // 地图参考
         this.map = null;
+        
+        // 当前年份
+        this.currentYear = options.initialYear || 2000;
+        
+        // 默认的GeoJSON数据
+        this.defaultGeoJSON = null;
+        
+        // 当前的GeoJSON数据
         this.currentGeoJSON = null;
-        this.currentYear = 0;
         
         // 国家/地区颜色
         this.countryColors = {
@@ -167,232 +177,281 @@ export class MapManager {
     /**
      * 初始化地图
      */
-    initialize() {
+    async initialize() {
         console.log('初始化地图...');
         
-        // 创建Leaflet地图实例
-        this.map = L.map(this.mapElementId, {
-            center: [30, 15], // 初始地图中心
-            zoom: 2,         // 初始缩放级别
-            minZoom: 2,      // 最小缩放级别
-            maxZoom: 8,      // 最大缩放级别
-            zoomControl: true, // 显示缩放控件
-            attributionControl: true, // 显示归属控件
-            worldCopyJump: false, // 禁止世界地图复制
-            maxBounds: [[-90, -180], [90, 180]], // 限制地图可拖动范围
-            maxBoundsViscosity: 1.0, // 完全限制在边界内
-            fadeAnimation: true,      // 启用淡入淡出动画
-            zoomAnimation: true,      // 启用缩放动画
-            markerZoomAnimation: true // 启用标记缩放动画
-        });
-        
-        // 判断当前主题
-        const isDarkMode = document.body.classList.contains('dark');
-        
-        // 添加底图图层 - 使用更美观的地图源
-        const lightStyleUrl = 'https://api.maptiler.com/maps/voyager/style.json?key=get_your_own_key';
-        const darkStyleUrl = 'https://api.maptiler.com/maps/darkmatter/style.json?key=get_your_own_key';
-        
-        // 使用备选底图
-        const lightTileUrl = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
-        const darkTileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-        
-        // 添加底图图层
-        this.baseLayer = L.tileLayer(isDarkMode ? darkTileUrl : lightTileUrl, {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
-            maxZoom: 20,
-            minZoom: 0
-        }).addTo(this.map);
-        
-        // 监听主题变化
-        document.addEventListener('themeChanged', (e) => {
-            const isDark = e.detail && e.detail.isDark;
-            // 更新底图
-            this.baseLayer.setUrl(isDark ? darkTileUrl : lightTileUrl);
-        });
-        
-        // 创建图层组
-        this.labelsLayer = L.layerGroup().addTo(this.map);
-        
-        // 确保所有专用图层也被初始化
-        this.geojsonLayer = null; // 先设为null，后面会创建
-        this.markersLayer = L.layerGroup().addTo(this.map);
-        this.routesLayer = L.layerGroup().addTo(this.map);
-        this.technologiesLayer = L.layerGroup().addTo(this.map);
-        this.speciesLayer = L.layerGroup().addTo(this.map);
-        this.organizationsLayer = L.layerGroup().addTo(this.map);
-        this.warsLayer = L.layerGroup().addTo(this.map);
-        this.diseasesLayer = L.layerGroup().addTo(this.map);
-        this.agricultureLayer = L.layerGroup().addTo(this.map);
-        
-        // 重新初始化数组以确保清空
-        this.eventMarkers = [];
-        this.migrationRoutes = [];
-        this.techMarkers = [];
-        this.speciesMarkers = [];
-        this.highlightedElements = [];
-        this.labels = [];
-        this.labelNames = new Set();
-        this.warMarkers = [];
-        this.diseaseMarkers = [];
-        this.agricultureMarkers = [];
-        
-        // 添加GeoJSON区域边界
-        this.loadGeoJSON();
-        
-        // 添加缩放事件监听器
-        this.map.on('zoomend', () => {
-            this.updateLabelsVisibility();
-        });
-        
-        // 添加主题切换处理
-        document.getElementById('theme-toggle')?.addEventListener('click', () => {
-            // 短暂延迟以确保DOM类已更新
-            setTimeout(() => {
-                // 触发自定义事件
-                document.dispatchEvent(new CustomEvent('themeChanged', {
-                    detail: { isDark: document.body.classList.contains('dark') }
-                }));
+        try {
+            // 检查地图容器是否存在
+            const mapContainer = document.getElementById(this.mapElementId);
+            if (!mapContainer) {
+                console.error(`找不到地图容器元素: ${this.mapElementId}`);
+                throw new Error(`找不到地图容器元素: ${this.mapElementId}`);
+            }
+            
+            // 创建Leaflet地图实例
+            this.map = L.map(this.mapElementId, {
+                center: [30, 20],
+                zoom: 2,
+                minZoom: 2,
+                maxZoom: 10,
+                zoomControl: false,
+                attributionControl: true
+            });
+            
+            // 添加缩放控件到右上角
+            L.control.zoom({
+                position: 'topright'
+            }).addTo(this.map);
+            
+            // 添加比例尺
+            L.control.scale({
+                imperial: false,
+                position: 'bottomright'
+            }).addTo(this.map);
+            
+            // 添加基础底图
+            this.baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
+            }).addTo(this.map);
+            
+            // 创建事件标记的图层组
+            this.eventsLayer = L.layerGroup().addTo(this.map);
+            
+            // 创建迁徙路线的图层组
+            this.migrationsLayer = L.layerGroup().addTo(this.map);
+            
+            // 创建路线图层（用于存储所有路线）
+            this.routesLayer = L.layerGroup().addTo(this.map);
+            
+            // 创建技术发展的图层组
+            this.technologiesLayer = L.layerGroup().addTo(this.map);
+            
+            // 创建物种的图层组
+            this.speciesLayer = L.layerGroup().addTo(this.map);
+            
+            // 创建社会组织的图层组
+            this.organizationsLayer = L.layerGroup().addTo(this.map);
+            
+            // 创建战争的图层组
+            this.warsLayer = L.layerGroup().addTo(this.map);
+            
+            // 创建疾病的图层组
+            this.diseasesLayer = L.layerGroup().addTo(this.map);
+            
+            // 创建农业的图层组
+            this.agricultureLayer = L.layerGroup().addTo(this.map);
+            
+            // 加载默认地图数据
+            console.log('加载默认地图数据...');
+            try {
+                // 加载默认的世界地图（现代世界地图）
+                const response = await fetch('./maps/geojson/world_2000.geojson');
+                if (!response.ok) {
+                    throw new Error(`加载默认地图失败: ${response.status}`);
+                }
                 
-                // 通知地图刷新 - 这会触发重绘
-                this.map.invalidateSize();
-            }, 50);
-        });
-        
-        console.log('地图初始化完成');
+                this.defaultGeoJSON = await response.json();
+                console.log('默认地图数据加载完成');
+                
+                // 初始化GeoJSON图层
+                await this.updateGeoJSONLayer();
+            } catch (geoError) {
+                console.error('加载GeoJSON数据时出错:', geoError);
+                this.showError('加载地图边界数据失败');
+            }
+            
+            console.log('地图初始化完成');
+        } catch (error) {
+            console.error('初始化地图时出错:', error);
+            this.showError('初始化地图失败: ' + error.message);
+            throw error;
+        }
     }
     
     /**
      * 更新地图到指定年份
-     * @param {number} year - 目标年份
-     * @param {Object} data - 包含事件和迁徙数据的对象
-     * @returns {Promise<void>} 
+     * @param {number} year - 年份
+     * @param {Object} data - 数据对象
      */
     async updateToYear(year, data) {
+        console.log(`更新地图到年份: ${year}`);
+        
+        if (!data) {
+            console.warn('没有提供数据对象，无法更新地图内容');
+            return;
+        }
+        
+        // 更新当前年份
+        this.currentYear = year;
+        
         try {
-            console.log(`更新地图到年份: ${year}`);
-            this.currentYear = year;
-            
-            // 显示加载中指示器
+            // 显示加载中动画
             this.showLoader();
             
-            // 加载指定年份的地图数据
-            this.currentGeoJSON = await getMapForYear(year);
-            
             // 更新GeoJSON图层
-            this.updateGeoJSONLayer();
+            await this.updateGeoJSONLayer();
             
-            // 如果有事件数据且启用了事件显示，则更新事件标记
-            if (data.allEvents && this.showEvents) {
+            // 添加事件标记
+            if (data.allEvents) {
+                console.log(`更新事件数据 (共${data.allEvents.length}条)`);
                 this.updateEventMarkers(data.allEvents);
             }
             
-            // 如果有迁徙数据且启用了迁徙显示，则更新迁徙路线
-            if (data.migrations && this.showMigrations) {
+            // 添加迁徙路线
+            if (data.migrations) {
+                console.log(`更新迁徙数据 (共${data.migrations.length}条)`);
                 this.updateMigrationRoutes(data.migrations);
             }
             
-            // 如果有技术发展数据且启用了技术显示，则更新技术标记
-            if (data.technologies && this.showTechnologies) {
+            // 添加技术发展标记
+            if (data.technologies) {
+                console.log(`更新技术数据 (共${data.technologies.length}条)`);
                 this.updateTechnologicalDevelopments(data.technologies);
             }
             
-            // 如果有物种数据且启用了物种显示，则更新物种标记
-            if (data.species && this.showSpecies) {
-                this.updateRegionalSpecies(data.species);
+            // 添加物种标记
+            if (data.species) {
+                console.log(`更新物种数据 (共${data.species.length}条)`);
+                this.updateSpecies(data.species);
             }
             
-            // 如果有文明数据且启用了社会组织显示，则更新社会组织标记
-            if (data.civilizations && this.showOrganizations) {
+            // 添加社会组织标记
+            if (data.civilizations) {
+                console.log(`更新文明数据 (共${data.civilizations.length}条)`);
                 this.updateSocialOrganizations(data.civilizations);
             }
             
-            // 如果有战争数据且启用了战争显示，则更新战争标记
-            if (data.wars && this.showWars) {
+            // 添加战争标记
+            if (data.wars) {
+                console.log(`更新战争数据 (共${data.wars.length}条)`);
                 this.updateWars(data.wars);
             }
             
-            // 如果有疾病数据且启用了疾病显示，则更新疾病标记
-            if (data.diseases && this.showDiseases) {
+            // 添加疾病标记
+            if (data.diseases) {
+                console.log(`更新疾病数据 (共${data.diseases.length}条)`);
                 this.updateDiseases(data.diseases);
             }
             
-            // 如果有农业数据且启用了农业显示，则更新农业标记
-            if (data.agriculture && this.showAgriculture) {
+            // 添加农业标记
+            if (data.agriculture) {
+                console.log(`更新农业数据 (共${data.agriculture.length}条)`);
                 this.updateAgriculture(data.agriculture);
             }
             
-            // 隐藏加载中指示器
+            // 隐藏加载中动画
             this.hideLoader();
             
-            console.log(`地图已更新到年份: ${formatYear(year)}`);
+            // 更新年份显示
+            console.log(`地图已更新到年份: ${this.formatYear(year)}`);
         } catch (error) {
-            console.error('更新地图时出错:', error);
+            console.error('更新地图年份时出错:', error);
             this.hideLoader();
-            this.showError('更新地图时出错: ' + error.message);
+            throw error;
         }
     }
     
     /**
      * 更新GeoJSON图层
      */
-    updateGeoJSONLayer() {
+    async updateGeoJSONLayer() {
         console.log('更新GeoJSON图层');
         
-        // 保存当前GeoJSON数据
-        this.currentGeoJSON = this.currentGeoJSON;
-        
-        // 清除现有图层
-        if (this.geojsonLayer) {
-            this.map.removeLayer(this.geojsonLayer);
-        }
-        
-        // 清除现有标签
-        this.clearRegionLabels();
-        
-        // 如果没有GeoJSON数据，则不添加新图层
-        if (!this.currentGeoJSON) {
-            console.warn('没有GeoJSON数据可显示');
-            return;
-        }
-        
-        // 保存唯一国家/区域名称集合，用于防止重复标签
-        const uniqueNames = new Set();
-        
-        // 添加新图层
-        this.geojsonLayer = L.geoJSON(this.currentGeoJSON, {
-            style: (feature) => {
-                // 设置区域样式
-                return this.getRegionStyle(feature);
-            },
-            onEachFeature: (feature, layer) => {
-                // 为每个区域添加交互
-                this.addRegionInteraction(feature, layer);
-                
-                // 为满足条件的区域添加标签
-                if (feature.properties && feature.properties.name) {
-                    // 跳过"未命名区域"
-                    if (feature.properties.name === "未命名区域" || 
-                        feature.properties.name.includes("未命名")) {
-                        return;
-                    }
-                    
-                    // 只添加唯一的名称标签
-                    if (!uniqueNames.has(feature.properties.name)) {
-                        uniqueNames.add(feature.properties.name);
-                        this.addLabelToFeature(feature);
-                    }
-                }
+        try {
+            // 加载指定年份的地图数据
+            this.currentGeoJSON = await this.getMapForYear(this.currentYear);
+            
+            // 清除现有GeoJSON图层
+            if (this.geoJSONLayer) {
+                this.map.removeLayer(this.geoJSONLayer);
             }
-        }).addTo(this.map);
+            
+            // 添加新的GeoJSON图层
+            if (this.currentGeoJSON) {
+                this.geoJSONLayer = L.geoJSON(this.currentGeoJSON, {
+                    style: this.getRegionStyle.bind(this),
+                    onEachFeature: this.addRegionInteraction.bind(this)
+                }).addTo(this.map);
+                
+                console.log(`成功更新GeoJSON图层，特征数: ${this.currentGeoJSON.features ? this.currentGeoJSON.features.length : 0}`);
+            } else {
+                console.warn(`未能为年份 ${this.currentYear} 获取GeoJSON数据`);
+            }
+        } catch (error) {
+            console.error('更新GeoJSON图层时出错:', error);
+            throw error;
+        }
+    }
+    
+    /**
+     * 获取指定年份的地图数据
+     * @param {number} year - 目标年份
+     * @returns {Promise<Object>} GeoJSON数据对象
+     */
+    async getMapForYear(year) {
+        console.log(`获取年份 ${year} 的地图数据`);
         
-        // 监听缩放事件，更新标签可见性
-        this.map.on('zoomend', () => {
-            this.updateLabelsVisibility();
-        });
+        try {
+            // 根据年份选择最接近的地图文件
+            const mapFile = this.selectMapFileForYear(year);
+            console.log(`选择的地图文件: ${mapFile}`);
+            
+            // 加载GeoJSON文件
+            if (mapFile) {
+                const response = await fetch(mapFile);
+                if (!response.ok) {
+                    throw new Error(`加载地图文件失败: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log(`成功加载地图数据，特征数: ${data.features ? data.features.length : 0}`);
+                return data;
+            } else {
+                // 如果找不到适合的地图文件，使用默认GeoJSON
+                console.warn(`未找到年份 ${year} 对应的地图文件，使用默认地图`);
+                return this.defaultGeoJSON;
+            }
+        } catch (error) {
+            console.error(`获取年份 ${year} 的地图数据时出错:`, error);
+            // 出错时返回默认GeoJSON
+            return this.defaultGeoJSON;
+        }
+    }
+    
+    /**
+     * 根据年份选择对应的地图文件
+     * @param {number} year - 目标年份
+     * @returns {string} 地图文件路径
+     */
+    selectMapFileForYear(year) {
+        // 所有可用的年份和对应的文件名
+        const availableYears = [
+            -123000, -10000, -8000, -5000, -4000, -3000, -2000, -1500, -1000, 
+            -700, -500, -400, -323, -300, -200, -100, -1, 
+            100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 
+            1100, 1200, 1279, 1300, 1400, 1492, 1500, 1530, 1600, 
+            1650, 1700, 1715, 1783, 1800, 1815, 1880, 1900, 1914, 
+            1920, 1930, 1938, 1945, 1960, 1994, 2000, 2010
+        ];
         
-        console.log('GeoJSON图层更新完成');
+        // 找到最接近的年份
+        let closestYear = availableYears[0];
+        let minDiff = Math.abs(year - closestYear);
+        
+        for (let i = 1; i < availableYears.length; i++) {
+            const diff = Math.abs(year - availableYears[i]);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closestYear = availableYears[i];
+            }
+        }
+        
+        // 构建文件名
+        const yearPrefix = closestYear < 0 ? 'bc' + Math.abs(closestYear) : closestYear;
+        const fileName = `./maps/geojson/world_${yearPrefix}.geojson`;
+        
+        return fileName;
     }
     
     /**
@@ -482,7 +541,7 @@ export class MapManager {
                 }
             },
             mouseout: (e) => {
-                this.geojsonLayer.resetStyle(e.target);
+                this.geoJSONLayer.resetStyle(e.target);
                 this.map.closePopup();
             },
             click: (e) => {
@@ -939,8 +998,15 @@ export class MapManager {
      * @returns {string} 格式化后的年份字符串
      */
     formatYear(year) {
-        if (year === undefined) return '';
-        return year < 0 ? `前${Math.abs(year)}` : `${year}`;
+        if (isNaN(year)) {
+            return '未知年份';
+        }
+        
+        if (year < 0) {
+            return `公元前 ${Math.abs(year)} 年`;
+        } else {
+            return `公元 ${year} 年`;
+        }
     }
     
     /**
@@ -1300,47 +1366,83 @@ export class MapManager {
     }
     
     /**
-     * 更新技术发展标记
-     * @param {Array} technologies - 技术发展数据数组
+     * 更新技术发展
+     * @param {Array} technologies - 技术数据数组
      */
     updateTechnologicalDevelopments(technologies) {
-        // 清除现有的技术标记
-        this.technologiesLayer.clearLayers();
+        console.log(`更新技术发展数据，当前年份：${this.currentYear}`);
+        
+        // 清除现有技术标记
+        this.clearTechMarkers();
         
         if (!technologies || !Array.isArray(technologies)) {
-            console.warn('技术发展数据无效');
+            console.warn('无效的技术数据');
             return;
         }
         
-        // 获取与当前年份相关的技术
+        // 找出当前年份相关的技术发展
         const relevantTechnologies = technologies.filter(tech => {
-            return this.isTimeRangeRelevant(tech.year, tech.endYear || tech.year, this.currentYear);
+            // 兼容不同的数据格式
+            const startYear = tech.startYear || tech.year;
+            const endYear = tech.endYear || startYear;
+            
+            // 时间范围判断
+            if (startYear <= this.currentYear && endYear >= this.currentYear) {
+                return true;
+            }
+            
+            // 对于重要技术，在一定范围内也显示
+            if (tech.importance >= 4 && Math.abs(startYear - this.currentYear) <= 500) {
+                return true;
+            }
+            
+            // 对于一般技术，在较小范围内显示
+            return Math.abs(startYear - this.currentYear) <= 200;
         });
         
-        if (relevantTechnologies.length === 0) {
-            console.log(`年份 ${this.currentYear} 没有相关技术发展`);
-            return;
+        console.log(`找到 ${relevantTechnologies.length} 项相关技术`);
+        
+        // 应用类别筛选
+        let filteredTechnologies = relevantTechnologies;
+        if (this.filterCategory !== 'all' && this.filterCategory !== '技术') {
+            filteredTechnologies = relevantTechnologies.filter(tech => tech.category === this.filterCategory);
+            console.log(`应用类别筛选后剩余 ${filteredTechnologies.length} 项技术`);
         }
         
-        // 添加技术标记
-        relevantTechnologies.forEach(tech => {
-            if (tech.location && tech.location.length === 2) {
-                // 创建技术图标
-                const marker = this.createCustomMarker(
-                    [tech.location[1], tech.location[0]],
-                    '技术',
-                    tech.title
-                );
+        // 为每项技术创建标记
+        filteredTechnologies.forEach(tech => {
+            let coordinates;
             
-            // 添加弹出框
-                marker.bindPopup(this.createTechnologyPopup(tech));
+            // 处理不同格式的location
+            if (tech.location) {
+                if (Array.isArray(tech.location) && tech.location.length === 2) {
+                    // 处理数组格式的坐标 [lng, lat]
+                    coordinates = [tech.location[1], tech.location[0]];
+                } else if (typeof tech.location === 'object' && tech.location.lat !== undefined && tech.location.lng !== undefined) {
+                    // 处理对象格式的坐标 {lat, lng}
+                    coordinates = [tech.location.lat, tech.location.lng];
+                }
+            }
+            
+            // 如果坐标有效，创建标记
+            if (coordinates && coordinates.length === 2) {
+                const marker = this.createCustomMarker(coordinates, '技术', tech.title);
+                
+                // 创建弹出窗口内容
+                const popupContent = this.createTechnologyPopup(tech);
+                marker.bindPopup(popupContent);
                 
                 // 添加到技术图层
-                this.technologiesLayer.addLayer(marker);
+                marker.addTo(this.technologiesLayer);
+                
+                // 保存引用
+                this.techMarkers.push(marker);
+            } else {
+                console.warn(`技术 ${tech.title} 的位置数据无效`);
             }
         });
         
-        console.log(`添加了 ${relevantTechnologies.length} 个技术发展标记`);
+        console.log('技术发展数据更新完成');
     }
     
     /**
@@ -1348,145 +1450,161 @@ export class MapManager {
      * @param {Array} species - 物种数据数组
      */
     updateRegionalSpecies(species) {
+        console.log(`更新物种数据，当前年份: ${this.currentYear}`);
+        
         // 清除现有的物种标记
-        this.speciesLayer.clearLayers();
+        this.clearSpeciesMarkers();
         
         if (!species || !Array.isArray(species)) {
-            console.warn('物种数据无效');
+            console.warn('物种数据无效或为空');
             return;
         }
         
         // 获取与当前年份相关的物种
-        const relevantSpecies = species.filter(s => {
-            return this.isTimeRelevant(s.year, this.currentYear);
-        });
+        const relevantSpecies = this.getRelevantSpecies(species, this.currentYear);
         
-        if (relevantSpecies.length === 0) {
-            console.log(`年份 ${this.currentYear} 没有相关物种`);
-            return;
+        console.log(`找到 ${relevantSpecies.length} 个相关物种`);
+        
+        // 应用类别筛选
+        let filteredSpecies = relevantSpecies;
+        if (this.filterCategory !== 'all' && this.filterCategory !== '物种') {
+            filteredSpecies = relevantSpecies.filter(sp => sp.category === this.filterCategory);
+            console.log(`应用类别筛选后剩余 ${filteredSpecies.length} 个物种`);
         }
         
         // 添加物种标记
-        relevantSpecies.forEach(species => {
-            if (species.location && species.location.length === 2) {
+        filteredSpecies.forEach(sp => {
+            if (sp.location) {
+                // 确保location是有效的坐标
+                let coordinates;
+                if (Array.isArray(sp.location) && sp.location.length === 2) {
+                    // 如果location是数组格式 [lng, lat]
+                    coordinates = [sp.location[1], sp.location[0]];
+                } else if (sp.location.lat !== undefined && sp.location.lng !== undefined) {
+                    // 如果location是对象格式 {lat, lng}
+                    coordinates = [sp.location.lat, sp.location.lng];
+                } else {
+                    console.warn(`物种 ${sp.title} 的位置格式无效:`, sp.location);
+                    return;
+                }
+                
                 // 创建物种图标
-                const marker = this.createCustomMarker(
-                    [species.location[1], species.location[0]],
-                    '农业',
-                    species.title
-                );
+                const marker = this.createCustomMarker(coordinates, '物种', sp.title);
                 
                 // 添加弹出框
-                marker.bindPopup(this.createSpeciesPopup(species));
+                marker.bindPopup(this.createSpeciesPopup(sp));
+                
+                // 设置交互事件
+                marker.on('mouseover', function() {
+                    this.openPopup();
+                });
                 
                 // 添加到物种图层
-                this.speciesLayer.addLayer(marker);
+                marker.addTo(this.speciesLayer);
+                
+                // 保存引用以便后续清除
+                this.speciesMarkers.push(marker);
             }
         });
         
-        console.log(`添加了 ${relevantSpecies.length} 个物种标记`);
+        console.log(`添加了 ${filteredSpecies.length} 个物种标记`);
     }
     
     /**
-     * 更新社会组织标记
-     * @param {Array} organizations - 社会组织数据数组
+     * 添加社会组织标记
+     * @param {Array} civilizations - 文明/社会组织数据数组
      */
-    updateSocialOrganizations(organizations) {
+    updateSocialOrganizations(civilizations) {
         // 清除现有的社会组织标记
         this.organizationsLayer.clearLayers();
         
-        if (!organizations || !Array.isArray(organizations)) {
-            console.warn('社会组织数据无效');
+        if (!civilizations || !Array.isArray(civilizations)) {
+            console.warn('文明/社会组织数据无效');
             return;
         }
         
         // 获取与当前年份相关的社会组织
-        const relevantOrganizations = organizations.filter(org => {
-            // 检查是否是新格式
-            if (org.startYear !== undefined) {
-                return this.isTimeRangeRelevant(org.startYear, org.endYear || org.startYear, this.currentYear);
-            }
-            
-            // 旧格式处理
-            if (org.形成时间) {
-                return this.isTimeRelevant(this.parseYearString(org.形成时间), this.currentYear);
-            }
-            
-            return false;
-        });
+        const relevantCivilizations = this.getRelevantCivilizations(civilizations, this.currentYear);
         
-        if (relevantOrganizations.length === 0) {
+        if (relevantCivilizations.length === 0) {
             console.log(`年份 ${this.currentYear} 没有相关社会组织`);
             return;
         }
         
         // 添加社会组织标记
-        relevantOrganizations.forEach(org => {
-            // 处理新格式
-            if (org.location) {
-                let lat, lng;
-                
-                // 检查 location 格式
-                if (org.location.lat !== undefined && org.location.lng !== undefined) {
-                    lat = org.location.lat;
-                    lng = org.location.lng;
-                } else if (Array.isArray(org.location) && org.location.length === 2) {
-                    lng = org.location[0]; // GeoJSON 格式 [lng, lat]
-                    lat = org.location[1];
-                }
-                
-                if (lat !== undefined && lng !== undefined) {
-                    // 创建社会组织图标
-                    const marker = this.createCustomMarker(
-                        [lat, lng],
-                        '文明',
-                        org.title || org.name || '未命名文明'
-                    );
-                    
-                    // 添加弹出框
-                    marker.bindPopup(`
-                        <div class="popup-content">
-                            <h3 class="text-lg font-bold">${org.title || org.name || '未命名文明'}</h3>
-                            <p class="text-sm text-gray-600">时期: ${this.formatYear(org.startYear)} - ${this.formatYear(org.endYear || org.startYear)}</p>
-                            <p class="mt-2">类型: ${org.category || org.type || '未知'}</p>
-                            <p>地区: ${org.region || '未知'}</p>
-                            <p class="mt-2">${org.description || ''}</p>
-                        </div>
-                    `);
-                    
-                    // 添加到社会组织图层
-                    this.organizationsLayer.addLayer(marker);
-                }
-                return;
-            }
-            
-            // 处理旧格式
-            if (org.中心位置 && org.中心位置.coordinates) {
-                const coordinates = org.中心位置.coordinates;
-                // 创建社会组织图标
+        relevantCivilizations.forEach(civ => {
+            if (civ.location && civ.location.lat !== undefined && civ.location.lng !== undefined) {
+                // 使用统一的标记创建方法
                 const marker = this.createCustomMarker(
-                    [coordinates[1], coordinates[0]],
-                    '文明',
-                    org.组织名称
+                    [civ.location.lat, civ.location.lng],
+                    civ.category || '文明',
+                    civ.title
                 );
                 
-                // 添加弹出框
-                marker.bindPopup(`
-                    <div class="popup-content">
-                        <h3 class="text-lg font-bold">${org.组织名称}</h3>
-                        <p class="text-sm text-gray-600">形成时间: ${org.形成时间}</p>
-                        <p class="mt-2">类型: ${org.组织类型}</p>
-                        <p>人口规模: ${org.人口规模 || '未知'}</p>
-                        <p class="mt-2">${org.特点描述}</p>
-                    </div>
-                `);
+                // 创建并绑定弹窗
+                marker.bindPopup(this.createCivilizationPopup(civ));
                 
-                // 添加到社会组织图层
+                // 添加到组织图层
                 this.organizationsLayer.addLayer(marker);
             }
         });
         
-        console.log(`添加了 ${relevantOrganizations.length} 个社会组织标记`);
+        console.log(`添加了 ${relevantCivilizations.length} 个社会组织标记`);
+    }
+    
+    /**
+     * 获取文明类别对应的图标
+     * @param {string} category - 文明类别
+     * @returns {string} 图标名称
+     */
+    getCivilizationIcon(category) {
+        const icons = {
+            '文明': 'account_balance',
+            '帝国': 'stars',
+            '王国': 'brightness_7',
+            '部落': 'group',
+            '城邦': 'location_city',
+            '联盟': 'handshake',
+            '宗教组织': 'church'
+        };
+        
+        return icons[category] || 'account_balance';
+    }
+    
+    /**
+     * 创建文明弹窗内容
+     * @param {Object} civ - 文明数据
+     * @returns {string} 弹窗HTML内容
+     */
+    createCivilizationPopup(civ) {
+        // 格式化年份
+        const formatYear = (year) => {
+            if (year === undefined) return '未知';
+            return year < 0 ? `公元前${Math.abs(year)}年` : `公元${year}年`;
+        };
+        
+        // 构建年份显示
+        let yearDisplay = '';
+        if (civ.startYear !== undefined && civ.endYear !== undefined) {
+            yearDisplay = `${formatYear(civ.startYear)} - ${formatYear(civ.endYear)}`;
+        } else if (civ.startYear !== undefined) {
+            yearDisplay = `始于 ${formatYear(civ.startYear)}`;
+        } else if (civ.endYear !== undefined) {
+            yearDisplay = `止于 ${formatYear(civ.endYear)}`;
+        }
+        
+        // 构建弹窗内容
+        return `
+            <div class="civilization-popup">
+                <h3 class="popup-title">${civ.title}</h3>
+                <div class="popup-time">${yearDisplay}</div>
+                <div class="popup-region">${civ.region || ''}</div>
+                <p class="popup-description">${civ.description || ''}</p>
+                <div class="popup-impact">
+                    <strong>历史影响:</strong> ${civ.impact || ''}
+                </div>
+            </div>
+        `;
     }
     
     /**
@@ -1495,17 +1613,35 @@ export class MapManager {
      * @returns {string} HTML内容
      */
     createTechnologyPopup(tech) {
-        // 本地年份格式化函数
-        const formatYearLocal = (year) => {
+        // 格式化年份
+        const formatYear = (year) => {
+            if (year === undefined) return '未知';
             return year < 0 ? `公元前${Math.abs(year)}年` : `公元${year}年`;
         };
         
+        // 构建年份显示
+        let yearDisplay = '';
+        const techYear = tech.year || tech.startYear;
+        const techEndYear = tech.endYear;
+        
+        if (techYear !== undefined && techEndYear !== undefined && techYear !== techEndYear) {
+            yearDisplay = `${formatYear(techYear)} - ${formatYear(techEndYear)}`;
+        } else if (techYear !== undefined) {
+            yearDisplay = formatYear(techYear);
+        } else {
+            yearDisplay = '未知时间';
+        }
+        
+        // 构建弹窗内容
         return `
-            <div class="popup-content">
-                <h3 class="text-lg font-bold">${tech.title}</h3>
-                <p class="text-sm text-gray-600">时间: ${formatYearLocal(tech.year)}</p>
-                <p class="mt-2">${tech.description}</p>
-                <p class="mt-2"><strong>影响:</strong> ${tech.impact || '未知'}</p>
+            <div class="civilization-popup">
+                <h3 class="popup-title">${tech.title}</h3>
+                <div class="popup-time">${yearDisplay}</div>
+                <div class="popup-region">${tech.region || tech.location?.name || ''}</div>
+                <p class="popup-description">${tech.description || ''}</p>
+                <div class="popup-impact">
+                    <strong>历史影响:</strong> ${tech.impact || ''}
+                </div>
             </div>
         `;
     }
@@ -1516,18 +1652,151 @@ export class MapManager {
      * @returns {string} HTML内容
      */
     createSpeciesPopup(species) {
-        // 本地年份格式化函数
-        const formatYearLocal = (year) => {
+        // 格式化年份
+        const formatYear = (year) => {
+            if (year === undefined) return '未知';
             return year < 0 ? `公元前${Math.abs(year)}年` : `公元${year}年`;
         };
         
+        // 构建年份显示
+        const year = species.year || species.startYear;
+        const yearDisplay = year !== undefined ? formatYear(year) : '未知时间';
+        
+        // 构建弹窗内容
         return `
-            <div class="popup-content">
-                <h3 class="text-lg font-bold">${species.title}</h3>
-                <p class="text-sm text-gray-600">驯化时间: ${formatYearLocal(species.year)}</p>
-                <p class="mt-2">类型: ${species.type || '未知'}</p>
-                <p>用途: ${species.uses || '未知'}</p>
-                <p class="mt-2"><strong>贡献:</strong> ${species.impact || '未知'}</p>
+            <div class="civilization-popup">
+                <h3 class="popup-title">${species.title}</h3>
+                <div class="popup-time">驯化时间: ${yearDisplay}</div>
+                <div class="popup-region">${species.region || species.location?.name || ''}</div>
+                <p class="popup-description">${species.description || ''}</p>
+                <div class="popup-details">
+                    <p><strong>类型:</strong> ${species.type || '未知'}</p>
+                    <p><strong>用途:</strong> ${species.uses || '未知'}</p>
+                </div>
+                <div class="popup-impact">
+                    <strong>历史贡献:</strong> ${species.impact || ''}
+                </div>
+            </div>
+        `;
+    }
+    
+    /**
+     * 创建战争弹出窗口内容
+     * @param {Object} war - 战争对象
+     * @returns {string} HTML内容
+     */
+    createWarPopupContent(war) {
+        // 格式化年份
+        const formatYear = (year) => {
+            if (year === undefined) return '未知';
+            return year < 0 ? `公元前${Math.abs(year)}年` : `公元${year}年`;
+        };
+        
+        // 构建年份显示
+        let yearDisplay = '';
+        if (war.startYear !== undefined && war.endYear !== undefined) {
+            yearDisplay = `${formatYear(war.startYear)} - ${formatYear(war.endYear)}`;
+        } else if (war.startYear !== undefined) {
+            yearDisplay = formatYear(war.startYear);
+        } else {
+            yearDisplay = '未知时间';
+        }
+        
+        // 构建弹窗内容
+        return `
+            <div class="civilization-popup">
+                <h3 class="popup-title">${war.title}</h3>
+                <div class="popup-time">${yearDisplay}</div>
+                <div class="popup-region">${war.region || war.location?.name || ''}</div>
+                <p class="popup-description">${war.description || ''}</p>
+                <div class="popup-details">
+                    <p><strong>参与方:</strong> ${war.participants || '未知'}</p>
+                    <p><strong>结果:</strong> ${war.result || '未知'}</p>
+                    <p><strong>伤亡:</strong> ${war.casualties || '未知'}</p>
+                </div>
+                <div class="popup-impact">
+                    <strong>历史影响:</strong> ${war.impact || ''}
+                </div>
+            </div>
+        `;
+    }
+    
+    /**
+     * 创建疾病弹出窗口内容
+     * @param {Object} disease - 疾病对象
+     * @returns {string} HTML内容
+     */
+    createDiseasePopupContent(disease) {
+        // 格式化年份
+        const formatYear = (year) => {
+            if (year === undefined) return '未知';
+            return year < 0 ? `公元前${Math.abs(year)}年` : `公元${year}年`;
+        };
+        
+        // 构建年份显示
+        let yearDisplay = '';
+        if (disease.startYear !== undefined && disease.endYear !== undefined) {
+            yearDisplay = `${formatYear(disease.startYear)} - ${formatYear(disease.endYear)}`;
+        } else if (disease.startYear !== undefined) {
+            yearDisplay = formatYear(disease.startYear);
+        } else {
+            yearDisplay = '未知时间';
+        }
+        
+        // 构建弹窗内容
+        return `
+            <div class="civilization-popup">
+                <h3 class="popup-title">${disease.title}</h3>
+                <div class="popup-time">${yearDisplay}</div>
+                <div class="popup-region">${disease.region || disease.location?.name || ''}</div>
+                <p class="popup-description">${disease.description || ''}</p>
+                <div class="popup-details">
+                    <p><strong>死亡人数:</strong> ${disease.deaths || '未知'}</p>
+                    <p><strong>传播方式:</strong> ${disease.transmission || '未知'}</p>
+                </div>
+                <div class="popup-impact">
+                    <strong>历史影响:</strong> ${disease.impact || ''}
+                </div>
+            </div>
+        `;
+    }
+    
+    /**
+     * 创建农业弹出窗口内容
+     * @param {Object} agriculture - 农业对象
+     * @returns {string} HTML内容
+     */
+    createAgriculturePopupContent(agriculture) {
+        // 格式化年份
+        const formatYear = (year) => {
+            if (year === undefined) return '未知';
+            return year < 0 ? `公元前${Math.abs(year)}年` : `公元${year}年`;
+        };
+        
+        // 构建年份显示
+        let yearDisplay = '';
+        if (agriculture.startYear !== undefined && agriculture.endYear !== undefined) {
+            yearDisplay = `${formatYear(agriculture.startYear)} - ${formatYear(agriculture.endYear)}`;
+        } else if (agriculture.startYear !== undefined) {
+            yearDisplay = formatYear(agriculture.startYear);
+        } else {
+            yearDisplay = '未知时间';
+        }
+        
+        // 构建弹窗内容
+        return `
+            <div class="civilization-popup">
+                <h3 class="popup-title">${agriculture.title}</h3>
+                <div class="popup-time">${yearDisplay}</div>
+                <div class="popup-region">${agriculture.region || agriculture.location?.name || ''}</div>
+                <p class="popup-description">${agriculture.description || ''}</p>
+                <div class="popup-details">
+                    <p><strong>作物类型:</strong> ${agriculture.crops || '未知'}</p>
+                    <p><strong>耕作方式:</strong> ${agriculture.technique || '未知'}</p>
+                </div>
+                <div class="popup-impact">
+                    <strong>历史影响:</strong> ${agriculture.impact || ''}
+                </div>
             </div>
         `;
     }
@@ -1543,15 +1812,58 @@ export class MapManager {
         // 根据类别获取颜色
         const color = this.categoryColors[category] || this.categoryColors.default;
         
+        // 检查name是否有效，如果无效则提供默认值
+        const displayName = name || '未知';
+        
+        // 获取类别对应的图标
+        const icon = this.getCategoryIcon(category);
+        
         // 创建自定义图标
-        const icon = L.divIcon({
+        const divIcon = L.divIcon({
             className: `custom-icon ${category}`,
-            html: `<div class="icon-inner" style="background-color: ${color};">${name.charAt(0)}</div>`,
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
+            html: `<div class="icon-inner" style="background-color: ${color};" title="${displayName}">
+                    <i class="material-icons-round">${icon}</i>
+                  </div>`,
+            iconSize: [36, 36],
+            iconAnchor: [18, 18]
         });
         
-        return L.marker(latlng, { icon: icon });
+        const marker = L.marker(latlng, { icon: divIcon });
+
+        // 添加工具提示
+        marker.bindTooltip(displayName, {
+            permanent: false,
+            direction: 'top',
+            className: 'custom-tooltip',
+            opacity: 0.9
+        });
+        
+        return marker;
+    }
+    
+    /**
+     * 获取类别对应的Material Icons图标
+     * @param {string} category - 事件类别
+     * @returns {string} 图标名称
+     */
+    getCategoryIcon(category) {
+        const icons = {
+            '技术': 'lightbulb',
+            '文明': 'account_balance',
+            '帝国': 'public',
+            '王国': 'brightness_7',
+            '部落': 'group',
+            '城邦': 'location_city',
+            '联盟': 'handshake',
+            '宗教组织': 'church',
+            '战争': 'gavel',
+            '迁徙': 'trending_flat',
+            '疾病': 'coronavirus',
+            '农业': 'eco',
+            '物种': 'pets'
+        };
+        
+        return icons[category] || 'place';
     }
     
     /**
@@ -1885,8 +2197,8 @@ export class MapManager {
     }
     
     /**
-     * 获取与当前年份相关的事件
-     * @param {Array} events - 所有事件
+     * 获取与当前年份相关的事件数组
+     * @param {Array} events - 所有事件数组
      * @param {number} year - 当前年份
      * @returns {Array} 相关事件数组，每个事件增加了relevance属性
      */
@@ -1894,9 +2206,14 @@ export class MapManager {
         if (!events || !Array.isArray(events)) return [];
         
         console.log(`处理事件: 年份=${year}, 类别过滤=${this.filterCategory}`);
+        console.log(`事件总数: ${events.length}`);
+        
+        // 时间范围扩大，对远古年份特殊处理
+        const isAncientTime = Math.abs(year) > 2000;
+        const baseTimeBuffer = isAncientTime ? 2000 : 500;
         
         // 计算每个事件的相关性并进行筛选
-        return events.map(event => {
+        const relevantEvents = events.map(event => {
             // 确保兼容新旧数据格式
             const startYear = event.startYear !== undefined ? event.startYear : event.year;
             const endYear = event.endYear || startYear;
@@ -1913,25 +2230,27 @@ export class MapManager {
                 const distance = Math.abs(closestYear - year);
                 
                 // 设置基础可见范围
-                let baseRange = 50; // 默认基础范围
+                let baseRange = isAncientTime ? 1000 : 200; // 增加基础范围
                 
                 // 根据重要性增加范围（重要性1-5）
-                let importanceMultiplier = event.importance || 1;
+                let importanceMultiplier = Math.max(1, event.importance || 1);
                 let range = baseRange * importanceMultiplier;
                 
                 // 时间越久远，对范围要求越宽松（特别是对古代事件）
                 if (Math.abs(startYear) > 1000) {
                     // 古代事件范围扩大
-                    range = range * 1.5;
+                    const ancientFactor = Math.abs(startYear) > 10000 ? 4 : 
+                                         (Math.abs(startYear) > 5000 ? 3 : 2);
+                    range = range * ancientFactor;
                 }
                 
                 // 计算相关性，0-1之间
                 relevance = Math.max(0, 1 - (distance / range));
                 
-                // 特殊处理非常重要的事件（重要性>=4）
-                if (event.importance >= 4 && distance <= 200) {
+                // 特殊处理非常重要的事件
+                if (event.importance >= 3 && distance <= range * 1.5) {
                     // 确保重要事件的相关性至少有一个最低值
-                    relevance = Math.max(relevance, 0.2);
+                    relevance = Math.max(relevance, 0.3);
                 }
             }
             
@@ -1939,8 +2258,9 @@ export class MapManager {
             return {...event, relevance};
         })
         .filter(event => {
-            // 首先筛选相关性
-            if (event.relevance <= 0.1) return false;
+            // 首先筛选相关性 - 降低阈值，让更多事件显示
+            const threshold = isAncientTime ? 0.05 : 0.1;
+            if (event.relevance <= threshold) return false;
             
             // 然后按类别筛选
             if (this.filterCategory !== 'all') {
@@ -1949,6 +2269,9 @@ export class MapManager {
             
             return true;
         });
+        
+        console.log(`筛选后相关事件数: ${relevantEvents.length}`);
+        return relevantEvents;
     }
     
     /**
@@ -1979,6 +2302,9 @@ export class MapManager {
             }
         });
         
+        // 为远古年份设置更宽松的时间范围
+        const timeBuffer = Math.abs(numericYear) > 2000 ? 2000 : 500;
+        
         const activeMigrations = migrations.filter(migration => {
             // 首先验证迁徙数据有效性
             if (!migration) {
@@ -1992,29 +2318,35 @@ export class MapManager {
                 return false;
             }
             
-            // 如果有开始年份和结束年份，检查当前年份是否在这个范围内
+            // 如果有开始年份和结束年份，检查当前年份是否在这个范围内(使用缓冲区)
             if (migration.startYear !== undefined && migration.endYear !== undefined) {
-                const isActive = numericYear >= migration.startYear && numericYear <= migration.endYear;
+                // 时间匹配使用缓冲区，对非常古老的年份进行特殊处理
+                const isActive = (numericYear >= migration.startYear - timeBuffer) && 
+                                  (numericYear <= migration.endYear + timeBuffer);
                 if (isActive) {
                     console.log(`匹配迁徙: ${migration.name || '未命名'}, ${migration.startYear}-${migration.endYear}`);
                 }
                 return isActive;
             }
             
-            // 如果只有开始年份，假设迁徙持续100年
+            // 如果只有开始年份，假设迁徙持续较长时间
             if (migration.startYear !== undefined) {
-                const isActive = numericYear >= migration.startYear && numericYear <= (migration.startYear + 100);
+                const duration = Math.abs(migration.startYear) > 10000 ? 5000 : 1000; // 古代迁徙持续更长
+                const isActive = (numericYear >= migration.startYear - timeBuffer) && 
+                                 (numericYear <= migration.startYear + duration + timeBuffer);
                 if (isActive) {
-                    console.log(`匹配迁徙(只有开始年份): ${migration.name || '未命名'}, ${migration.startYear}-${migration.startYear+100}`);
+                    console.log(`匹配迁徙(只有开始年份): ${migration.name || '未命名'}, ${migration.startYear}-${migration.startYear+duration}`);
                 }
                 return isActive;
             }
             
-            // 如果只有结束年份，假设迁徙提前100年开始
+            // 如果只有结束年份，假设迁徙提前较长时间开始
             if (migration.endYear !== undefined) {
-                const isActive = numericYear >= (migration.endYear - 100) && numericYear <= migration.endYear;
+                const duration = Math.abs(migration.endYear) > 10000 ? 5000 : 1000; // 古代迁徙持续更长
+                const isActive = (numericYear >= migration.endYear - duration - timeBuffer) && 
+                                 (numericYear <= migration.endYear + timeBuffer);
                 if (isActive) {
-                    console.log(`匹配迁徙(只有结束年份): ${migration.name || '未命名'}, ${migration.endYear-100}-${migration.endYear}`);
+                    console.log(`匹配迁徙(只有结束年份): ${migration.name || '未命名'}, ${migration.endYear-duration}-${migration.endYear}`);
                 }
                 return isActive;
             }
@@ -2027,7 +2359,8 @@ export class MapManager {
                     const startYear = this.parseYearString(startStr);
                     const endYear = this.parseYearString(endStr);
                     if (startYear !== 0 && endYear !== 0) {
-                        const isActive = numericYear >= startYear && numericYear <= endYear;
+                        const isActive = (numericYear >= startYear - timeBuffer) && 
+                                         (numericYear <= endYear + timeBuffer);
                         if (isActive) {
                             console.log(`匹配迁徙(原始数据): ${migration.name || '未命名'}, ${startYear}-${endYear}`);
                         }
@@ -2045,55 +2378,247 @@ export class MapManager {
     }
     
     /**
-     * 创建单个事件标记
-     * @param {Object} feature - GeoJSON特征
-     * @returns {Object} Leaflet标记对象
+     * 获取与当前年份相关的技术发展
+     * @param {Array} technologies - 技术发展数组
+     * @param {number} year - 当前年份
+     * @returns {Array} 相关的技术发展数组
      */
-    createEventMarker(feature) {
-        if (!feature || !feature.geometry || !feature.geometry.coordinates) {
-            console.error('特征缺少有效的坐标信息');
-            return null;
+    getRelevantTechnologies(technologies, year) {
+        if (!technologies || !Array.isArray(technologies)) return [];
+        
+        // 检查年份参数
+        const numericYear = Number(year);
+        if (isNaN(numericYear)) {
+            console.warn(`无效的年份: ${year}`);
+            return [];
         }
         
-        try {
-            // 创建标记位置 - GeoJSON坐标格式为[lng, lat]
-            const latlng = L.latLng(
-                feature.geometry.coordinates[1],  // lat
-                feature.geometry.coordinates[0]   // lng
-            );
+        console.log(`搜索${numericYear}年相关的技术发展，共${technologies.length}个技术项`);
+        
+        // 为远古年份设置更宽松的时间范围
+        const timeBuffer = Math.abs(numericYear) > 2000 ? 1000 : 200;
+        
+        const relevantTechnologies = technologies.filter(tech => {
+            if (!tech) return false;
             
-            // 根据重要性调整标记大小
-            const importance = feature.properties.importance || 1;
-            const size = 24 + importance * 4;
+            // 确保必要的数据存在
+            if (!tech.year && !tech.startYear) {
+                return false;
+            }
             
-            // 创建自定义HTML标记
-            const icon = L.divIcon({
-                className: 'custom-marker',
-                html: this.createEventMarkerHTML(feature),
-                iconSize: [size, size],
-                iconAnchor: [size/2, size/2],
-                popupAnchor: [0, -size/2 - 5]
-            });
+            // 使用开始年份或普通年份
+            const techStartYear = tech.startYear !== undefined ? tech.startYear : tech.year;
+            const techEndYear = tech.endYear || techStartYear;
             
-            // 创建标记
-            const marker = L.marker(latlng, { 
-                icon: icon,
-                riseOnHover: true,
-                riseOffset: 300,
-                zIndexOffset: importance * 100
-            });
+            // 检查技术出现的年份是否在当前年份之前
+            return (numericYear >= techStartYear - timeBuffer) && (numericYear <= techEndYear + timeBuffer);
+        });
+        
+        console.log(`找到${relevantTechnologies.length}个相关技术发展`);
+        return relevantTechnologies;
+    }
+    
+    /**
+     * 获取与当前年份相关的物种
+     * @param {Array} species - 物种数组
+     * @param {number} year - 当前年份
+     * @returns {Array} 相关的物种数组
+     */
+    getRelevantSpecies(species, year) {
+        if (!species || !Array.isArray(species)) return [];
+        
+        const numericYear = Number(year);
+        if (isNaN(numericYear)) return [];
+        
+        // 为远古年份设置更宽松的时间范围
+        const timeBuffer = Math.abs(numericYear) > 10000 ? 5000 : 
+                          (Math.abs(numericYear) > 5000 ? 2000 : 1000);
+        
+        const relevantSpecies = species.filter(sp => {
+            if (!sp) return false;
             
-            // 添加气泡
-            marker.bindPopup(this.createEventPopupContent(feature));
+            // 确保必要的数据存在
+            if (!sp.appearYear && !sp.startYear) return false;
             
-            // 添加到地图
-            marker.addTo(this.map);
+            // 使用开始年份
+            const appearYear = sp.appearYear || sp.startYear;
+            const extinctYear = sp.extinctYear || sp.endYear || null;
             
-            return marker;
-        } catch (error) {
-            console.error(`创建事件标记时出错:`, error);
-            return null;
+            // 检查物种是否存在于当前年份
+            if (extinctYear === null) {
+                // 物种没有灭绝
+                return numericYear >= appearYear - timeBuffer;
+            } else {
+                // 物种已灭绝
+                return (numericYear >= appearYear - timeBuffer) && (numericYear <= extinctYear + timeBuffer);
+            }
+        });
+        
+        return relevantSpecies;
+    }
+    
+    /**
+     * 获取与当前年份相关的文明
+     * @param {Array} civilizations - 文明数据
+     * @param {number} year - 年份
+     * @returns {Array} 相关文明
+     */
+    getRelevantCivilizations(civilizations, year) {
+        if (!civilizations || !Array.isArray(civilizations)) {
+            console.warn('传入的文明数据无效');
+            return [];
         }
+        
+        // 计算时间缓冲区 - 对于古老文明，使用较大时间范围
+        let buffer = 0;
+        if (year < -3000) {
+            buffer = 500; // 远古时期使用更宽松的缓冲
+        } else if (year < -1000) {
+            buffer = 300; // 古代文明使用中等缓冲
+        } else if (year < 500) {
+            buffer = 200; // 经典时期使用较小缓冲
+        } else if (year < 1500) {
+            buffer = 100; // 中世纪使用小缓冲
+        } else {
+            buffer = 50;  // 近现代使用最小缓冲
+        }
+        
+        // 筛选当前年份相关的文明
+        return civilizations.filter(civ => {
+            // 检查文明是否有明确的时间范围 (startYear和endYear)
+            if (civ.startYear !== undefined && civ.endYear !== undefined) {
+                // 如果在时间范围内，直接返回
+                if (year >= civ.startYear && year <= civ.endYear) {
+                    return true;
+                }
+                
+                // 检查是否在缓冲区内
+                if (year >= civ.startYear - buffer && year <= civ.endYear + buffer) {
+                    // 根据离时间范围的距离计算不透明度
+                    let opacity = 1.0;
+                    if (year < civ.startYear) {
+                        opacity = 1.0 - (civ.startYear - year) / buffer;
+                    } else if (year > civ.endYear) {
+                        opacity = 1.0 - (year - civ.endYear) / buffer;
+                    }
+                    
+                    // 存储不透明度值用于渲染
+                    civ._opacity = Math.max(0.1, opacity);
+                    return true;
+                }
+            } else if (civ.startYear !== undefined) {
+                // 如果只有开始年份，检查当前年份是否在开始年份之后
+                if (year >= civ.startYear) {
+                    return true;
+                }
+                
+                // 检查是否在缓冲区内
+                if (year >= civ.startYear - buffer) {
+                    // 计算不透明度
+                    civ._opacity = 1.0 - (civ.startYear - year) / buffer;
+                    return true;
+                }
+            } else if (civ.year !== undefined) {
+                // 如果只有单一年份，检查当前年份是否接近
+                return Math.abs(year - civ.year) <= buffer;
+            }
+            
+            return false;
+        });
+    }
+    
+    /**
+     * 获取与当前年份相关的战争
+     * @param {Array} wars - 战争数组
+     * @param {number} year - 当前年份
+     * @returns {Array} 相关的战争数组
+     */
+    getRelevantWars(wars, year) {
+        if (!wars || !Array.isArray(wars)) return [];
+        
+        const numericYear = Number(year);
+        if (isNaN(numericYear)) return [];
+        
+        // 时间缓冲
+        const timeBuffer = 50;
+        
+        const relevantWars = wars.filter(war => {
+            if (!war) return false;
+            
+            // 确保必要的数据存在
+            if (!war.startYear) return false;
+            
+            const endYear = war.endYear || war.startYear;
+            
+            // 检查战争是否发生在当前年份
+            return (numericYear >= war.startYear - timeBuffer) && (numericYear <= endYear + timeBuffer);
+        });
+        
+        return relevantWars;
+    }
+    
+    /**
+     * 获取与当前年份相关的疾病
+     * @param {Array} diseases - 疾病数组
+     * @param {number} year - 当前年份
+     * @returns {Array} 相关的疾病数组
+     */
+    getRelevantDiseases(diseases, year) {
+        if (!diseases || !Array.isArray(diseases)) return [];
+        
+        const numericYear = Number(year);
+        if (isNaN(numericYear)) return [];
+        
+        // 时间缓冲
+        const timeBuffer = 50;
+        
+        const relevantDiseases = diseases.filter(disease => {
+            if (!disease) return false;
+            
+            // 确保必要的数据存在
+            if (!disease.outbreakYear && !disease.startYear) return false;
+            
+            // 使用爆发年份或开始年份
+            const outbreakYear = disease.outbreakYear || disease.startYear;
+            const endYear = disease.endYear || outbreakYear + 5; // 默认持续5年
+            
+            // 检查疾病爆发是否发生在当前年份
+            return (numericYear >= outbreakYear - timeBuffer) && (numericYear <= endYear + timeBuffer);
+        });
+        
+        return relevantDiseases;
+    }
+    
+    /**
+     * 获取与当前年份相关的农业发展
+     * @param {Array} agriculture - 农业发展数组
+     * @param {number} year - 当前年份
+     * @returns {Array} 相关的农业发展数组
+     */
+    getRelevantAgriculture(agriculture, year) {
+        if (!agriculture || !Array.isArray(agriculture)) return [];
+        
+        const numericYear = Number(year);
+        if (isNaN(numericYear)) return [];
+        
+        // 为远古年份设置更宽松的时间范围
+        const timeBuffer = Math.abs(numericYear) > 5000 ? 2000 : 1000;
+        
+        const relevantAgriculture = agriculture.filter(ag => {
+            if (!ag) return false;
+            
+            // 确保必要的数据存在
+            if (!ag.startYear && !ag.year) return false;
+            
+            // 使用开始年份或普通年份
+            const startYear = ag.startYear !== undefined ? ag.startYear : ag.year;
+            const endYear = ag.endYear || (startYear + 1000); // 假设农业技术持续很长时间
+            
+            // 检查农业发展是否发生在当前年份
+            return (numericYear >= startYear - timeBuffer) && (numericYear <= endYear + timeBuffer);
+        });
+        
+        return relevantAgriculture;
     }
     
     /**
@@ -2147,33 +2672,38 @@ export class MapManager {
         }
         
         // 获取当前年份相关的战争
-        const relevantWars = wars.filter(war => {
-            return this.isTimeRangeRelevant(war.startYear, war.endYear, this.currentYear);
-        });
+        const relevantWars = this.getRelevantWars(wars, this.currentYear);
         
         console.log(`找到 ${relevantWars.length} 个相关战争`);
         
         // 应用类别筛选
         let filteredWars = relevantWars;
-        if (this.filterCategory !== 'all') {
+        if (this.filterCategory !== 'all' && this.filterCategory !== '战争') {
             filteredWars = relevantWars.filter(war => war.category === this.filterCategory);
             console.log(`应用类别筛选后剩余 ${filteredWars.length} 个战争`);
         }
         
         // 为每个战争创建标记
         filteredWars.forEach(war => {
-            if (war.location && war.location.length === 2) {
-                const [lng, lat] = war.location;
-                const marker = this.createCustomMarker([lat, lng], 'war', war.title);
+            if (war.location) {
+                // 确保location是有效的坐标
+                let coordinates;
+                if (Array.isArray(war.location) && war.location.length === 2) {
+                    // 如果location是数组格式 [lng, lat]
+                    coordinates = [war.location[1], war.location[0]];
+                } else if (war.location.lat !== undefined && war.location.lng !== undefined) {
+                    // 如果location是对象格式 {lat, lng}
+                    coordinates = [war.location.lat, war.location.lng];
+                } else {
+                    console.warn(`战争 ${war.title} 的位置格式无效:`, war.location);
+                    return;
+                }
+                
+                const marker = this.createCustomMarker(coordinates, '战争', war.title);
                 
                 // 创建弹出窗口内容
                 const popupContent = this.createWarPopupContent(war);
                 marker.bindPopup(popupContent);
-                
-                // 设置交互事件
-                marker.on('mouseover', function() {
-                    this.openPopup();
-                });
                 
                 // 添加到战争图层
                 marker.addTo(this.warsLayer);
@@ -2202,33 +2732,38 @@ export class MapManager {
         }
         
         // 获取当前年份相关的疾病
-        const relevantDiseases = diseases.filter(disease => {
-            return this.isTimeRangeRelevant(disease.startYear, disease.endYear, this.currentYear);
-        });
+        const relevantDiseases = this.getRelevantDiseases(diseases, this.currentYear);
         
         console.log(`找到 ${relevantDiseases.length} 个相关疾病`);
         
         // 应用类别筛选
         let filteredDiseases = relevantDiseases;
-        if (this.filterCategory !== 'all') {
+        if (this.filterCategory !== 'all' && this.filterCategory !== '疾病') {
             filteredDiseases = relevantDiseases.filter(disease => disease.category === this.filterCategory);
             console.log(`应用类别筛选后剩余 ${filteredDiseases.length} 个疾病`);
         }
         
         // 为每个疾病创建标记
         filteredDiseases.forEach(disease => {
-            if (disease.location && disease.location.length === 2) {
-                const [lng, lat] = disease.location;
-                const marker = this.createCustomMarker([lat, lng], 'disease', disease.title);
+            if (disease.location) {
+                // 确保location是有效的坐标
+                let coordinates;
+                if (Array.isArray(disease.location) && disease.location.length === 2) {
+                    // 如果location是数组格式 [lng, lat]
+                    coordinates = [disease.location[1], disease.location[0]];
+                } else if (disease.location.lat !== undefined && disease.location.lng !== undefined) {
+                    // 如果location是对象格式 {lat, lng}
+                    coordinates = [disease.location.lat, disease.location.lng];
+                } else {
+                    console.warn(`疾病 ${disease.title} 的位置格式无效:`, disease.location);
+                    return;
+                }
+                
+                const marker = this.createCustomMarker(coordinates, '疾病', disease.title);
                 
                 // 创建弹出窗口内容
                 const popupContent = this.createDiseasePopupContent(disease);
                 marker.bindPopup(popupContent);
-                
-                // 设置交互事件
-                marker.on('mouseover', function() {
-                    this.openPopup();
-                });
                 
                 // 添加到疾病图层
                 marker.addTo(this.diseasesLayer);
@@ -2257,33 +2792,38 @@ export class MapManager {
         }
         
         // 获取当前年份相关的农业
-        const relevantAgriculture = agriculture.filter(agri => {
-            return this.isTimeRangeRelevant(agri.startYear, agri.endYear, this.currentYear);
-        });
+        const relevantAgriculture = this.getRelevantAgriculture(agriculture, this.currentYear);
         
         console.log(`找到 ${relevantAgriculture.length} 个相关农业发展`);
         
         // 应用类别筛选
         let filteredAgriculture = relevantAgriculture;
-        if (this.filterCategory !== 'all') {
+        if (this.filterCategory !== 'all' && this.filterCategory !== '农业') {
             filteredAgriculture = relevantAgriculture.filter(agri => agri.category === this.filterCategory);
             console.log(`应用类别筛选后剩余 ${filteredAgriculture.length} 个农业发展`);
         }
         
         // 为每个农业发展创建标记
         filteredAgriculture.forEach(agri => {
-            if (agri.location && agri.location.length === 2) {
-                const [lng, lat] = agri.location;
-                const marker = this.createCustomMarker([lat, lng], 'agriculture', agri.title);
+            if (agri.location) {
+                // 确保location是有效的坐标
+                let coordinates;
+                if (Array.isArray(agri.location) && agri.location.length === 2) {
+                    // 如果location是数组格式 [lng, lat]
+                    coordinates = [agri.location[1], agri.location[0]];
+                } else if (agri.location.lat !== undefined && agri.location.lng !== undefined) {
+                    // 如果location是对象格式 {lat, lng}
+                    coordinates = [agri.location.lat, agri.location.lng];
+                } else {
+                    console.warn(`农业发展 ${agri.title} 的位置格式无效:`, agri.location);
+                    return;
+                }
+                
+                const marker = this.createCustomMarker(coordinates, '农业', agri.title);
                 
                 // 创建弹出窗口内容
                 const popupContent = this.createAgriculturePopupContent(agri);
                 marker.bindPopup(popupContent);
-                
-                // 设置交互事件
-                marker.on('mouseover', function() {
-                    this.openPopup();
-                });
                 
                 // 添加到农业图层
                 marker.addTo(this.agricultureLayer);
@@ -2297,77 +2837,63 @@ export class MapManager {
     }
     
     /**
-     * 创建战争弹出窗口内容
-     * @param {Object} war - 战争对象
-     * @returns {string} HTML内容
+     * 更新物种数据
+     * @param {Array} species - 物种数据数组
      */
-    createWarPopupContent(war) {
-        const formatYearLocal = (year) => {
-            return year < 0 ? `公元前${Math.abs(year)}年` : `公元${year}年`;
-        };
-
-        return `
-            <div class="popup-content">
-                <h3>${war.title}</h3>
-                <p class="time">${formatYearLocal(war.startYear)} - ${formatYearLocal(war.endYear)}</p>
-                <p class="description">${war.description}</p>
-                <div class="details">
-                    <p><strong>参与方:</strong> ${war.participants || '未知'}</p>
-                    <p><strong>结果:</strong> ${war.result || '未知'}</p>
-                    <p><strong>伤亡:</strong> ${war.casualties || '未知'}</p>
-                    <p><strong>重要性:</strong> ${war.importance || 3}/5</p>
-                </div>
-            </div>
-        `;
-    }
-    
-    /**
-     * 创建疾病弹出窗口内容
-     * @param {Object} disease - 疾病对象
-     * @returns {string} HTML内容
-     */
-    createDiseasePopupContent(disease) {
-        const formatYearLocal = (year) => {
-            return year < 0 ? `公元前${Math.abs(year)}年` : `公元${year}年`;
-        };
-
-        return `
-            <div class="popup-content">
-                <h3>${disease.title}</h3>
-                <p class="time">${formatYearLocal(disease.startYear)} - ${formatYearLocal(disease.endYear)}</p>
-                <p class="description">${disease.description}</p>
-                <div class="details">
-                    <p><strong>病原体:</strong> ${disease.pathogen || '未知'}</p>
-                    <p><strong>传播方式:</strong> ${disease.transmission || '未知'}</p>
-                    <p><strong>影响范围:</strong> ${disease.affectedRegion || '未知'}</p>
-                    <p><strong>死亡率:</strong> ${disease.mortalityRate || '未知'}</p>
-                </div>
-            </div>
-        `;
-    }
-    
-    /**
-     * 创建农业弹出窗口内容
-     * @param {Object} agriculture - 农业对象
-     * @returns {string} HTML内容
-     */
-    createAgriculturePopupContent(agriculture) {
-        const formatYearLocal = (year) => {
-            return year < 0 ? `公元前${Math.abs(year)}年` : `公元${year}年`;
-        };
-
-        return `
-            <div class="popup-content">
-                <h3>${agriculture.title}</h3>
-                <p class="time">${formatYearLocal(agriculture.startYear)}</p>
-                <p class="description">${agriculture.description}</p>
-                <div class="details">
-                    <p><strong>作物:</strong> ${agriculture.crops || '未知'}</p>
-                    <p><strong>技术:</strong> ${agriculture.techniques || '未知'}</p>
-                    <p><strong>影响:</strong> ${agriculture.impact || '未知'}</p>
-                </div>
-            </div>
-        `;
+    updateSpecies(species) {
+        console.log(`更新物种数据，当前年份: ${this.currentYear}`);
+        
+        // 清除现有物种标记
+        this.clearSpeciesMarkers();
+        
+        if (!species || !Array.isArray(species)) {
+            console.warn('物种数据无效或为空');
+            return;
+        }
+        
+        // 获取当前年份相关的物种
+        const relevantSpecies = this.getRelevantSpecies(species, this.currentYear);
+        
+        console.log(`找到 ${relevantSpecies.length} 个相关物种`);
+        
+        // 应用类别筛选
+        let filteredSpecies = relevantSpecies;
+        if (this.filterCategory !== 'all' && this.filterCategory !== '物种') {
+            filteredSpecies = relevantSpecies.filter(sp => sp.category === this.filterCategory);
+            console.log(`应用类别筛选后剩余 ${filteredSpecies.length} 个物种`);
+        }
+        
+        // 为每个物种创建标记
+        filteredSpecies.forEach(sp => {
+            if (sp.location) {
+                // 确保location是有效的坐标
+                let coordinates;
+                if (Array.isArray(sp.location) && sp.location.length === 2) {
+                    // 如果location是数组格式 [lng, lat]
+                    coordinates = [sp.location[1], sp.location[0]];
+                } else if (sp.location.lat !== undefined && sp.location.lng !== undefined) {
+                    // 如果location是对象格式 {lat, lng}
+                    coordinates = [sp.location.lat, sp.location.lng];
+                } else {
+                    console.warn(`物种 ${sp.title} 的位置格式无效:`, sp.location);
+                    return;
+                }
+                
+                const marker = this.createCustomMarker(coordinates, '物种', sp.title);
+                
+                // 创建弹出窗口内容
+                const popupContent = this.createSpeciesPopup(sp);
+                marker.bindPopup(popupContent);
+                
+                // 添加到物种图层
+                marker.addTo(this.speciesLayer);
+                
+                // 保存引用以便后续清除
+                this.speciesMarkers.push(marker);
+            }
+        });
+        
+        console.log('物种数据更新完成');
     }
     
     /**
@@ -2464,5 +2990,257 @@ export class MapManager {
         }
         
         console.log(`农业显示: ${show ? '开启' : '关闭'}`);
+    }
+    
+    /**
+     * 获取GeoJSON要素的样式
+     * @param {Object} feature - GeoJSON要素
+     * @returns {Object} 样式对象
+     */
+    getGeoJSONStyle(feature) {
+        // 默认样式
+        const defaultStyle = {
+            weight: 1,
+            opacity: 0.5,
+            color: '#666',
+            fillOpacity: 0.3,
+            fillColor: '#888'
+        };
+        
+        // 如果feature有properties和style属性，使用这些属性
+        if (feature.properties && feature.properties.style) {
+            return { ...defaultStyle, ...feature.properties.style };
+        }
+        
+        return defaultStyle;
+    }
+    
+    /**
+     * 为每个要素添加交互功能
+     * @param {Object} feature - GeoJSON要素
+     * @param {Object} layer - Leaflet图层
+     */
+    onEachFeature(feature, layer) {
+        if (!feature.properties) {
+            return;
+        }
+        
+        // 添加弹出窗口
+        if (feature.properties.name || feature.properties.description) {
+            let popupContent = '';
+            
+            if (feature.properties.name) {
+                popupContent += `<h3>${feature.properties.name}</h3>`;
+            }
+            
+            if (feature.properties.description) {
+                popupContent += `<p>${feature.properties.description}</p>`;
+            }
+            
+            // 添加年份信息（如果有）
+            if (feature.properties.year || feature.properties.startYear || feature.properties.endYear) {
+                let yearInfo = '';
+                
+                if (feature.properties.year) {
+                    yearInfo = `${this.formatYear(feature.properties.year)}`;
+                } else if (feature.properties.startYear && feature.properties.endYear) {
+                    yearInfo = `${this.formatYear(feature.properties.startYear)} - ${this.formatYear(feature.properties.endYear)}`;
+                } else if (feature.properties.startYear) {
+                    yearInfo = `${this.formatYear(feature.properties.startYear)} 开始`;
+                } else if (feature.properties.endYear) {
+                    yearInfo = `至 ${this.formatYear(feature.properties.endYear)}`;
+                }
+                
+                if (yearInfo) {
+                    popupContent += `<p><em>${yearInfo}</em></p>`;
+                }
+            }
+            
+            if (popupContent) {
+                layer.bindPopup(popupContent);
+            }
+        }
+        
+        // 添加悬停效果
+        layer.on({
+            mouseover: (e) => {
+                const layer = e.target;
+                layer.setStyle({
+                    weight: 3,
+                    color: '#f00',
+                    fillOpacity: 0.5
+                });
+                
+                if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                    layer.bringToFront();
+                }
+                
+                this.updateInfo(feature);
+            },
+            mouseout: (e) => {
+                this.geoJSONLayer.resetStyle(e.target);
+                this.map.closePopup();
+            },
+            click: (e) => {
+                this.map.fitBounds(e.target.getBounds());
+                
+                if (feature.properties && feature.properties.name) {
+                    console.log(`点击了区域: ${feature.properties.name}`);
+                }
+            }
+        });
+    }
+    
+    /**
+     * 更新信息面板
+     * @param {Object} feature - GeoJSON要素
+     */
+    updateInfo(feature) {
+        if (this.infoPanel && feature.properties) {
+            const info = document.getElementById(this.infoPanel);
+            if (info) {
+                let content = '';
+                
+                if (feature.properties.name) {
+                    content += `<h4>${feature.properties.name}</h4>`;
+                }
+                
+                if (feature.properties.description) {
+                    content += `<p>${feature.properties.description}</p>`;
+                }
+                
+                info.innerHTML = content || '点击地图以获取信息';
+                info.style.display = 'block';
+            }
+        }
+    }
+    
+    /**
+     * 清除信息面板
+     */
+    clearInfo() {
+        if (this.infoPanel) {
+            const info = document.getElementById(this.infoPanel);
+            if (info) {
+                info.innerHTML = '点击地图以获取信息';
+            }
+        }
+    }
+    
+    /**
+     * 将地图焦点设置到指定坐标
+     * @param {number} lat - 纬度
+     * @param {number} lng - 经度
+     * @param {number} zoomLevel - 缩放级别（可选，默认为12）
+     */
+    focusOnLocation(lat, lng, zoomLevel = 12) {
+        if (isNaN(lat) || isNaN(lng)) {
+            console.error('无效的坐标值:', lat, lng);
+            return;
+        }
+        
+        console.log(`将地图焦点设置到坐标: [${lat}, ${lng}], 缩放级别: ${zoomLevel}`);
+        
+        try {
+            // 将地图视图设置到指定位置和缩放级别
+            this.map.setView([lat, lng], zoomLevel);
+            
+            // 添加临时标记以突出显示位置
+            const marker = L.circleMarker([lat, lng], {
+                radius: 8,
+                color: 'red',
+                fillColor: '#f03',
+                fillOpacity: 0.8,
+                weight: 2
+            }).addTo(this.map);
+            
+            // 在标记上添加弹出窗口
+            marker.bindPopup(`坐标: [${lat.toFixed(4)}, ${lng.toFixed(4)}]`).openPopup();
+            
+            // 设置标记闪烁动画
+            const blink = () => {
+                marker.setStyle({ opacity: 0.2, fillOpacity: 0.1 });
+                setTimeout(() => {
+                    marker.setStyle({ opacity: 1, fillOpacity: 0.8 });
+                }, 300);
+            };
+            
+            // 执行几次闪烁动画
+            for (let i = 0; i < 3; i++) {
+                setTimeout(blink, i * 600);
+            }
+            
+            // 3秒后移除临时标记
+            setTimeout(() => {
+                this.map.removeLayer(marker);
+            }, 3000);
+        } catch (error) {
+            console.error('设置地图焦点时出错:', error);
+        }
+    }
+    
+    /**
+     * 显示或隐藏技术发展
+     * @param {boolean} show - 是否显示技术
+     */
+    toggleTechnologies(show) {
+        this.showTechnologies = show;
+        if (show) {
+            this.map.addLayer(this.technologiesLayer);
+        } else {
+            this.map.removeLayer(this.technologiesLayer);
+        }
+    }
+    
+    /**
+     * 显示或隐藏物种
+     * @param {boolean} show - 是否显示物种
+     */
+    toggleSpecies(show) {
+        this.showSpecies = show;
+        if (show) {
+            this.map.addLayer(this.speciesLayer);
+        } else {
+            this.map.removeLayer(this.speciesLayer);
+        }
+    }
+    
+    /**
+     * 显示或隐藏战争
+     * @param {boolean} show - 是否显示战争
+     */
+    toggleWars(show) {
+        this.showWars = show;
+        if (show) {
+            this.map.addLayer(this.warsLayer);
+        } else {
+            this.map.removeLayer(this.warsLayer);
+        }
+    }
+    
+    /**
+     * 显示或隐藏疾病
+     * @param {boolean} show - 是否显示疾病
+     */
+    toggleDiseases(show) {
+        this.showDiseases = show;
+        if (show) {
+            this.map.addLayer(this.diseasesLayer);
+        } else {
+            this.map.removeLayer(this.diseasesLayer);
+        }
+    }
+    
+    /**
+     * 显示或隐藏农业
+     * @param {boolean} show - 是否显示农业
+     */
+    toggleAgriculture(show) {
+        this.showAgriculture = show;
+        if (show) {
+            this.map.addLayer(this.agricultureLayer);
+        } else {
+            this.map.removeLayer(this.agricultureLayer);
+        }
     }
 } 
