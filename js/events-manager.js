@@ -120,6 +120,40 @@ export class EventsManager {
             toggleBtn.innerHTML = `<i class="material-icons-round">chevron_left</i>`;
             this.eventsListElement.appendChild(toggleBtn);
             
+            // 添加折叠按钮点击事件
+            toggleBtn.addEventListener('click', () => {
+                this.eventsListElement.classList.toggle('collapsed');
+                // 更新地图尺寸，确保地图控件位置正确
+                if (window.app && window.app.mapCore && window.app.mapCore.map) {
+                    setTimeout(() => {
+                        window.app.mapCore.map.invalidateSize();
+                        // 触发窗口resize事件，确保时间轴也能更新
+                        window.dispatchEvent(new Event('resize'));
+                        
+                        // 通知时间轴容器需要更新宽度
+                        const timelineContainer = document.querySelector('.timeline-container');
+                        const timelineOverlay = document.querySelector('.timeline-overlay');
+                        if (timelineContainer) {
+                            timelineContainer.style.transition = 'all 0.3s ease';
+                            if (this.eventsListElement.classList.contains('collapsed')) {
+                                timelineContainer.style.width = 'calc(100% - 40px)';
+                                timelineContainer.style.left = '20px';
+                                if (timelineOverlay) {
+                                    timelineOverlay.style.width = '100%';
+                                    timelineOverlay.style.left = '0';
+                                }
+                            } else {
+                                timelineContainer.style.width = 'calc(100% - 340px)';
+                                timelineContainer.style.left = 'auto';
+                                if (timelineOverlay) {
+                                    timelineOverlay.style.width = 'calc(100% - 300px)';
+                                    timelineOverlay.style.left = 'auto';
+                                }
+                            }
+                        }
+                    }, 300); // 等待过渡动画完成
+                }
+            });
         } else {
             console.warn('事件列表元素不存在');
             return;

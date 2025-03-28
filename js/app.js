@@ -572,7 +572,33 @@ export class App {
             console.log('侧边栏状态切换');
             
             // 更新地图尺寸，确保地图控件位置正确
-            this.mapCore.map.invalidateSize();
+            setTimeout(() => {
+                this.mapCore.map.invalidateSize();
+                // 触发resize事件，确保时间轴和其他组件也能重新调整
+                window.dispatchEvent(new Event('resize'));
+                
+                // 通知时间轴容器需要更新宽度
+                const timelineContainer = document.querySelector('.timeline-container');
+                const timelineOverlay = document.querySelector('.timeline-overlay');
+                if (timelineContainer) {
+                    timelineContainer.style.transition = 'all 0.3s ease';
+                    if (sidebar.classList.contains('collapsed')) {
+                        timelineContainer.style.width = 'calc(100% - 40px)';
+                        timelineContainer.style.left = '20px';
+                        if (timelineOverlay) {
+                            timelineOverlay.style.width = '100%';
+                            timelineOverlay.style.left = '0';
+                        }
+                    } else {
+                        timelineContainer.style.width = 'calc(100% - 340px)';
+                        timelineContainer.style.left = 'auto';
+                        if (timelineOverlay) {
+                            timelineOverlay.style.width = 'calc(100% - 300px)';
+                            timelineOverlay.style.left = 'auto';
+                        }
+                    }
+                }
+            }, 300); // 等待过渡动画完成
         }
     }
     

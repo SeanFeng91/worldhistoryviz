@@ -194,6 +194,14 @@
     pointer-events: auto !important;
 }
 
+/* 当侧边栏折叠时，时间轴宽度调整 */
+#events-list.collapsed ~ .map-container .timeline-container,
+body:has(#events-list.collapsed) .timeline-container {
+    width: calc(100% - 40px); /* 侧边栏折叠时，仅保留两侧边距 */
+    left: 20px;
+    right: 20px;
+}
+
 /* 添加一个透明遮罩，在时间轴区域捕获点击事件，防止触发地图拖动 */
 .timeline-overlay {
     position: absolute;
@@ -204,6 +212,14 @@
     height: 140px; /* 增加高度确保完全覆盖时间轴区域 */
     z-index: 999; /* 低于时间轴但高于地图 */
     pointer-events: auto; /* 允许捕获事件 */
+    transition: width 0.3s ease;
+}
+
+/* 当侧边栏折叠时，遮罩宽度调整 */
+#events-list.collapsed ~ .map-container .timeline-overlay,
+body:has(#events-list.collapsed) .timeline-overlay {
+    width: 100%; /* 侧边栏折叠时，遮罩占据整个宽度 */
+    left: 0;
 }
 
 /* 暗色模式时间轴 */

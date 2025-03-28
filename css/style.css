@@ -54,6 +54,8 @@ main {
     min-height: 600px;
     height: calc(100% - 80px);
     position: relative;
+    width: 100%;
+    align-items: stretch;
 }
 
 /* 侧边栏 */
@@ -77,6 +79,8 @@ main {
     transform: translateX(-100%);
     width: 0;
     min-width: 0;
+    overflow: visible;
+    visibility: hidden;
 }
 
 /* 侧边栏切换按钮 */
@@ -111,10 +115,15 @@ main {
 #events-list.collapsed {
     transform: translateX(-100%);
     width: 0;
+    min-width: 0;
+    overflow: visible;
 }
 
 #events-list.collapsed .sidebar-toggle {
     transform: translateX(calc(100% + 12px));
+    right: -36px;
+    z-index: 1001;
+    visibility: visible;
 }
 
 #events-list.collapsed .sidebar-toggle i {
@@ -132,6 +141,7 @@ main {
     min-height: 500px;
     display: flex;
     flex-direction: column;
+    width: 100%;
 }
 
 .map {
@@ -1623,4 +1633,17 @@ body.dark .popup-impact {
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+/* 时间轴容器，确保与地图对齐 */
+.timeline-container {
+    width: 100%;
+    position: relative;
+    z-index: 100;
+}
+
+/* 确保地图即使在侧边栏折叠后也对齐时间轴 */
+#events-list.collapsed + .map-container {
+    width: 100%;
+    transition: width 0.3s ease;
 } 
