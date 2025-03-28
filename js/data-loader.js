@@ -69,9 +69,10 @@ export async function loadAllData() {
         console.log('所有数据加载完成');
         
         // 返回所有数据,并确保应用适配器到所有数据类型
+        // 注意：迁移数据不通过适配器处理，直接使用原始数据
         return {
             allEvents, // 已经在loadAllEvents中应用了适配器
-            migrations: adaptMigrations(migrations),
+            migrations: migrations, // 不使用适配器，保留原始数据格式
             technologies: adaptTechnologies(technologies),
             species: adaptSpecies(species),
             civilizations: adaptCivilizations(civilizations),
@@ -214,20 +215,53 @@ export function getEventsForYear(events, year, range = 100) {
 }
 
 /**
- * 获取与年份相关的迁徙路线
- * @param {Array} migrations - 迁徙路线数组
+ * 获取与年份相关的迁徙路线，直接返回原始数据，不经过适配器处理
  * @param {number} year - 年份
- * @returns {Array} 相关迁徙路线数组
+ * @returns {Promise<Array>} 相关迁徙路线数组的Promise
  */
-export function getMigrationsForYear(migrations, year) {
-    if (!migrations || !Array.isArray(migrations)) {
-        console.warn('传入的迁徙数据无效');
+export async function getMigrationsForYear(year) {
+    try {
+        console.log(`获取${year}年的迁徙数据`);
+        // 直接加载全部迁徙数据
+        const allMigrations = await loadJSONData('migrations.json');
+        
+        if (!allMigrations || !Array.isArray(allMigrations)) {
+            console.warn('加载的迁徙数据无效');
+            return [];
+        }
+        
+        console.log(`加载了${allMigrations.length}条迁徙数据`);
+        
+        // 检查迁移数据的完整性，但不做适配转换
+        allMigrations.forEach((migration, index) => {
+            // 验证必要字段是否存在
+            if (!migration.from || !migration.to || !migration.path) {
+                console.warn(`迁移数据 ${migration.id || index} 缺少必要字段`);
+            }
+        });
+        
+        // 筛选符合年份条件的迁徙，原样返回
+        const filteredMigrations = allMigrations.filter(migration => {
+            // 确保迁徙数据有年份
+            const startYear = migration.startYear !== undefined ? migration.startYear : (migration.year || 0);
+            const endYear = migration.endYear !== undefined ? migration.endYear : startYear;
+            
+            // 检查年份是否在迁徙的时间范围内
+            return year >= startYear && year <= endYear;
+        });
+        
+        console.log(`筛选后得到${filteredMigrations.length}条迁徙数据`);
+        
+        // 如果有数据，打印第一条数据以便调试
+        if (filteredMigrations.length > 0) {
+            console.log(`第一条迁徙数据: ${JSON.stringify(filteredMigrations[0])}`);
+        }
+        
+        return filteredMigrations;
+    } catch (error) {
+        console.error('获取迁徙数据失败:', error);
         return [];
     }
-    
-    return migrations.filter(migration => {
-        return migration.startYear <= year && migration.endYear >= year;
-    });
 }
 
 /**

@@ -442,4 +442,46 @@
 .dark .custom-event-popup .leaflet-popup-tip {
     background: #1e293b;
     box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+}
+
+/* 添加迁徙路线相关样式 */
+.migration-popup .popup-header {
+    background-color: #7c3aed;
+    color: white;
+}
+
+.migration-popup .popup-title {
+    color: white;
+}
+
+.migration-popup .popup-close {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.migration-popup .popup-close:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+/* 迁徙路径动画 */
+.migration-path {
+    stroke-dasharray: 8;
+    animation: dash 30s linear infinite;
+    stroke-width: 3;
+    stroke-linecap: round;
+}
+
+@keyframes dash {
+    to {
+        stroke-dashoffset: -1000;
+    }
+}
+
+/* 暗色模式下的迁徙路线 */
+.dark .migration-popup .popup-header {
+    background-color: #6d28d9;
+}
+
+.dark .migration-path {
+    stroke-opacity: 0.7;
 } 

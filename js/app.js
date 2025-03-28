@@ -127,7 +127,7 @@ export class App {
             
             // 加载数据
             console.log('开始加载数据...');
-            await this.loadData();
+            await this.loadInitialData();
             console.log('数据加载完成');
             
             // 确认数据已加载
@@ -281,9 +281,23 @@ export class App {
             // 显示加载指示器
             this.showLoader('更新年份...');
             
+            // 确保有完整数据对象传给MapCore
+            const dataToUpdate = {
+                allEvents: this.eventsData || [],
+                migrations: this.migrationsData || [],
+                technologies: this.technologiesData || [],
+                civilizations: this.civilizationsData || [],
+                species: this.speciesData || [],
+                wars: this.warsData || [],
+                diseases: this.diseasesData || [],
+                agriculture: this.agricultureData || []
+            };
+            
+            console.log(`准备更新年份，迁移数据数量: ${dataToUpdate.migrations.length}条`);
+            
             // 让MapCore统一管理事件显示和更新
             // MapCore内部会通过MapEvents管理所有事件，包括在地图上显示和在侧边栏显示
-            await this.mapCore.updateToYear(year, this.data);
+            await this.mapCore.updateToYear(year, dataToUpdate);
             
             // 隐藏加载指示器
             this.hideLoader();
@@ -298,42 +312,38 @@ export class App {
      * 加载初始数据
      */
     async loadInitialData() {
-        console.log('加载初始数据...');
+        console.log('正在加载初始数据...');
         
         try {
-            // 加载事件数据
-            this.eventsData = await loadAllData();
-            console.log(`加载了 ${this.eventsData.length} 个事件`);
+            // 显示加载指示器
+            this.showLoader('加载历史数据...');
             
-            // 加载迁徙数据
-            this.migrationsData = await getMigrationsForYear(this.timelineManager.getCurrentYear());
-            console.log(`加载了 ${this.migrationsData.length} 条迁徙路线`);
+            // 加载数据
+            await this.loadData();
             
-            // 加载技术发展数据
-            this.technologiesData = await getEventsForYear(this.timelineManager.getCurrentYear(), 'technology');
-            console.log(`加载了 ${this.technologiesData.length} 个技术发展`);
+            // 设置初始年份
+            const initialYear = this.timelineManager.getCurrentYear();
+            console.log(`设置初始年份: ${initialYear}`);
             
-            // 加载社会组织数据
-            this.civilizationsData = await getEventsForYear(this.timelineManager.getCurrentYear(), 'civilization');
-            console.log(`加载了 ${this.civilizationsData.length} 个文明/社会组织`);
+            // 添加调试日志，查看迁移数据
+            if (this.migrationsData && this.migrationsData.length > 0) {
+                console.log(`共加载了 ${this.migrationsData.length} 条迁移数据`);
+                console.log('第一条迁移数据示例:', this.migrationsData[0]);
+            } else {
+                console.warn('没有加载到迁移数据');
+            }
             
-            // 加载物种数据
-            this.speciesData = await getEventsForYear(this.timelineManager.getCurrentYear(), 'species');
-            console.log(`加载了 ${this.speciesData.length} 个物种记录`);
+            // 初始化地图数据
+            await this.updateYear(initialYear);
             
-            // 加载战争数据
-            this.warsData = await getEventsForYear(this.timelineManager.getCurrentYear(), 'war');
-            console.log(`加载了 ${this.warsData.length} 个战争记录`);
+            // 隐藏加载指示器
+            this.hideLoader();
             
-            // 加载疾病数据
-            this.diseasesData = await getEventsForYear(this.timelineManager.getCurrentYear(), 'disease');
-            console.log(`加载了 ${this.diseasesData.length} 个疾病记录`);
-            
-            // 初始化事件管理器
-            this.initEventsManager();
+            console.log('初始数据加载完成');
         } catch (error) {
             console.error('加载初始数据时出错:', error);
-            throw error;
+            this.hideLoader();
+            this.showError('加载数据失败: ' + error.message);
         }
     }
     
@@ -794,6 +804,17 @@ export class App {
         if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
             document.body.classList.add('dark');
             themeToggleBtn.querySelector('i').textContent = 'light_mode';
+        }
+    }
+
+    /**
+     * 切换迁移路径显示
+     * @param {boolean} visible - 是否显示
+     */
+    toggleMigrations(visible) {
+        console.log(`${visible ? '显示' : '隐藏'}迁移路径`);
+        if (this.mapCore && this.mapCore.migrations) {
+            this.mapCore.migrations.toggleMigrations(visible);
         }
     }
 } 

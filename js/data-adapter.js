@@ -98,6 +98,8 @@ export function adaptMigrations(migrations) {
         return [];
     }
     
+    console.log('适配迁徙数据，总数:', migrations.length);
+    
     return migrations.map(migration => {
         // 检查是否是新格式数据 (直接包含startYear和endYear字段)
         if (migration.startYear !== undefined) {
@@ -105,52 +107,104 @@ export function adaptMigrations(migrations) {
             let startCoordinates = null;
             let endCoordinates = null;
             
-            // 解析坐标
-            if (migration.location && migration.endLocation) {
-                // 使用location和endLocation字段
-                if (migration.location.lat !== undefined && migration.location.lng !== undefined) {
-                    startCoordinates = [migration.location.lat, migration.location.lng];
+            // 解析坐标，优先使用from/to字段
+            if (migration.from && migration.to) {
+                console.log(`迁徙 ${migration.title || migration.id}: 使用from/to字段`);
+                if (Array.isArray(migration.from) && Array.isArray(migration.to)) {
+                    startCoordinates = migration.from;
+                    endCoordinates = migration.to;
                 }
-                if (migration.endLocation.lat !== undefined && migration.endLocation.lng !== undefined) {
-                    endCoordinates = [migration.endLocation.lat, migration.endLocation.lng];
-                }
-            } else if (migration.path && Array.isArray(migration.path) && migration.path.length >= 2) {
+            } 
+            // 其次，查看是否有路径信息
+            else if (migration.path && Array.isArray(migration.path) && migration.path.length >= 2) {
+                console.log(`迁徙 ${migration.title || migration.id}: 使用path字段`);
                 // 从路径提取起点和终点
-                startCoordinates = [migration.path[0].lat, migration.path[0].lng];
-                endCoordinates = [migration.path[migration.path.length-1].lat, migration.path[migration.path.length-1].lng];
+                const firstPoint = migration.path[0];
+                const lastPoint = migration.path[migration.path.length-1];
+                
+                if (Array.isArray(firstPoint) && Array.isArray(lastPoint)) {
+                    startCoordinates = [firstPoint[0], firstPoint[1]];
+                    endCoordinates = [lastPoint[0], lastPoint[1]];
+                } else if (typeof firstPoint === 'object' && typeof lastPoint === 'object') {
+                    startCoordinates = [firstPoint.lat, firstPoint.lng];
+                    endCoordinates = [lastPoint.lat, lastPoint.lng];
+                }
+            }
+            // 最后，使用location字段
+            else if (migration.location) {
+                console.log(`迁徙 ${migration.title || migration.id}: 使用location字段`);
+                if (typeof migration.location === 'object') {
+                    if (migration.location.lat !== undefined && migration.location.lng !== undefined) {
+                        startCoordinates = [migration.location.lat, migration.location.lng];
+                        // 如果没有终点，随机生成一个附近的点作为终点
+                        const randomOffset = 10;
+                        endCoordinates = [
+                            migration.location.lat + (Math.random() - 0.5) * randomOffset,
+                            migration.location.lng + (Math.random() - 0.5) * randomOffset
+                        ];
+                    }
+                }
             }
             
-            // 构建路径
-            const path = [];
+            // 构建路径数组
+            let pathArray = [];
+            
+            // 如果有path字段，使用它
             if (migration.path && Array.isArray(migration.path)) {
-                migration.path.forEach(point => {
-                    if (point.lat !== undefined && point.lng !== undefined) {
-                        path.push([point.lng, point.lat]);
+                pathArray = migration.path.map(point => {
+                    if (Array.isArray(point)) {
+                        return [point[1], point[0]]; // 转换为[lng, lat]格式
+                    } else if (typeof point === 'object' && point.lat !== undefined) {
+                        return [point.lng, point.lat];
                     }
+                    return null;
+                }).filter(point => point !== null);
+            } 
+            // 如果有from/to但没有path，创建一个简单的双点路径
+            else if (startCoordinates && endCoordinates) {
+                // GeoJSON格式是[lng, lat]，但我们的坐标是[lat, lng]，所以交换一下
+                pathArray = [
+                    [startCoordinates[1], startCoordinates[0]],
+                    [endCoordinates[1], endCoordinates[0]]
+                ];
+            }
+            
+            // 检查数据完整性并记录日志
+            const hasValidPath = pathArray.length >= 2;
+            const hasCoordinates = !!startCoordinates && !!endCoordinates;
+            
+            if (!hasValidPath || !hasCoordinates) {
+                console.warn(`迁徙 ${migration.title || migration.id} 数据不完整:`, {
+                    hasValidPath,
+                    pathLength: pathArray.length,
+                    hasCoordinates
                 });
             }
             
             return {
                 id: migration.id || `migration-${Math.random().toString(36).substring(2, 9)}`,
                 name: migration.title || migration.name || '未命名迁徙',
+                title: migration.title,
                 startYear: migration.startYear,
-                endYear: migration.endYear || (migration.startYear + 100), // 默认持续100年
-                path: path,
-                route: path.map(p => [p[1], p[0]]),
+                endYear: migration.endYear || migration.startYear,
+                path: pathArray,
+                route: pathArray.map(p => [p[1], p[0]]), // 转回[lat, lng]格式
                 startCoordinates: startCoordinates,
                 endCoordinates: endCoordinates,
-                startLocation: migration.startLocation || migration.from || '未知起点',
-                endLocation: migration.endLocation || migration.to || '未知终点',
-                description: migration.description || migration.reason || '',
-                group: migration.group || migration.population || '',
-                category: migration.category || '人口迁徙',
+                from: migration.from, // 保留原始字段
+                to: migration.to,     // 保留原始字段
+                description: migration.description || '',
+                region: migration.region || '',
+                category: migration.category || '迁徙',
                 importance: migration.importance || 3,
-                impact: migration.impact || migration.significance || '',
-                originalData: migration
+                impact: migration.impact || '',
+                originalData: migration // 保存原始数据以备查询
             };
         }
         
-        // 旧格式数据处理
+        // 处理旧格式数据，保持不变
+        // ... 原有的旧格式处理代码 ...
+        
         // 解析年份
         const startTimeStr = migration['起始时间'] || '';
         const endTimeStr = migration['结束时间'] || '';
@@ -185,7 +239,7 @@ export function adaptMigrations(migrations) {
         
         // 添加终点
         if (migration['终点']) {
-            path.push([migration['终点']['经度'], migration['终点']['纬度']]);
+            path.push([migration['终点']['经度'], migration['起点']['纬度']]);
         }
         
         // 返回适配后的迁徙对象
@@ -210,6 +264,8 @@ export function adaptMigrations(migrations) {
             historicalSignificance: migration['历史意义'],
             relatedEvents: migration['关联事件'] || [],
             period: migration['时期'],
+            from: migration['起点'] ? [migration['起点']['纬度'], migration['起点']['经度']] : null,
+            to: migration['终点'] ? [migration['终点']['纬度'], migration['终点']['经度']] : null,
             originalData: migration // 保存原始数据以备查询
         };
     });
