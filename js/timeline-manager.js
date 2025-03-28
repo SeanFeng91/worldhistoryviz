@@ -498,30 +498,42 @@ export class TimelineManager {
     setupSliderEvents() {
         if (!this.yearSlider) return;
         
+        // 监听滑块输入事件 - 实时更新年份显示
         this.yearSlider.addEventListener('input', (e) => {
-            let year;
+            let value = parseFloat(e.target.value);
+            let newYear;
             
             if (this.useNonLinearScale) {
-                const sliderValue = parseFloat(e.target.value);
-                year = this.sliderValueToYear(sliderValue);
+                newYear = this.sliderValueToYear(value);
             } else {
-                year = parseInt(e.target.value);
+                newYear = value;
             }
             
-            this.updateYearDisplay(year);
+            // 更新年份显示
+            this.updateYearDisplay(newYear);
+            
+            // 更新滑块指示器位置
+            this.updateSliderIndicator(newYear);
         });
         
+        // 监听滑块变化事件 - 完成拖动后触发
         this.yearSlider.addEventListener('change', (e) => {
-            let year;
+            let value = parseFloat(e.target.value);
+            let newYear;
             
             if (this.useNonLinearScale) {
-                const sliderValue = parseFloat(e.target.value);
-                year = this.sliderValueToYear(sliderValue);
+                newYear = this.sliderValueToYear(value);
             } else {
-                year = parseInt(e.target.value);
+                newYear = value;
             }
             
-            this.updateToYear(year);
+            // 更新当前年份
+            this.currentYear = newYear;
+            
+            // 触发年份变化回调
+            if (this.yearChangedCallback) {
+                this.yearChangedCallback(newYear);
+            }
         });
     }
     
@@ -1403,20 +1415,19 @@ export class TimelineManager {
      * @param {number} year - 目标年份
      */
     updateToYear(year) {
-        if (isNaN(year) || year < this.minYear || year > this.maxYear) {
-            console.warn(`无效的年份值: ${year}`);
-            return;
-        }
+        // 确保年份在有效范围内
+        if (year < this.minYear) year = this.minYear;
+        if (year > this.maxYear) year = this.maxYear;
         
         // 更新当前年份
         this.currentYear = year;
         
-        // 更新滑块位置
+        // 更新滑块值
         if (this.yearSlider) {
             if (this.useNonLinearScale) {
                 this.yearSlider.value = this.yearToSliderValue(year);
             } else {
-            this.yearSlider.value = year;
+                this.yearSlider.value = year;
             }
         }
         
@@ -1426,7 +1437,10 @@ export class TimelineManager {
         }
         
         // 更新年份显示
-        this.updateYearDisplay();
+        this.updateYearDisplay(year);
+        
+        // 更新滑块指示器位置
+        this.updateSliderIndicator(year);
         
         // 触发年份变化回调
         if (this.yearChangedCallback) {
@@ -1471,6 +1485,40 @@ export class TimelineManager {
                 this.yearDisplay.style.fontSize = '18px';
             }
         }
+        
+        // 更新当前年份刻度线
+        this.updateCurrentYearMarker(year);
+    }
+    
+    /**
+     * 更新当前年份刻度线
+     * @param {number} year - 当前年份
+     */
+    updateCurrentYearMarker(year) {
+        // 移除现有的当前年份标记
+        const existingMarker = document.querySelector('.current-year-marker');
+        if (existingMarker) {
+            existingMarker.remove();
+        }
+        
+        // 创建新的当前年份标记
+        const ticksContainer = document.querySelector('.timeline-ticks');
+        if (!ticksContainer) return;
+        
+        const marker = document.createElement('div');
+        marker.className = 'timeline-tick current-year-marker';
+        
+        // 计算位置
+        let position;
+        if (this.useNonLinearScale) {
+            const sliderValue = this.yearToSliderValue(year);
+            position = ((sliderValue - this.sliderMinValue) / (this.sliderMaxValue - this.sliderMinValue)) * 100;
+        } else {
+            position = ((year - this.minYear) / (this.maxYear - this.minYear)) * 100;
+        }
+        
+        marker.style.left = `${position}%`;
+        ticksContainer.appendChild(marker);
     }
     
     /**
@@ -1749,5 +1797,25 @@ export class TimelineManager {
         });
         
         console.log('时间轴容器拖动功能已设置');
+    }
+    
+    /**
+     * 更新滑块指示器位置
+     * @param {number} year - 当前年份
+     */
+    updateSliderIndicator(year) {
+        const sliderIndicator = document.querySelector('.slider-indicator');
+        if (!sliderIndicator) return;
+        
+        // 计算位置
+        let position;
+        if (this.useNonLinearScale) {
+            const sliderValue = this.yearToSliderValue(year);
+            position = ((sliderValue - this.sliderMinValue) / (this.sliderMaxValue - this.sliderMinValue)) * 100;
+        } else {
+            position = ((year - this.minYear) / (this.maxYear - this.minYear)) * 100;
+        }
+        
+        sliderIndicator.style.left = `${position}%`;
     }
 } 
