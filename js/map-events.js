@@ -10,8 +10,17 @@ export class MapEvents {
     }
 
     async initialize() {
-        // 加载所有事件数据
+        console.log('初始化事件模块');
+        
         try {
+            // 监听地图缩放事件，更新所有标记的位置
+            if (this.mapCore && this.mapCore.map) {
+                this.mapCore.map.on('zoomend', () => {
+                    this.updateMarkerPositions();
+                });
+            }
+            
+            // 加载所有事件数据
             console.log('开始加载事件数据');
             const allData = await loadAllData();
             this.allEventsData = {
@@ -27,8 +36,12 @@ export class MapEvents {
             
             // 初始加载当前年份的事件
             await this.updateToYear(this.mapCore.currentYear);
+            
+            // 其他初始化逻辑
+            return true;
         } catch (error) {
-            console.error('加载事件数据失败:', error);
+            console.error('初始化事件模块失败:', error);
+            return false;
         }
     }
 
@@ -252,14 +265,15 @@ export class MapEvents {
         const icon = L.divIcon({
             className: 'event-marker',
             html: this.createEventMarkerHTML(event),
-            iconSize: [32, 32],  // 增加大小以适应图标
-            iconAnchor: [16, 16] // 调整锚点居中
+            iconSize: [32, 32],  // 图标大小
+            iconAnchor: [16, 30]  // 调整锚点到图标底部中心，避免缩放时偏移
         });
 
-        return L.marker([event.latitude, event.longitude], {
+        const marker = L.marker([event.latitude, event.longitude], {
             icon: icon,
             title: event.title || event.name,
-            riseOnHover: true    // 悬停时升高，避免被其他标记遮挡
+            riseOnHover: true,    // 悬停时升高，避免被其他标记遮挡
+            bubblingMouseEvents: false // 防止鼠标事件冒泡到地图
         }).bindPopup(() => this.createEventPopupContent(event), {
             className: 'custom-event-popup',
             maxWidth: 500,
@@ -267,6 +281,15 @@ export class MapEvents {
             closeButton: false,
             autoClose: false
         });
+        
+        // 添加缩放事件监听，确保图标在缩放后保持正确位置
+        if (this.mapCore && this.mapCore.map) {
+            this.mapCore.map.on('zoomend', () => {
+                marker.setLatLng([event.latitude, event.longitude]);
+            });
+        }
+        
+        return marker;
     }
 
     createEventMarkerHTML(event) {
@@ -1018,6 +1041,16 @@ export class MapEvents {
             
             // 只保留相关性足够高的事件
             return relevance >= 0.1;
+        });
+    }
+
+    // 更新所有标记的位置
+    updateMarkerPositions() {
+        this.eventMarkers.forEach((marker, eventId) => {
+            const event = this.currentEvents.find(e => e.id === eventId);
+            if (event && event.latitude && event.longitude) {
+                marker.setLatLng([event.latitude, event.longitude]);
+            }
         });
     }
 } 

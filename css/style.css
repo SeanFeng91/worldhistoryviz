@@ -1118,17 +1118,17 @@ input[type="range"]:active {
 /* 事件标记样式 */
 .event-marker {
     transition: all 0.3s;
-    position: relative;
-    z-index: 400;
+    z-index: 500 !important;
+    transform-origin: center bottom;
 }
 
 .event-marker:hover {
     transform: scale(1.1);
-    z-index: 1000 !important;
+    z-index: 600 !important;
 }
 
-/* 地图上的事件图标样式 */
-.event-marker .event-icon {
+/* 事件图标样式现代化 */
+.event-icon {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1141,9 +1141,12 @@ input[type="range"]:active {
     font-size: 1.125rem;
     transition: all 0.3s;
     border: 1px solid #e2e8f0;
+    transform: translateY(0);
+    position: relative;
+    bottom: 0;
 }
 
-.dark .event-marker .event-icon {
+.dark .event-icon {
     background-color: rgba(30, 41, 59, 0.9);
     border-color: #334155;
 }
