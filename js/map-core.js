@@ -149,12 +149,12 @@ export class MapCore {
         console.log(`MapCore: 更新到${year}年的数据`);
         this.currentYear = year;
         
+        // 重新加载地图GeoJSON数据
+        await this.loadGeoJSON();
+        
         // 有传入数据时直接使用
         if (data) {
             console.log(`MapCore: 使用传入的数据更新到${year}年`);
-            
-            // 阻止地图重新渲染，提高性能
-            this.map.setZoom(this.map.getZoom(), {animate: false});
             
             // 更新各模块数据
             try {
