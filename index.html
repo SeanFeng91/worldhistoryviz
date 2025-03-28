@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,6 +19,17 @@
     <link rel="stylesheet" href="css/event-popup.css">
     <!-- 动画库 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <!-- 添加Material Icons字体 -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <!-- 添加serif字体用于时间轴 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- 暗色模式检测 -->
+    <script>
+        // 检查系统是否为暗色模式
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
     
     <style>
         /* 基础样式重置 */
@@ -320,7 +331,7 @@
         </div>
         
         <!-- 控制按钮容器 -->
-        <div class="timeline-controls"></div>
+        <!-- <div class="timeline-controls"></div> -->
     </div>
     
     <!-- 加载指示器 -->

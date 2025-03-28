@@ -55,6 +55,84 @@ export class TimelineManager {
         
         // 重要历史年份标记 - 将在初始化时从事件数据动态生成
         this.keyHistoricalYears = [];
+        
+        // 时间轴非线性转换参数
+        this.useNonLinearScale = true;  // 是否使用非线性尺度
+        this.scaleBreakpoint = 0;       // 转换断点，通常为公元0年
+        this.bcScaleFactor = 0.3;       // 公元前的比例因子 (压缩，调小数值压缩更强)
+        this.adScaleFactor = 1.0;       // 公元后的比例因子 (设为1.0表示线性，不进行缩放)
+        
+        // 时间轴内部范围，用于非线性转换
+        this.sliderMinValue = 0;
+        this.sliderMaxValue = 1000;
+    }
+    
+    /**
+     * 将实际年份转换为滑块值 (非线性转换)
+     * @param {number} year - 实际历史年份
+     * @returns {number} 滑块位置值
+     */
+    yearToSliderValue(year) {
+        if (!this.useNonLinearScale) {
+            return year; // 不使用非线性尺度时直接返回
+        }
+        
+        // 计算整个时间范围
+        const totalRange = this.maxYear - this.minYear;
+        
+        // 判断是公元前还是公元后
+        if (year < this.scaleBreakpoint) {
+            // 公元前年份 (压缩)
+            const bcRange = this.scaleBreakpoint - this.minYear;
+            const bcPosition = this.scaleBreakpoint - year; // 距离断点的距离
+            // 使用对数缩放公元前部分
+            const scaledPercent = Math.pow(bcPosition / bcRange, this.bcScaleFactor);
+            const sliderValue = this.sliderMinValue + (1 - scaledPercent) * ((this.sliderMaxValue - this.sliderMinValue) / 2);
+            console.log(`转换公元前年份: ${year} -> 滑块值: ${sliderValue}，百分比位置: ${(sliderValue - this.sliderMinValue) / (this.sliderMaxValue - this.sliderMinValue) * 100}%`);
+            return sliderValue;
+        } else {
+            // 公元后年份 (线性)
+            const adRange = this.maxYear - this.scaleBreakpoint;
+            const adPosition = year - this.scaleBreakpoint; // 距离断点的距离
+            // 线性映射公元后部分
+            const scaledPercent = adPosition / adRange;
+            const sliderValue = this.sliderMinValue + ((this.sliderMaxValue - this.sliderMinValue) / 2) + scaledPercent * ((this.sliderMaxValue - this.sliderMinValue) / 2);
+            console.log(`转换公元后年份: ${year} -> 滑块值: ${sliderValue}，百分比位置: ${(sliderValue - this.sliderMinValue) / (this.sliderMaxValue - this.sliderMinValue) * 100}%`);
+            return sliderValue;
+        }
+    }
+    
+    /**
+     * 将滑块值转换为实际年份 (非线性转换的逆运算)
+     * @param {number} value - 滑块位置值
+     * @returns {number} 实际历史年份
+     */
+    sliderValueToYear(value) {
+        if (!this.useNonLinearScale) {
+            return value; // 不使用非线性尺度时直接返回
+        }
+        
+        // 滑块中点值（对应公元0年）
+        const midPoint = this.sliderMinValue + (this.sliderMaxValue - this.sliderMinValue) / 2;
+        
+        // 判断是公元前还是公元后
+        if (value < midPoint) {
+            // 公元前年份 (解压缩)
+            const normalizedValue = (value - this.sliderMinValue) / (midPoint - this.sliderMinValue); // 归一化的值
+            const bcRange = this.scaleBreakpoint - this.minYear;
+            const bcPosition = bcRange * Math.pow(1 - normalizedValue, 1 / this.bcScaleFactor);
+            const year = Math.round(this.scaleBreakpoint - bcPosition);
+            console.log(`滑块值 ${value} (${normalizedValue * 100}%) -> 公元前年份: ${year}`);
+            return year;
+        } else {
+            // 公元后年份 (线性)
+            const normalizedValue = (value - midPoint) / (this.sliderMaxValue - midPoint); // 归一化的值
+            const adRange = this.maxYear - this.scaleBreakpoint;
+            const adPosition = adRange * normalizedValue;
+            const year = Math.round(this.scaleBreakpoint + adPosition);
+            console.log(`滑块值 ${value} (${(normalizedValue + 0.5) * 100}%) -> 公元后年份: ${year}`);
+            return year;
+        }
     }
     
     /**
@@ -89,9 +167,18 @@ export class TimelineManager {
             sliderElement = document.createElement('input');
             sliderElement.id = this.yearSliderId;
             sliderElement.type = 'range';
+            
+            // 如果使用非线性尺度，使用内部范围
+            if (this.useNonLinearScale) {
+                sliderElement.min = this.sliderMinValue;
+                sliderElement.max = this.sliderMaxValue;
+                sliderElement.value = this.yearToSliderValue(this.currentYear);
+            } else {
             sliderElement.min = this.minYear;
             sliderElement.max = this.maxYear;
             sliderElement.value = this.currentYear;
+            }
+            
             sliderElement.className = 'timeline-slider';
             
             // 将滑块添加到容器
@@ -118,9 +205,15 @@ export class TimelineManager {
         }
         
         // 设置初始值
+        if (this.useNonLinearScale) {
+            this.yearSlider.min = this.sliderMinValue;
+            this.yearSlider.max = this.sliderMaxValue;
+            this.yearSlider.value = this.yearToSliderValue(this.currentYear);
+        } else {
         this.yearSlider.min = this.minYear;
         this.yearSlider.max = this.maxYear;
         this.yearSlider.value = this.currentYear;
+        }
         
         // 如果存在年份输入框,设置其值
         if (this.yearInput) {
@@ -184,15 +277,15 @@ export class TimelineManager {
             const eventManager = window.historyMapApp.eventManager;
             
             // 默认时间段配置，如果无法从事件中生成
-            const defaultPeriods = [
-                { start: -15000, end: -3000, name: "史前" },
-                { start: -3000, end: -1000, name: "古代早期" },
-                { start: -1000, end: 500, name: "古典时期" },
-                { start: 500, end: 1400, name: "中世纪" },
-                { start: 1400, end: 1700, name: "文艺复兴" },
-                { start: 1700, end: 1900, name: "现代早期" },
-                { start: 1900, end: 2000, name: "现代" }
-            ];
+            // const defaultPeriods = [
+            //     { start: -15000, end: -3000, name: "史前" },
+            //     { start: -3000, end: -1000, name: "古代早期" },
+            //     { start: -1000, end: 500, name: "古典时期" },
+            //     { start: 500, end: 1400, name: "中世纪" },
+            //     { start: 1400, end: 1700, name: "文艺复兴" },
+            //     { start: 1700, end: 1900, name: "现代早期" },
+            //     { start: 1900, end: 2000, name: "现代" }
+            // ];
             
             try {
                 // 尝试获取文明类事件以确定时间段
@@ -279,13 +372,13 @@ export class TimelineManager {
         } else {
             // 如果没有事件管理器，使用默认配置
             this.periods = [
-                { start: -10000, end: -3000, name: "史前" },
+                { start: -12000, end: -3000, name: "史前" },
                 { start: -3000, end: -1000, name: "古代早期" },
                 { start: -1000, end: 500, name: "古典时期" },
                 { start: 500, end: 1400, name: "中世纪" },
                 { start: 1400, end: 1700, name: "文艺复兴" },
                 { start: 1700, end: 1900, name: "现代早期" },
-                { start: 1900, end: 2000, name: "现代" }
+                { start: 1900, end: 2025, name: "现代" }
             ];
         }
     }
@@ -300,16 +393,16 @@ export class TimelineManager {
             const eventManager = window.historyMapApp.eventManager;
             
             // 默认关键年份，如果无法从事件中生成
-            const defaultKeyYears = [
-                { year: -3500, label: "苏美尔文明" },
-                { year: -1345, label: "图坦卡蒙" },
-                { year: -776, label: "奥运会起源" },
-                { year: 1, label: "公元元年" },
-                { year: 1492, label: "新大陆发现" },
-                { year: 1776, label: "美国独立" },
-                { year: 1945, label: "二战结束" },
-                { year: 1969, label: "登月" }
-            ];
+            // const defaultKeyYears = [
+            //     { year: -3500, label: "苏美尔文明" },
+            //     { year: -1345, label: "图坦卡蒙" },
+            //     { year: -776, label: "奥运会起源" },
+            //     { year: 1, label: "公元元年" },
+            //     { year: 1492, label: "新大陆发现" },
+            //     { year: 1776, label: "美国独立" },
+            //     { year: 1945, label: "二战结束" },
+            //     { year: 1969, label: "登月" }
+            // ];
             
             try {
                 // 获取所有事件
@@ -386,16 +479,16 @@ export class TimelineManager {
             }
         } else {
             // 如果没有事件管理器，使用默认配置
-            this.keyHistoricalYears = [
-                { year: -3500, label: "苏美尔文明" },
-                { year: -1345, label: "图坦卡蒙" },
-                { year: -776, label: "奥运会起源" },
-                { year: 1, label: "公元元年" },
-                { year: 1492, label: "新大陆发现" },
-                { year: 1776, label: "美国独立" },
-                { year: 1945, label: "二战结束" },
-                { year: 1969, label: "登月" }
-            ];
+            // this.keyHistoricalYears = [
+            //     { year: -3500, label: "苏美尔文明" },
+            //     { year: -1345, label: "图坦卡蒙" },
+            //     { year: -776, label: "奥运会起源" },
+            //     { year: 1, label: "公元元年" },
+            //     { year: 1492, label: "新大陆发现" },
+            //     { year: 1776, label: "美国独立" },
+            //     { year: 1945, label: "二战结束" },
+            //     { year: 1969, label: "登月" }
+            // ];
         }
     }
     
@@ -403,21 +496,33 @@ export class TimelineManager {
      * 设置滑块事件处理
      */
     setupSliderEvents() {
-        // 监听滑块输入事件
-        this.yearSlider.addEventListener('input', (e) => {
-            const year = parseInt(e.target.value);
-            this.updateYearDisplay(year);
-            // 阻止事件冒泡，但不阻止滑块的默认行为
-            e.stopPropagation();
-        }, { passive: true });
+        if (!this.yearSlider) return;
         
-        // 监听滑块变化事件
+        this.yearSlider.addEventListener('input', (e) => {
+            let year;
+            
+            if (this.useNonLinearScale) {
+                const sliderValue = parseFloat(e.target.value);
+                year = this.sliderValueToYear(sliderValue);
+            } else {
+                year = parseInt(e.target.value);
+            }
+            
+            this.updateYearDisplay(year);
+        });
+        
         this.yearSlider.addEventListener('change', (e) => {
-            const year = parseInt(e.target.value);
+            let year;
+            
+            if (this.useNonLinearScale) {
+                const sliderValue = parseFloat(e.target.value);
+                year = this.sliderValueToYear(sliderValue);
+            } else {
+                year = parseInt(e.target.value);
+            }
+            
             this.updateToYear(year);
-            // 阻止事件冒泡，但不阻止滑块的默认行为
-            e.stopPropagation();
-        }, { passive: true });
+        });
     }
     
     /**
@@ -675,55 +780,85 @@ export class TimelineManager {
         const sliderContainer = document.createElement('div');
         sliderContainer.className = 'timeline-slider-container';
         
-        // 创建滑块指示器（替代滑块）
-        const sliderIndicator = document.createElement('div');
-        sliderIndicator.className = 'slider-indicator';
-        
-        // 计算初始位置百分比
-        const initialPercent = (this.currentYear - this.minYear) / (this.maxYear - this.minYear) * 100;
-        sliderIndicator.style.left = `${initialPercent}%`;
-        
-        sliderContainer.appendChild(sliderIndicator);
-        
-        // 保留隐藏的滑块元素用于跟踪和保持兼容性
-        const yearSlider = document.createElement('input');
-        // 使用this.yearSliderId或默认值
-        const sliderId = this.yearSliderId || 'year-slider';
-        yearSlider.id = sliderId;
-        // 更新this.yearSliderId以确保一致性
-        this.yearSliderId = sliderId;
-        yearSlider.className = 'timeline-slider';
-        yearSlider.type = 'range';
-        yearSlider.min = this.minYear;
-        yearSlider.max = this.maxYear;
-        yearSlider.value = this.currentYear;
-        yearSlider.step = '10'; // 每次调整10年
-        yearSlider.style.opacity = '0'; // 确保滑块完全隐藏
-        
-        sliderContainer.appendChild(yearSlider);
-        
         // 创建时间刻度容器
         const ticksContainer = document.createElement('div');
-        ticksContainer.className = 'timeline-ticks-container';
+        ticksContainer.className = 'timeline-ticks';
         ticksContainer.id = 'timeline-ticks';
+        sliderContainer.appendChild(ticksContainer);
         
         // 创建时期标记容器
         const periodMarkersContainer = document.createElement('div');
         periodMarkersContainer.className = 'timeline-period-markers';
         periodMarkersContainer.id = 'timeline-periods';
-        
         sliderContainer.appendChild(periodMarkersContainer);
+        
+        // 创建滑块指示器
+        const sliderIndicator = document.createElement('div');
+        sliderIndicator.className = 'slider-indicator';
+        sliderContainer.appendChild(sliderIndicator);
+        
+        // 创建滑块元素
+        const yearSlider = document.createElement('input');
+        yearSlider.id = this.yearSliderId || 'year-slider';
+        this.yearSliderId = yearSlider.id; // 确保一致性
+        yearSlider.className = 'timeline-slider';
+        yearSlider.type = 'range';
+        
+        // 设置滑块范围
+        if (this.useNonLinearScale) {
+            yearSlider.min = this.sliderMinValue;
+            yearSlider.max = this.sliderMaxValue;
+            yearSlider.value = this.yearToSliderValue(this.currentYear);
+        } else {
+        yearSlider.min = this.minYear;
+        yearSlider.max = this.maxYear;
+        yearSlider.value = this.currentYear;
+        }
+        
+        sliderContainer.appendChild(yearSlider);
+        
+        // 创建控制按钮容器
+        const controlsContainer = document.createElement('div');
+        controlsContainer.className = 'timeline-controls';
+        
+        // 创建并添加控制按钮
+        // 后退按钮
+        const backBtn = document.createElement('button');
+        backBtn.className = 'timeline-control-btn';
+        backBtn.innerHTML = '<i class="material-icons-round">fast_rewind</i>';
+        backBtn.title = '后退100年';
+        backBtn.setAttribute('data-action', 'rewind');
+        
+        // 播放/暂停按钮
+        const playBtn = document.createElement('button');
+        playBtn.id = 'play-btn';
+        playBtn.className = 'timeline-control-btn';
+        playBtn.innerHTML = '<i class="material-icons-round">play_arrow</i>';
+        playBtn.title = '播放/暂停';
+        playBtn.setAttribute('data-action', 'play');
+        
+        // 前进按钮
+        const forwardBtn = document.createElement('button');
+        forwardBtn.className = 'timeline-control-btn';
+        forwardBtn.innerHTML = '<i class="material-icons-round">fast_forward</i>';
+        forwardBtn.title = '前进100年';
+        forwardBtn.setAttribute('data-action', 'forward');
+        
+        // 添加到控制区域
+        controlsContainer.appendChild(backBtn);
+        controlsContainer.appendChild(playBtn);
+        controlsContainer.appendChild(forwardBtn);
         
         // 添加到容器
         timelineContainer.appendChild(yearDisplay);
         timelineContainer.appendChild(sliderContainer);
+        timelineContainer.appendChild(controlsContainer);
         
         // 创建遮罩层（如果不存在）
         let overlay = document.querySelector('.timeline-overlay');
         if (!overlay) {
             overlay = document.createElement('div');
             overlay.className = 'timeline-overlay';
-            overlay.style.pointerEvents = 'auto';
         }
         this.timelineOverlay = overlay;
         
@@ -739,6 +874,24 @@ export class TimelineManager {
             document.body.appendChild(overlay);
         }
         
+        // 保存DOM元素引用
+        this.yearSlider = yearSlider;
+        this.yearDisplay = yearDisplay;
+        this.playBtn = playBtn;
+        
+        // 设置事件处理
+        backBtn.addEventListener('click', () => {
+            this.updateToYear(this.currentYear - 100);
+        });
+        
+        forwardBtn.addEventListener('click', () => {
+            this.updateToYear(this.currentYear + 100);
+        });
+        
+        playBtn.addEventListener('click', () => {
+            this.togglePlay();
+        });
+        
         console.log('时间轴容器创建完成');
     }
     
@@ -746,108 +899,411 @@ export class TimelineManager {
      * 创建时间刻度
      */
     createTimelineTicks() {
+        // 获取时间轴滑块区域
         const sliderContainer = document.querySelector('.timeline-slider-container');
         if (!sliderContainer) return;
         
-        // 创建时间刻度容器
-        const ticksContainer = document.createElement('div');
+        // 创建刻度容器（如果不存在）
+        let ticksContainer = document.querySelector('.timeline-ticks');
+        if (!ticksContainer) {
+            ticksContainer = document.createElement('div');
         ticksContainer.className = 'timeline-ticks';
-        
-        // 添加一个滑块指示器（垂直线），显示当前位置
-        const sliderIndicator = document.createElement('div');
-        sliderIndicator.className = 'slider-indicator';
-        sliderIndicator.style.position = 'absolute';
-        sliderIndicator.style.top = '0';
-        sliderIndicator.style.height = '100%';
-        sliderIndicator.style.width = '2px';
-        sliderIndicator.style.backgroundColor = '#3b82f6';
-        sliderIndicator.style.zIndex = '15';
-        sliderIndicator.style.pointerEvents = 'none';
-        sliderIndicator.style.transition = 'left 0.1s';
-        
-        // 初始位置
-        const initialPercent = (this.currentYear - this.minYear) / (this.maxYear - this.minYear) * 100;
-        sliderIndicator.style.left = `${initialPercent}%`;
-        
-        sliderContainer.appendChild(sliderIndicator);
-        
-        // 在滑块移动时更新指示器位置
-        if (this.yearSlider) {
-            this.yearSlider.addEventListener('input', (e) => {
-                const percent = (parseInt(e.target.value) - this.minYear) / (this.maxYear - this.minYear) * 100;
-                sliderIndicator.style.left = `${percent}%`;
-            });
+            sliderContainer.appendChild(ticksContainer);
+        } else {
+            ticksContainer.innerHTML = ''; // 清空现有刻度
         }
         
-        // 计算刻度间隔
-        const range = this.maxYear - this.minYear;
-        const majorInterval = 1000; // 每1000年一个主刻度
-        const minorCount = 4; // 每个主刻度之间的小刻度数量
+        // 确定刻度间隔和位置
+        let tickYears = [];
         
-        // 添加刻度
-        for (let year = this.minYear; year <= this.maxYear; year += majorInterval) {
-            // 添加主刻度
-            const majorTick = document.createElement('div');
-            majorTick.className = 'timeline-tick major';
+        if (this.useNonLinearScale) {
+            // 对于非线性刻度，我们需要在视觉上均匀分布刻度
             
-            // 计算位置百分比
-            const position = ((year - this.minYear) / range) * 100;
-            majorTick.style.left = `${position}%`;
+            // 公元前区域 - 主要刻度
+            // 确保公元前区域有足够的刻度且分布更均匀
+            const bcMajorIntervals = [-12000, -10000, -8000, -6000, -4000, -3000, -2000, -1000, -500, -200, -50];
+            bcMajorIntervals.forEach(year => {
+                if (year >= this.minYear && year < 0) {
+                    tickYears.push({
+                        year: year,
+                        isMajor: true
+                    });
+                }
+            });
             
-            // 添加刻度标签
-            const tickLabel = document.createElement('div');
-            tickLabel.className = 'timeline-tick-label';
-            tickLabel.textContent = this.formatTickYear(year);
-            majorTick.appendChild(tickLabel);
+            // 公元前区域 - 次要刻度，在-2000年到0年之间添加更多刻度
+            const bcMinorIntervals = [-9000, -7000, -5000, -3500, -2500, -1500, -750, -350 , -125];
+            bcMinorIntervals.forEach(year => {
+                if (year >= this.minYear && year < 0) {
+                    tickYears.push({
+                        year: year,
+                        isMajor: false
+                    });
+                }
+            });
             
-            ticksContainer.appendChild(majorTick);
+            // 特殊添加公元元年标记
+            tickYears.push({
+                year: 0,
+                isMajor: true,
+                special: true
+            });
             
-            // 添加小刻度
-            const minorInterval = majorInterval / minorCount;
-            for (let i = 1; i < minorCount; i++) {
-                const minorYear = year + (i * minorInterval);
-                if (minorYear <= this.maxYear) {
-                    const minorTick = document.createElement('div');
-                    minorTick.className = 'timeline-tick';
-                    const minorPosition = ((minorYear - this.minYear) / range) * 100;
-                    minorTick.style.left = `${minorPosition}%`;
-                    ticksContainer.appendChild(minorTick);
+            // 公元后区域 - 主要刻度
+            const adMajorIntervals = [200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000];
+            adMajorIntervals.forEach(year => {
+                if (year <= this.maxYear) {
+                    tickYears.push({
+                        year: year,
+                        isMajor: true
+                    });
+                }
+            });
+            
+            // 公元后区域 - 次要刻度
+            const adMinorIntervals = [100, 300, 500, 700, 900, 1100, 1300, 1500, 1700, 1900];
+            adMinorIntervals.forEach(year => {
+                if (year <= this.maxYear) {
+                    tickYears.push({
+                        year: year,
+                        isMajor: false
+                    });
+                }
+            });
+        } else {
+            // 线性刻度 - 简单均匀间隔
+            const majorTickInterval = 2000;
+            const minorTickInterval = 500;
+            
+            // 添加主要刻度
+            for (let year = this.minYear; year <= this.maxYear; year += majorTickInterval) {
+                tickYears.push({
+                    year: year,
+                    isMajor: true
+                });
+            }
+            
+            // 添加次要刻度
+            for (let year = this.minYear; year <= this.maxYear; year += minorTickInterval) {
+                if (year % majorTickInterval !== 0) { // 避免与主要刻度重复
+                    tickYears.push({
+                        year: year,
+                        isMajor: false
+                    });
                 }
             }
         }
         
-        sliderContainer.appendChild(ticksContainer);
+        // 为了确保标记不会重叠，对年份进行排序，然后检查相邻标记的距离
+        tickYears.sort((a, b) => a.year - b.year);
+        
+        // 创建刻度元素
+        tickYears.forEach((tickData, index) => {
+            const tick = document.createElement('div');
+            
+            // 设置样式类
+            tick.className = tickData.isMajor ? 'timeline-tick major' : 'timeline-tick minor';
+            
+            // 如果是特殊标记(公元元年)，添加特殊类
+            if (tickData.special) {
+                tick.classList.add('special');
+            }
+            
+            // 计算位置
+            let position;
+            if (this.useNonLinearScale) {
+                const sliderValue = this.yearToSliderValue(tickData.year);
+                position = ((sliderValue - this.sliderMinValue) / (this.sliderMaxValue - this.sliderMinValue)) * 100;
+            } else {
+                position = ((tickData.year - this.minYear) / (this.maxYear - this.minYear)) * 100;
+            }
+            
+            tick.style.left = `${position}%`;
+            
+            // 只为主要刻度添加标签
+            if (tickData.isMajor) {
+                const label = document.createElement('span');
+                label.className = 'tick-label';
+                
+                // 设置标签文本
+                label.textContent = this.formatTickYear(tickData.year);
+                
+                // 检查是否有足够的空间显示标签
+                const nextMajorTickIndex = tickYears.findIndex((t, i) => i > index && t.isMajor);
+                const hasSufficientSpace = nextMajorTickIndex === -1 || 
+                    Math.abs(position - this.getTickPosition(tickYears[nextMajorTickIndex])) > 8;
+                
+                // 如果空间不足，可以缩小字体或隐藏某些标签
+                // if (!hasSufficientSpace && tickData.year % 2000 !== 0 && !tickData.special) {
+                //     label.classList.add('small');
+                // }
+                
+                // 为不同时期的标签添加不同的类
+                if (tickData.year < 0) {
+                    label.classList.add('bc-label');
+                } else if (tickData.year > 1700) {
+                    label.classList.add('modern-label');
+                }
+                
+                tick.appendChild(label);
+            }
+            
+            ticksContainer.appendChild(tick);
+        });
+        
+        // 添加CSS样式以改进时间刻度的外观
+        this.addTimelineTicksStyles();
+    }
+    
+    /**
+     * 获取刻度的位置百分比
+     * @param {Object} tickData - 刻度数据
+     * @returns {number} 位置百分比
+     */
+    getTickPosition(tickData) {
+        if (this.useNonLinearScale) {
+            const sliderValue = this.yearToSliderValue(tickData.year);
+            return ((sliderValue - this.sliderMinValue) / (this.sliderMaxValue - this.sliderMinValue)) * 100;
+        } else {
+            return ((tickData.year - this.minYear) / (this.maxYear - this.minYear)) * 100;
+        }
+    }
+    
+    /**
+     * 添加时间刻度的CSS样式
+     */
+    addTimelineTicksStyles() {
+        // 检查是否已经添加了样式
+        if (document.getElementById('timeline-ticks-styles')) return;
+        
+        // 创建样式元素
+        const style = document.createElement('style');
+        style.id = 'timeline-ticks-styles';
+        
+        // 设置CSS规则
+        style.textContent = `
+            .timeline-slider-container {
+                position: relative;
+                overflow: visible;
+            }
+
+            .timeline-tick {
+                position: absolute;
+                height: 8px;
+                width: 1px;
+                background-color: rgba(100, 116, 139, 0.5);
+                bottom: 0;
+                transform: translateX(-50%);
+            }
+            
+            .timeline-tick.major {
+                height: 12px;
+                width: 2px;
+                background-color: rgba(71, 85, 105, 0.7);
+            }
+            
+            .timeline-tick.special {
+                height: 16px;
+                width: 3px;
+                background-color: rgba(59, 130, 246, 0.8);
+            }
+            
+            .tick-label {
+                position: absolute;
+                bottom: -22px;
+                transform: translateX(-50%);
+                font-family: 'Noto Serif SC', 'Times New Roman', serif;
+                font-size: 11px;
+                color: #334155;
+                white-space: nowrap;
+                text-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
+            }
+            
+            .tick-label.small {
+                font-size: 9px;
+                opacity: 0.8;
+                bottom: -18px;
+            }
+            
+            .tick-label.bc-label {
+                color: #64748b;
+            }
+            
+            .tick-label.modern-label {
+                color: #0f172a;
+                font-weight: 600;
+            }
+            
+            .dark .timeline-tick {
+                background-color: rgba(148, 163, 184, 0.5);
+            }
+            
+            .dark .timeline-tick.major {
+                background-color: rgba(203, 213, 225, 0.7);
+            }
+            
+            .dark .timeline-tick.special {
+                background-color: rgba(96, 165, 250, 0.8);
+            }
+            
+            .dark .tick-label {
+                color: #e2e8f0;
+                text-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+            }
+            
+            .dark .tick-label.bc-label {
+                color: #cbd5e1;
+            }
+            
+            .dark .tick-label.modern-label {
+                color: #f8fafc;
+            }
+
+            /* 滑块轨道蓝色渐变 */
+            .timeline-slider::-webkit-slider-runnable-track {
+                background: linear-gradient(to right, #60a5fa, #3b82f6);
+            }
+            
+            .dark .timeline-slider::-webkit-slider-runnable-track {
+                background: linear-gradient(to right, #3b82f6, #1d4ed8);
+            }
+            
+            /* 时期标记与时间刻度重叠 */
+            .timeline-period-markers {
+                position: absolute;
+                width: 100%;
+                height: 6px;
+                bottom: 8px;
+                z-index: 0;
+            }
+            
+            .period-marker {
+                position: absolute;
+                height: 6px;
+                background-color: rgba(203, 213, 225, 0.5);
+                border-radius: 4px;
+                bottom: 0;
+            }
+            
+            /* 不同时期的颜色 */
+            .period-marker[data-period="史前"] {
+                background-color: rgba(79, 70, 229, 0.4); /* 靛蓝色 */
+            }
+            
+            .period-marker[data-period="早期文明"],
+            .period-marker[data-period="古代早期"] {
+                background-color: rgba(245, 158, 11, 0.4); /* 琥珀色 */
+            }
+            
+            .period-marker[data-period="古典时期"] {
+                background-color: rgba(16, 185, 129, 0.4); /* 翡翠绿 */
+            }
+            
+            .period-marker[data-period="中世纪"] {
+                background-color: rgba(59, 130, 246, 0.4); /* 蓝色 */
+            }
+            
+            .period-marker[data-period="文艺复兴"],
+            .period-marker[data-period="近代"] {
+                background-color: rgba(236, 72, 153, 0.4); /* 粉红色 */
+            }
+            
+            .period-marker[data-period="现代早期"],
+            .period-marker[data-period="现代"] {
+                background-color: rgba(239, 68, 68, 0.4); /* 红色 */
+            }
+            
+            .period-label {
+                position: absolute;
+                top: -18px;
+                width: 100%;
+                text-align: center;
+                font-size: 10px;
+                color: #64748b;
+                white-space: nowrap;
+                font-family: 'Times New Roman', serif;
+                letter-spacing: 0.5px;
+            }
+            
+            .dark .period-marker {
+                opacity: 0.5;
+            }
+            
+            .dark .period-label {
+                color: #94a3b8;
+            }
+        `;
+        
+        // 添加到文档头部
+        document.head.appendChild(style);
+    }
+    
+    /**
+     * 格式化刻度年份
+     * @param {number} year - 年份
+     * @returns {string} 格式化后的年份字符串
+     */
+    formatTickYear(year) {
+        if (year < 0) {
+            // 公元前使用 B.C. 表示
+            const absYear = Math.abs(year);
+            return `${absYear} B.C.`;
+        } else if (year === 0) {
+            return "公元";
+        } else if (year < 1000) {
+            return `${year}`;
+        } else {
+            return `${year}`;
+        }
     }
     
     /**
      * 添加时期标记
      */
     addPeriodMarkers() {
-        const periodContainer = document.getElementById('timeline-periods');
-        if (!periodContainer) return;
+        // 获取时期标记容器
+        const periodsContainer = document.getElementById('timeline-periods');
+        if (!periodsContainer) return;
         
-        const range = this.maxYear - this.minYear;
+        // 清空现有标记
+        periodsContainer.innerHTML = '';
         
+        // 添加时期标记
         this.periods.forEach(period => {
-            const startPercent = ((period.start - this.minYear) / range) * 100;
-            const endPercent = ((period.end - this.minYear) / range) * 100;
-            const width = endPercent - startPercent;
-            
             const marker = document.createElement('div');
             marker.className = 'period-marker';
-            marker.style.left = `${startPercent}%`;
+            // 添加data-period属性，用于CSS样式区分不同时期
+            marker.setAttribute('data-period', period.name);
+            
+            // 计算位置和宽度（考虑非线性尺度）
+            let startPosition, endPosition;
+            
+            if (this.useNonLinearScale) {
+                const startSliderValue = this.yearToSliderValue(period.start);
+                const endSliderValue = this.yearToSliderValue(period.end);
+                
+                startPosition = ((startSliderValue - this.sliderMinValue) / (this.sliderMaxValue - this.sliderMinValue)) * 100;
+                endPosition = ((endSliderValue - this.sliderMinValue) / (this.sliderMaxValue - this.sliderMinValue)) * 100;
+            } else {
+                startPosition = ((period.start - this.minYear) / (this.maxYear - this.minYear)) * 100;
+                endPosition = ((period.end - this.minYear) / (this.maxYear - this.minYear)) * 100;
+            }
+            
+            const width = endPosition - startPosition;
+            
+            marker.style.left = `${startPosition}%`;
             marker.style.width = `${width}%`;
             
             // 添加时期标签
-            if (width > 5) { // 仅为宽度足够的时期添加标签
-                const label = document.createElement('div');
-                label.className = 'period-marker-label';
+            const label = document.createElement('span');
+            label.className = 'period-label';
                 label.textContent = period.name;
-                label.style.left = `${startPercent + (width / 2)}%`;
                 marker.appendChild(label);
-            }
             
-            periodContainer.appendChild(marker);
+            // 为时期添加工具提示
+            marker.title = `${period.name} (${this.formatYear(period.start)} - ${this.formatYear(period.end)})`;
+            
+            periodsContainer.appendChild(marker);
         });
     }
     
@@ -878,19 +1334,6 @@ export class TimelineManager {
                 sliderContainer.appendChild(marker);
             }
         });
-    }
-    
-    /**
-     * 格式化刻度年份
-     * @param {number} year - 年份
-     * @returns {string} 格式化后的年份字符串
-     */
-    formatTickYear(year) {
-        if (year < 0) {
-            return `${Math.abs(year)}BC`;
-        } else {
-            return `${year}`;
-        }
     }
     
     /**
@@ -957,33 +1400,35 @@ export class TimelineManager {
     
     /**
      * 更新到指定年份
-     * @param {number} year - 新的年份
+     * @param {number} year - 目标年份
      */
     updateToYear(year) {
-        if (year < this.minYear) year = this.minYear;
-        if (year > this.maxYear) year = this.maxYear;
-        
-        this.currentYear = year;
-        
-        // 更新滑块位置（即使滑块被隐藏，也要更新值以保持状态一致）
-        if (this.yearSlider) {
-            this.yearSlider.value = year;
+        if (isNaN(year) || year < this.minYear || year > this.maxYear) {
+            console.warn(`无效的年份值: ${year}`);
+            return;
         }
         
-        // 更新滑块指示器位置
-        const sliderContainer = document.querySelector('.timeline-slider-container');
-        if (sliderContainer) {
-            const sliderIndicator = sliderContainer.querySelector('.slider-indicator');
-            if (sliderIndicator) {
-                const percent = (year - this.minYear) / (this.maxYear - this.minYear) * 100;
-                sliderIndicator.style.left = `${percent}%`;
+        // 更新当前年份
+        this.currentYear = year;
+        
+        // 更新滑块位置
+        if (this.yearSlider) {
+            if (this.useNonLinearScale) {
+                this.yearSlider.value = this.yearToSliderValue(year);
+            } else {
+            this.yearSlider.value = year;
             }
+        }
+        
+        // 更新输入框值
+        if (this.yearInput) {
+            this.yearInput.value = year;
         }
         
         // 更新年份显示
         this.updateYearDisplay();
         
-        // 触发回调
+        // 触发年份变化回调
         if (this.yearChangedCallback) {
             this.yearChangedCallback(year);
         }
@@ -996,7 +1441,14 @@ export class TimelineManager {
      */
     formatYear(year) {
         if (year < 0) {
-            return `公元前${Math.abs(year)}年`;
+            const absYear = Math.abs(year);
+            if (absYear >= 10000) {
+                return `公元前${Math.floor(absYear/1000)}千年`;
+            } else {
+                return `公元前${absYear}年`;
+            }
+        } else if (year === 0) {
+            return `公元元年`;
         } else {
             return `公元${year}年`;
         }
@@ -1008,7 +1460,16 @@ export class TimelineManager {
      */
     updateYearDisplay(year = this.currentYear) {
         if (this.yearDisplay) {
-            this.yearDisplay.textContent = this.formatYear(year);
+            const formattedYear = this.formatYear(year);
+            this.yearDisplay.textContent = formattedYear;
+            
+            // 根据年份长度调整样式
+            const yearLength = formattedYear.length;
+            if (yearLength > 8) {
+                this.yearDisplay.style.fontSize = '16px';
+            } else {
+                this.yearDisplay.style.fontSize = '18px';
+            }
         }
     }
     
@@ -1124,9 +1585,16 @@ export class TimelineManager {
             // 计算点击位置相对于容器左边缘的距离占容器总宽度的比例
             const ratio = (e.clientX - rect.left) / rect.width;
             
+            // 如果使用非线性尺度，需要转换
+            let year;
+            if (this.useNonLinearScale) {
+                const sliderValue = this.sliderMinValue + ratio * (this.sliderMaxValue - this.sliderMinValue);
+                year = this.sliderValueToYear(sliderValue);
+            } else {
             // 计算对应的年份值
             const range = this.maxYear - this.minYear;
-            const year = Math.round(this.minYear + (ratio * range));
+                year = Math.round(this.minYear + (ratio * range));
+            }
             
             // 更新到新年份
             this.updateToYear(year);
@@ -1172,16 +1640,27 @@ export class TimelineManager {
             // 计算拖动位置对应的比例
             const ratio = (clientX - rect.left) / rect.width;
             
+            // 如果使用非线性尺度，需要转换
+            let year;
+            if (this.useNonLinearScale) {
+                const sliderValue = this.sliderMinValue + ratio * (this.sliderMaxValue - this.sliderMinValue);
+                year = this.sliderValueToYear(sliderValue);
+            } else {
             // 计算对应的年份值
             const range = this.maxYear - this.minYear;
-            const year = Math.round(this.minYear + (ratio * range));
+                year = Math.round(this.minYear + (ratio * range));
+            }
             
             // 更新年份显示（但不立即触发回调）
             this.updateYearDisplay(year);
             
             // 更新滑块位置
             if (this.yearSlider) {
+                if (this.useNonLinearScale) {
+                    this.yearSlider.value = this.yearToSliderValue(year);
+                } else {
                 this.yearSlider.value = year;
+                }
             }
             
             // 更新滑块指示器位置
@@ -1213,9 +1692,16 @@ export class TimelineManager {
             // 计算最终位置对应的比例
             const ratio = (clientX - rect.left) / rect.width;
             
+            // 如果使用非线性尺度，需要转换
+            let year;
+            if (this.useNonLinearScale) {
+                const sliderValue = this.sliderMinValue + ratio * (this.sliderMaxValue - this.sliderMinValue);
+                year = this.sliderValueToYear(sliderValue);
+            } else {
             // 计算对应的年份值
             const range = this.maxYear - this.minYear;
-            const year = Math.round(this.minYear + (ratio * range));
+                year = Math.round(this.minYear + (ratio * range));
+            }
             
             // 更新到新年份（触发回调）
             this.updateToYear(year);
