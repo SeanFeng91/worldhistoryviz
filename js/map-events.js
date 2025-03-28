@@ -260,7 +260,13 @@ export class MapEvents {
             icon: icon,
             title: event.title || event.name,
             riseOnHover: true    // 悬停时升高，避免被其他标记遮挡
-        }).bindPopup(() => this.createEventPopupContent(event));
+        }).bindPopup(() => this.createEventPopupContent(event), {
+            className: 'custom-event-popup',
+            maxWidth: 500,
+            minWidth: 450,
+            closeButton: false,
+            autoClose: false
+        });
     }
 
     createEventMarkerHTML(event) {
@@ -281,14 +287,122 @@ export class MapEvents {
     createEventPopupContent(event) {
         const yearDisplay = this.formatYear(event.startYear || event.year);
         const endYearDisplay = event.endYear ? ` - ${this.formatYear(event.endYear)}` : '';
+        const category = event.category || '其他';
+        const icon = this.getCategoryIcon(category);
         
-        return `
-            <div class="event-popup">
-                <h3 class="text-lg font-semibold">${event.title || event.name}</h3>
-                <div class="text-sm text-gray-600 mb-2">
-                    ${yearDisplay}${endYearDisplay}
+        // 准备额外信息
+        const locationInfo = event.location_name || event.region || '';
+        const importance = event.importance || 0;
+        const importanceStars = '★'.repeat(importance) + '☆'.repeat(5 - importance);
+        
+        // 创建更丰富的标签
+        let tags = '';
+        if (event.tags && Array.isArray(event.tags) && event.tags.length > 0) {
+            tags = `
+                <div class="event-tags">
+                    ${event.tags.map(tag => `<span class="event-tag">${tag}</span>`).join('')}
                 </div>
-                <p class="text-gray-700">${event.description || ''}</p>
+            `;
+        }
+        
+        // 相关事件
+        let relatedEvents = '';
+        if (event.related_events && Array.isArray(event.related_events) && event.related_events.length > 0) {
+            relatedEvents = `
+                <div class="event-related">
+                    <h4>相关事件</h4>
+                    <ul>
+                        ${event.related_events.map(rel => `<li>${rel.title || rel.name}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+        
+        // 构建完整的弹出窗口内容
+        return `
+            <div class="custom-popup event-popup">
+                <div class="popup-header">
+                    <h3 class="popup-title">
+                        <span class="event-icon-mini ${category}">
+                            <i class="material-icons-round">${icon}</i>
+                        </span>
+                        ${event.title || event.name}
+                    </h3>
+                    <button class="popup-close" onclick="document.querySelector('.leaflet-popup-pane').innerHTML=''">
+                        <i class="material-icons-round">close</i>
+                    </button>
+                </div>
+                
+                <div class="popup-content">
+                    <div class="event-meta-info">
+                        <div class="event-time">
+                            <i class="material-icons-round">event</i>
+                            <span>${yearDisplay}${endYearDisplay}</span>
+                        </div>
+                        
+                        ${locationInfo ? `
+                        <div class="event-location">
+                            <i class="material-icons-round">place</i>
+                            <span>${locationInfo}</span>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="event-importance">
+                            <i class="material-icons-round">stars</i>
+                            <span class="stars-rating">${importanceStars}</span>
+                        </div>
+                        
+                        <div class="event-category">
+                            <i class="material-icons-round">label</i>
+                            <span class="category-badge ${category}">${category}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="event-description">
+                        ${event.description || '没有描述信息'}
+                    </div>
+                    
+                    ${event.impact ? `
+                    <div class="event-impact">
+                        <h4>历史影响</h4>
+                        <p>${event.impact}</p>
+                    </div>
+                    ` : ''}
+                    
+                    ${tags}
+                    ${relatedEvents}
+                </div>
+                
+                <div class="popup-footer">
+                    <button class="focus-event-btn" onclick="(function(){
+                        document.querySelector('.leaflet-popup-pane').innerHTML=''; 
+                        if(window.historyMapApp && window.historyMapApp.eventManager) {
+                            setTimeout(function() {
+                                window.historyMapApp.eventManager.highlightEvent('${event.id}');
+                            }, 100);
+                        } else if(window.historyMapApp) {
+                            setTimeout(function() {
+                                window.historyMapApp.focusOnEvent('${event.id}');
+                            }, 100);
+                        }
+                    })()">
+                        <i class="material-icons-round">center_focus_strong</i> 聚焦事件
+                    </button>
+                    <button class="more-info-btn" onclick="(function(){
+                        document.querySelector('.leaflet-popup-pane').innerHTML=''; 
+                        if(window.historyMapApp && window.historyMapApp.eventManager) {
+                            setTimeout(function() {
+                                window.historyMapApp.eventManager.showEventDetails('${event.id}');
+                            }, 100);
+                        } else if(window.historyMapApp) {
+                            setTimeout(function() {
+                                window.historyMapApp.showEventDetails('${event.id}');
+                            }, 100);
+                        }
+                    })()">
+                        <i class="material-icons-round">info</i> 更多信息
+                    </button>
+                </div>
             </div>
         `;
     }
@@ -554,11 +668,127 @@ export class MapEvents {
     }
 
     highlightEvent(eventId) {
-        const marker = this.eventMarkers.get(eventId);
-        if (marker) {
-            marker.openPopup();
-            this.mapCore.map.setView(marker.getLatLng(), 6);
+        console.log(`高亮事件: ${eventId}`);
+        
+        // 查找事件对象
+        const event = this.currentEvents.find(e => e.id === eventId);
+        if (!event) {
+            console.warn(`找不到ID为 ${eventId} 的事件`);
+            return;
         }
+        
+        // 查找对应的标记
+        const marker = this.eventMarkers.get(eventId);
+        if (!marker) {
+            console.warn(`找不到事件 ${eventId} 的地图标记`);
+            
+            // 如果没有标记（可能事件没有坐标或不在当前视图），尝试创建临时标记或显示通知
+            if (event.latitude && event.longitude) {
+                // 临时创建并添加标记
+                const tempMarker = this.createEventMarker(event);
+                this.eventMarkers.set(event.id, tempMarker);
+                tempMarker.addTo(this.mapCore.map);
+                
+                // 聚焦并显示弹出窗口
+                this.mapCore.map.setView([event.latitude, event.longitude], 5);
+                tempMarker.openPopup();
+                
+                // 添加高亮效果
+                const icon = tempMarker.getElement();
+                if (icon) {
+                    icon.classList.add('highlighted');
+                    
+                    // 3秒后移除高亮效果
+                    setTimeout(() => {
+                        icon.classList.remove('highlighted');
+                    }, 3000);
+                }
+                
+                // 添加脉冲动画
+                this.addPulseEffect(event.latitude, event.longitude);
+            } else {
+                // 如果没有坐标，显示通知
+                alert(`事件 "${event.title || event.name}" 没有位置信息，无法在地图上显示。`);
+            }
+            return;
+        }
+        
+        // 聚焦到标记
+        this.mapCore.map.setView([event.latitude, event.longitude], 5);
+        
+        // 打开弹出窗口
+        marker.openPopup();
+        
+        // 添加高亮效果
+        const icon = marker.getElement();
+        if (icon) {
+            icon.classList.add('highlighted');
+            
+            // 添加脉冲动画
+            this.addPulseEffect(event.latitude, event.longitude);
+            
+            // 3秒后移除高亮效果
+            setTimeout(() => {
+                icon.classList.remove('highlighted');
+            }, 3000);
+        }
+    }
+    
+    /**
+     * 添加脉冲效果
+     * @param {number} lat - 纬度
+     * @param {number} lng - 经度
+     */
+    addPulseEffect(lat, lng) {
+        // 创建脉冲标记
+        const pulseIcon = L.divIcon({
+            className: 'pulse-marker',
+            html: '<div class="pulse-circle"></div>',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
+        
+        // 添加到地图
+        const pulseMarker = L.marker([lat, lng], {
+            icon: pulseIcon,
+            zIndexOffset: 1000 // 确保显示在其他标记之上
+        }).addTo(this.mapCore.map);
+        
+        // 3秒后移除
+        setTimeout(() => {
+            this.mapCore.map.removeLayer(pulseMarker);
+        }, 3000);
+    }
+    
+    /**
+     * 显示事件详情
+     * @param {string} eventId - 事件ID
+     */
+    showEventDetails(eventId) {
+        console.log(`显示事件详情: ${eventId}`);
+        
+        // 查找事件对象
+        const event = this.currentEvents.find(e => e.id === eventId);
+        if (!event) {
+            console.warn(`找不到ID为 ${eventId} 的事件`);
+            return;
+        }
+        
+        // 首先尝试使用全局事件管理器
+        if (window.historyMapApp && window.historyMapApp.eventManager) {
+            // 直接调用事件管理器的方法
+            window.historyMapApp.eventManager.showEventDetails(eventId);
+            return;
+        }
+        
+        // 备用方案：使用全局方法
+        if (window.historyMapApp && typeof window.historyMapApp.showEventDetails === 'function') {
+            window.historyMapApp.showEventDetails(event);
+            return;
+        }
+        
+        // 最后的备用方案：显示简单弹窗
+        alert(`事件详情: ${event.title || event.name}\n时间: ${this.formatYear(event.startYear || event.year)}\n描述: ${event.description || '无描述'}`);
     }
 
     // 从事件数据中提取位置信息的通用方法

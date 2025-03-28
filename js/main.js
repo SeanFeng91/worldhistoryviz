@@ -63,6 +63,15 @@ async function continueInitialization() {
         // 强制初始化应用
         await window.historyMapApp.initialize();
         console.log('应用初始化成功 (延迟初始化)');
+        
+        // 确认关键功能可用
+        setTimeout(() => {
+            if (window.historyMapApp && window.historyMapApp.eventManager) {
+                console.log('事件管理器正常可用');
+            } else {
+                console.warn('警告：事件管理器未正确初始化，部分功能可能不可用');
+            }
+        }, 1000);
     } catch (retryError) {
         console.error('延迟初始化应用失败:', retryError);
         

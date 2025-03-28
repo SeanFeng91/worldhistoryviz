@@ -1,0 +1,445 @@
+/* 事件弹出窗口样式 */
+.custom-popup.event-popup {
+    border-radius: 8px;
+    overflow: hidden;
+    width: 450px;
+    max-width: 95vw;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+/* 弹窗头部 */
+.custom-popup .popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.custom-popup .popup-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.event-icon-mini {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: rgba(226, 232, 240, 0.5);
+}
+
+.event-icon-mini.农业 { color: #10b981; background-color: rgba(16, 185, 129, 0.15); }
+.event-icon-mini.技术 { color: #3b82f6; background-color: rgba(59, 130, 246, 0.15); }
+.event-icon-mini.文明 { color: #8b5cf6; background-color: rgba(139, 92, 246, 0.15); }
+.event-icon-mini.征服 { color: #ef4444; background-color: rgba(239, 68, 68, 0.15); }
+.event-icon-mini.疾病 { color: #f59e0b; background-color: rgba(245, 158, 11, 0.15); }
+.event-icon-mini.迁徙 { color: #7c3aed; background-color: rgba(124, 58, 237, 0.15); }
+.event-icon-mini.其他 { color: #64748b; background-color: rgba(100, 116, 139, 0.15); }
+
+.custom-popup .popup-close {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.custom-popup .popup-close:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: #ef4444;
+}
+
+/* 弹窗内容 */
+.custom-popup .popup-content {
+    padding: 16px;
+    font-size: 14px;
+    color: #334155;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.event-meta-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.event-time, .event-location, .event-importance, .event-category {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.event-meta-info i {
+    font-size: 16px;
+    color: #64748b;
+}
+
+.stars-rating {
+    color: #f59e0b;
+    letter-spacing: 2px;
+}
+
+.category-badge {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.category-badge.农业 { background-color: rgba(16, 185, 129, 0.15); color: #059669; }
+.category-badge.技术 { background-color: rgba(59, 130, 246, 0.15); color: #2563eb; }
+.category-badge.文明 { background-color: rgba(139, 92, 246, 0.15); color: #7c3aed; }
+.category-badge.征服 { background-color: rgba(239, 68, 68, 0.15); color: #dc2626; }
+.category-badge.疾病 { background-color: rgba(245, 158, 11, 0.15); color: #d97706; }
+.category-badge.迁徙 { background-color: rgba(124, 58, 237, 0.15); color: #6d28d9; }
+.category-badge.其他 { background-color: rgba(100, 116, 139, 0.15); color: #475569; }
+
+.event-description {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #334155;
+}
+
+.event-impact {
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.event-impact h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+    margin: 0 0 8px 0;
+}
+
+.event-impact p {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #475569;
+    margin: 0;
+}
+
+.event-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+}
+
+.event-tag {
+    padding: 2px 8px;
+    background-color: #f1f5f9;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #475569;
+}
+
+.event-related {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.event-related h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+    margin: 0 0 8px 0;
+}
+
+.event-related ul {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 13px;
+    color: #475569;
+}
+
+.event-related li {
+    margin-bottom: 4px;
+}
+
+/* 弹窗底部 */
+.custom-popup .popup-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 16px;
+    background-color: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+}
+
+.custom-popup .popup-footer button {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.focus-event-btn {
+    background-color: #f1f5f9;
+    color: #334155;
+}
+
+.focus-event-btn:hover {
+    background-color: #e2e8f0;
+}
+
+.more-info-btn {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.more-info-btn:hover {
+    background-color: #2563eb;
+}
+
+/* 暗色模式 */
+.dark .custom-popup.event-popup {
+    background-color: #1e293b;
+}
+
+.dark .custom-popup .popup-header {
+    background-color: #0f172a;
+    border-color: #334155;
+}
+
+.dark .custom-popup .popup-title {
+    color: #f8fafc;
+}
+
+.dark .event-icon-mini {
+    background-color: rgba(51, 65, 85, 0.5);
+}
+
+.dark .custom-popup .popup-close {
+    color: #94a3b8;
+}
+
+.dark .custom-popup .popup-close:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #f87171;
+}
+
+.dark .custom-popup .popup-content {
+    color: #cbd5e1;
+}
+
+.dark .event-meta-info {
+    border-color: #334155;
+}
+
+.dark .event-time, .dark .event-location, .dark .event-importance, .dark .event-category {
+    color: #94a3b8;
+}
+
+.dark .event-meta-info i {
+    color: #94a3b8;
+}
+
+.dark .category-badge.农业 { background-color: rgba(16, 185, 129, 0.2); color: #34d399; }
+.dark .category-badge.技术 { background-color: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+.dark .category-badge.文明 { background-color: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+.dark .category-badge.征服 { background-color: rgba(239, 68, 68, 0.2); color: #f87171; }
+.dark .category-badge.疾病 { background-color: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+.dark .category-badge.迁徙 { background-color: rgba(124, 58, 237, 0.2); color: #8b5cf6; }
+.dark .category-badge.其他 { background-color: rgba(100, 116, 139, 0.2); color: #cbd5e1; }
+
+.dark .event-description {
+    color: #cbd5e1;
+}
+
+.dark .event-impact {
+    border-color: #334155;
+}
+
+.dark .event-impact h4 {
+    color: #e2e8f0;
+}
+
+.dark .event-impact p {
+    color: #cbd5e1;
+}
+
+.dark .event-tag {
+    background-color: #334155;
+    color: #cbd5e1;
+}
+
+.dark .event-related {
+    border-color: #334155;
+}
+
+.dark .event-related h4 {
+    color: #e2e8f0;
+}
+
+.dark .event-related ul {
+    color: #cbd5e1;
+}
+
+.dark .custom-popup .popup-footer {
+    background-color: #0f172a;
+    border-color: #334155;
+}
+
+.dark .focus-event-btn {
+    background-color: #334155;
+    color: #e2e8f0;
+}
+
+.dark .focus-event-btn:hover {
+    background-color: #475569;
+}
+
+.dark .more-info-btn {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.dark .more-info-btn:hover {
+    background-color: #60a5fa;
+}
+
+/* 响应式调整 */
+@media (max-width: 480px) {
+    .custom-popup.event-popup {
+        width: 320px;
+    }
+    
+    .event-meta-info {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .custom-popup .popup-footer {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .custom-popup .popup-footer button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* 隐藏Leaflet原生关闭按钮 */
+.leaflet-popup-content-wrapper {
+    padding: 0 !important;
+}
+
+.leaflet-popup-content {
+    margin: 0 !important;
+    width: 100% !important;
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+    display: none !important;
+}
+
+/* 确保我们的自定义弹窗占据整个空间 */
+.custom-popup.event-popup {
+    width: 450px;
+    max-width: 95vw;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+/* 提高点击按钮的可靠性 */
+.custom-popup .popup-footer button {
+    position: relative;
+    z-index: 1000;
+}
+
+/* 处理国家名称弹窗样式 */
+.country-popup {
+    padding: 12px 16px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+    width: auto;
+    min-width: 180px;
+    text-align: center;
+    border-left: 4px solid #3b82f6;
+}
+
+.dark .country-popup {
+    background-color: #1e293b;
+    color: #f1f5f9;
+    border-left: 4px solid #60a5fa;
+}
+
+/* 国家弹窗样式 */
+.custom-country-popup .leaflet-popup-content-wrapper {
+    padding: 0;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    background: transparent;
+}
+
+.custom-country-popup .leaflet-popup-content {
+    margin: 0 !important;
+    width: auto !important;
+}
+
+.custom-country-popup .leaflet-popup-tip {
+    background-color: white;
+}
+
+.dark .custom-country-popup .leaflet-popup-tip {
+    background-color: #1e293b;
+}
+
+/* 自定义事件弹窗容器 */
+.custom-event-popup .leaflet-popup-content-wrapper {
+    padding: 0;
+    background: transparent;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.custom-event-popup .leaflet-popup-content {
+    margin: 0;
+    width: auto !important;
+}
+
+.custom-event-popup .leaflet-popup-tip {
+    background: white;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.2);
+}
+
+.dark .custom-event-popup .leaflet-popup-tip {
+    background: #1e293b;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+} 

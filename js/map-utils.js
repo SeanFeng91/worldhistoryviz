@@ -582,6 +582,28 @@ export class MapUtils {
      * @returns {string} HTML内容
      */
     createEventPopupContent(feature) {
+        // 如果全局应用实例和事件管理器可用，使用它们的实现
+        if (window.historyMapApp && window.historyMapApp.eventManager) {
+            // 将GeoJSON特征转换为事件对象格式
+            const event = {
+                id: feature.properties.id,
+                title: feature.properties.title,
+                name: feature.properties.title, // 兼容性
+                startYear: feature.properties.year,
+                year: feature.properties.year,
+                endYear: feature.properties.endYear,
+                description: feature.properties.description,
+                category: feature.properties.category,
+                importance: feature.properties.importance,
+                region: feature.properties.region,
+                impact: feature.properties.impact
+            };
+            
+            // 调用事件管理器的方法
+            return window.historyMapApp.eventManager.createEventPopupContent(event);
+        }
+        
+        // 如果不可用，使用备用实现
         const props = feature.properties;
         
         // 准备基本信息

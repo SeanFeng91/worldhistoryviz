@@ -226,6 +226,12 @@ export class MapCore {
                 style: (feature) => this.styles.getGeoJSONStyle(feature),
                 onEachFeature: (feature, layer) => this.styles.onEachFeature(feature, layer, this)
             }).addTo(this.map);
+            
+            // 保存引用，用于弹窗处理
+            this.regionsLayer = this.geoJSONLayer;
+            
+            // 初始化图层交互
+            this.initLayerInteractions();
         } catch (error) {
             console.error('创建GeoJSON图层失败:', error);
             // 创建一个空图层
@@ -233,6 +239,7 @@ export class MapCore {
                 type: 'FeatureCollection',
                 features: []
             }).addTo(this.map);
+            this.regionsLayer = this.geoJSONLayer;
         }
     }
 
@@ -392,5 +399,65 @@ export class MapCore {
 
     setFilterCategory(category) {
         this.events.setFilterCategory(category);
+    }
+
+    // 添加一个方法处理所有类型的地图弹窗
+    setupPopupHandlers() {
+        // 为GeoJSON图层添加弹窗处理
+        if (this.regionsLayer) {
+            this.regionsLayer.eachLayer(layer => {
+                if (layer.feature && layer.feature.properties) {
+                    const props = layer.feature.properties;
+                    const name = props.name || props.NAME || props.Name || '未命名区域';
+                    
+                    // 创建更精美的弹窗内容
+                    const popupContent = `
+                        <div class="country-popup">
+                            ${name}
+                            ${props.population ? `<div style="font-size: 13px; font-weight: normal; opacity: 0.8; margin-top: 4px;">人口: ${Number(props.population).toLocaleString()}</div>` : ''}
+                        </div>
+                    `;
+                    
+                    // 不在点击时自动缩放到区域
+                    layer.bindPopup(popupContent, {
+                        closeButton: true,
+                        className: 'custom-country-popup',
+                        autoPan: false  // 阻止自动平移
+                    });
+                    
+                    // 禁止点击时自动缩放
+                    layer.on('click', (e) => {
+                        // 阻止事件传播和默认行为
+                        L.DomEvent.stopPropagation(e);
+                        L.DomEvent.preventDefault(e);
+                        
+                        // 手动在当前位置显示弹窗，不改变视图
+                        const popup = layer.getPopup();
+                        popup.setLatLng(e.latlng).openOn(this.map);
+                    });
+                }
+            });
+        }
+    }
+
+    // 在加载地图完成后调用此方法
+    initLayerInteractions() {
+        // 设置弹窗处理器
+        this.setupPopupHandlers();
+        
+        // 在地图上添加点击处理
+        this.map.addEventListener('click', (e) => {
+            // 只有在点击地图本身而不是标记或其他控件时才关闭弹窗
+            // 检查点击的目标是否是地图本身
+            if (e.originalEvent && e.originalEvent.target && 
+                (e.originalEvent.target.classList.contains('leaflet-container') || 
+                 e.originalEvent.target.classList.contains('leaflet-interactive'))) {
+                // 关闭所有打开的弹窗
+                const popupPane = document.querySelector('.leaflet-popup-pane');
+                if (popupPane) {
+                    popupPane.innerHTML = '';
+                }
+            }
+        });
     }
 } 

@@ -155,12 +155,52 @@ export class App {
             this.hideLoader();
             
             console.log('应用初始化完成');
+            
+            // 确保全局应用对象存在
+            if (!window.historyMapApp) {
+                window.historyMapApp = {};
+            }
+            
+            // 注册事件管理器到全局对象，确保按钮可以访问
+            if (this.mapCore && this.mapCore.events) {
+                window.historyMapApp.eventManager = this.mapCore.events;
+                console.log('事件管理器已全局注册: window.historyMapApp.eventManager');
+            }
         } catch (error) {
             console.error('初始化应用时出错:', error);
             console.error('错误堆栈:', error.stack);
             this.hideLoader();
             this.showError('初始化应用失败: ' + error.message);
             throw error; // 重新抛出错误，允许main.js捕获
+        }
+
+        // 确保全局应用对象存在
+        if (!window.historyMapApp) {
+            window.historyMapApp = {};
+        }
+
+        // 添加focusOnEvent方法，用于聚焦到特定事件
+        if (!window.historyMapApp.focusOnEvent) {
+            window.historyMapApp.focusOnEvent = function(eventId) {
+                // 如果事件管理器可用，调用其方法
+                if (window.historyMapApp.eventManager) {
+                    window.historyMapApp.eventManager.highlightEvent(eventId);
+                } else {
+                    console.warn('事件管理器不可用，无法聚焦事件');
+                }
+            };
+        }
+
+        // 添加showEventDetails方法，用于显示事件详情
+        if (!window.historyMapApp.showEventDetails) {
+            window.historyMapApp.showEventDetails = function(eventId) {
+                // 如果事件管理器可用，调用其方法
+                if (window.historyMapApp.eventManager) {
+                    window.historyMapApp.eventManager.showEventDetails(eventId);
+                } else {
+                    console.warn('事件管理器不可用，无法显示事件详情');
+                }
+            };
         }
     }
     
