@@ -48,30 +48,13 @@ export class TimelineManager {
         this.timelineOverlay = null;
         
         // 时间轴区域高度 - 用于处理事件
-        this.timelineHeight = 140;
+        this.timelineHeight = 200;
         
-        // 时间段配置
-        this.periods = [
-            { start: -10000, end: -3000, name: "史前" },
-            { start: -3000, end: -1000, name: "古代早期" },
-            { start: -1000, end: 500, name: "古典时期" },
-            { start: 500, end: 1400, name: "中世纪" },
-            { start: 1400, end: 1700, name: "文艺复兴" },
-            { start: 1700, end: 1900, name: "现代早期" },
-            { start: 1900, end: 2000, name: "现代" }
-        ];
+        // 时间段配置 - 将在初始化时从事件数据动态生成
+        this.periods = [];
         
-        // 重要历史年份标记
-        this.keyHistoricalYears = [
-            { year: -3500, label: "苏美尔文明" },
-            { year: -1345, label: "图坦卡蒙" },
-            { year: -776, label: "奥运会起源" },
-            { year: 1, label: "公元元年" },
-            { year: 1492, label: "新大陆发现" },
-            { year: 1776, label: "美国独立" },
-            { year: 1945, label: "二战结束" },
-            { year: 1969, label: "登月" }
-        ];
+        // 重要历史年份标记 - 将在初始化时从事件数据动态生成
+        this.keyHistoricalYears = [];
     }
     
     /**
@@ -83,6 +66,10 @@ export class TimelineManager {
         
         // 保存地图实例引用
         this.mapInstance = mapInstance;
+
+        // 从事件数据生成时间段和关键历史年份
+        this.generatePeriodsFromEvents();
+        this.generateKeyYearsFromEvents();
         
         // 创建时间轴容器（如果不存在）
         this.createTimelineContainer();
@@ -188,6 +175,231 @@ export class TimelineManager {
         });
         
         console.log('时间轴初始化完成');
+    }
+    
+    /**
+     * 从事件数据生成时间段
+     * 根据事件中的重要时期自动生成时间段配置
+     */
+    generatePeriodsFromEvents() {
+        // 如果已有全局事件数据，则使用它来生成时间段
+        if (window.historyMapApp && window.historyMapApp.eventManager) {
+            const eventManager = window.historyMapApp.eventManager;
+            
+            // 默认时间段配置，如果无法从事件中生成
+            const defaultPeriods = [
+                { start: -15000, end: -3000, name: "史前" },
+                { start: -3000, end: -1000, name: "古代早期" },
+                { start: -1000, end: 500, name: "古典时期" },
+                { start: 500, end: 1400, name: "中世纪" },
+                { start: 1400, end: 1700, name: "文艺复兴" },
+                { start: 1700, end: 1900, name: "现代早期" },
+                { start: 1900, end: 2000, name: "现代" }
+            ];
+            
+            try {
+                // 尝试获取文明类事件以确定时间段
+                const allEvents = eventManager.getAllEvents();
+                
+                // 如果没有事件数据，使用默认配置
+                if (!allEvents || allEvents.length === 0) {
+                    console.log('没有找到事件数据，使用默认时间段');
+                    this.periods = defaultPeriods;
+                    return;
+                }
+                
+                // 查找文明类事件
+                const civilizationEvents = allEvents.filter(event => 
+                    event.category === '文明'
+                );
+                
+                // 如果没有足够的文明事件，使用默认配置
+                if (civilizationEvents.length < 5) {
+                    console.log('文明事件不足，使用默认时间段');
+                    this.periods = defaultPeriods;
+                    return;
+                }
+                
+                // 根据文明事件的时间范围划分时期
+                // 按开始年份排序
+                civilizationEvents.sort((a, b) => a.startYear - b.startYear);
+                
+                // 生成基于文明的时期
+                const periods = [];
+                
+                // 添加史前时期
+                periods.push({
+                    start: this.minYear,
+                    end: civilizationEvents[0].startYear,
+                    name: "史前"
+                });
+                
+                // 早期文明
+                const earlyEnd = civilizationEvents.find(e => e.startYear > -1000)?.startYear || -1000;
+                periods.push({
+                    start: civilizationEvents[0].startYear,
+                    end: earlyEnd,
+                    name: "早期文明"
+                });
+                
+                // 古典时期
+                const classicalEnd = civilizationEvents.find(e => e.startYear > 0)?.startYear || 500;
+                periods.push({
+                    start: earlyEnd,
+                    end: classicalEnd,
+                    name: "古典时期"
+                });
+                
+                // 中世纪
+                const medievalEnd = civilizationEvents.find(e => e.startYear > 1000)?.startYear || 1400;
+                periods.push({
+                    start: classicalEnd,
+                    end: medievalEnd,
+                    name: "中世纪"
+                });
+                
+                // 近代
+                const earlyModernEnd = civilizationEvents.find(e => e.startYear > 1700)?.startYear || 1900;
+                periods.push({
+                    start: medievalEnd,
+                    end: earlyModernEnd,
+                    name: "近代"
+                });
+                
+                // 现代
+                periods.push({
+                    start: earlyModernEnd,
+                    end: this.maxYear,
+                    name: "现代"
+                });
+                
+                this.periods = periods;
+                console.log('根据文明事件生成的时间段:', this.periods);
+            } catch (error) {
+                console.error('生成时间段时出错:', error);
+                this.periods = defaultPeriods;
+            }
+        } else {
+            // 如果没有事件管理器，使用默认配置
+            this.periods = [
+                { start: -10000, end: -3000, name: "史前" },
+                { start: -3000, end: -1000, name: "古代早期" },
+                { start: -1000, end: 500, name: "古典时期" },
+                { start: 500, end: 1400, name: "中世纪" },
+                { start: 1400, end: 1700, name: "文艺复兴" },
+                { start: 1700, end: 1900, name: "现代早期" },
+                { start: 1900, end: 2000, name: "现代" }
+            ];
+        }
+    }
+
+    /**
+     * 从事件数据生成关键历史年份
+     * 根据重要程度选择典型事件标记在时间轴上
+     */
+    generateKeyYearsFromEvents() {
+        // 如果已有全局事件数据，则使用它来生成关键年份
+        if (window.historyMapApp && window.historyMapApp.eventManager) {
+            const eventManager = window.historyMapApp.eventManager;
+            
+            // 默认关键年份，如果无法从事件中生成
+            const defaultKeyYears = [
+                { year: -3500, label: "苏美尔文明" },
+                { year: -1345, label: "图坦卡蒙" },
+                { year: -776, label: "奥运会起源" },
+                { year: 1, label: "公元元年" },
+                { year: 1492, label: "新大陆发现" },
+                { year: 1776, label: "美国独立" },
+                { year: 1945, label: "二战结束" },
+                { year: 1969, label: "登月" }
+            ];
+            
+            try {
+                // 获取所有事件
+                const allEvents = eventManager.getAllEvents();
+                
+                // 如果没有事件数据，使用默认配置
+                if (!allEvents || allEvents.length === 0) {
+                    console.log('没有找到事件数据，使用默认关键年份');
+                    this.keyHistoricalYears = defaultKeyYears;
+                    return;
+                }
+                
+                // 按重要性排序
+                const importantEvents = [...allEvents]
+                    .filter(event => event.importance >= 4) // 只选择重要程度较高的事件
+                    .sort((a, b) => b.importance - a.importance);
+                
+                // 最多选择12个关键年份，确保时间分布均匀
+                const keyYears = [];
+                
+                // 先添加公元元年作为基准点
+                keyYears.push({ year: 1, label: "公元元年" });
+                
+                // 添加最重要的事件（前10个）
+                const topEvents = importantEvents.slice(0, 10);
+                
+                // 按时间排序
+                topEvents.sort((a, b) => a.startYear - b.startYear);
+                
+                // 转换为关键年份格式
+                topEvents.forEach(event => {
+                    // 避免重复年份
+                    if (!keyYears.some(ky => ky.year === event.startYear)) {
+                        keyYears.push({
+                            year: event.startYear,
+                            label: event.title
+                        });
+                    }
+                });
+                
+                // 如果事件不够，再根据时期添加一些
+                if (keyYears.length < 8) {
+                    // 根据时间段添加典型年份
+                    this.periods.forEach(period => {
+                        const midYear = Math.floor((period.start + period.end) / 2);
+                        if (!keyYears.some(ky => Math.abs(ky.year - midYear) < 100)) {
+                            keyYears.push({
+                                year: midYear,
+                                label: period.name
+                            });
+                        }
+                    });
+                }
+                
+                // 确保有足够的关键年份
+                if (keyYears.length < 8) {
+                    // 补充默认年份
+                    defaultKeyYears.forEach(defaultYear => {
+                        if (!keyYears.some(ky => ky.year === defaultYear.year)) {
+                            keyYears.push(defaultYear);
+                        }
+                    });
+                }
+                
+                // 最终按年份排序
+                keyYears.sort((a, b) => a.year - b.year);
+                
+                // 限制最多12个关键年份
+                this.keyHistoricalYears = keyYears.slice(0, 12);
+                console.log('根据事件生成的关键历史年份:', this.keyHistoricalYears);
+            } catch (error) {
+                console.error('生成关键历史年份时出错:', error);
+                this.keyHistoricalYears = defaultKeyYears;
+            }
+        } else {
+            // 如果没有事件管理器，使用默认配置
+            this.keyHistoricalYears = [
+                { year: -3500, label: "苏美尔文明" },
+                { year: -1345, label: "图坦卡蒙" },
+                { year: -776, label: "奥运会起源" },
+                { year: 1, label: "公元元年" },
+                { year: 1492, label: "新大陆发现" },
+                { year: 1776, label: "美国独立" },
+                { year: 1945, label: "二战结束" },
+                { year: 1969, label: "登月" }
+            ];
+        }
     }
     
     /**

@@ -178,9 +178,10 @@
 .timeline-container {
     position: absolute;
     bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
+    left: auto;
+    right: 20px;
+    transform: none;
+    width: calc(100% - 340px); /* 减去左侧信息栏的宽度和一些边距 */
     max-width: 95%;
     z-index: 1000;
     background-color: rgba(255, 255, 255, 0.6);
@@ -197,8 +198,9 @@
 .timeline-overlay {
     position: absolute;
     bottom: 0;
-    left: 0;
-    width: 100%;
+    left: auto;
+    right: 0;
+    width: calc(100% - 300px); /* 减去左侧信息栏的宽度 */
     height: 140px; /* 增加高度确保完全覆盖时间轴区域 */
     z-index: 999; /* 低于时间轴但高于地图 */
     pointer-events: auto; /* 允许捕获事件 */

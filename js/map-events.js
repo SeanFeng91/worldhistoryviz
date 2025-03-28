@@ -133,21 +133,29 @@ export class MapEvents {
         const icon = L.divIcon({
             className: 'event-marker',
             html: this.createEventMarkerHTML(event),
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
+            iconSize: [32, 32],  // 增加大小以适应图标
+            iconAnchor: [16, 16] // 调整锚点居中
         });
 
         return L.marker([event.latitude, event.longitude], {
             icon: icon,
-            title: event.title || event.name
+            title: event.title || event.name,
+            riseOnHover: true    // 悬停时升高，避免被其他标记遮挡
         }).bindPopup(() => this.createEventPopupContent(event));
     }
 
     createEventMarkerHTML(event) {
+        // 获取事件标题，如果过长则截断
+        const title = event.title || event.name || '未命名事件';
+        const shortTitle = title.length > 15 ? title.substring(0, 12) + '...' : title;
+        const category = event.category || '其他';
+        
+        // 创建带类别的图标和名称标签
         return `
-            <div class="event-icon ${event.category}">
-                <i class="material-icons-round">${this.getCategoryIcon(event.category)}</i>
+            <div class="event-icon ${category}">
+                <i class="material-icons-round">${this.getCategoryIcon(category)}</i>
             </div>
+            <div class="event-marker-name">${shortTitle}</div>
         `;
     }
 
