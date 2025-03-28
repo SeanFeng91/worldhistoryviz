@@ -102,10 +102,6 @@ export class App {
             console.log('创建UI元素...');
             this.createUIElements();
             
-            // 显示加载指示器
-            console.log('显示加载指示器...');
-            this.showLoader();
-            
             // 初始化地图
             console.log('开始初始化地图...');
             await this.initializeMap();
@@ -151,19 +147,14 @@ export class App {
             console.log(`初始年份为: ${initialYear}`);
             await this.updateYear(initialYear);
             
-            // 隐藏加载指示器
-            this.hideLoader();
-            
-            console.log('应用初始化完成');
-            
             // 确保全局应用对象存在
             if (!window.historyMapApp) {
                 window.historyMapApp = {};
             }
             
             // 注册事件管理器到全局对象，确保按钮可以访问
-            if (this.mapCore && this.mapCore.events) {
-                window.historyMapApp.eventManager = this.mapCore.events;
+            if (this.mapCore && this.mapCore.mapEvents) {
+                window.historyMapApp.eventManager = this.mapCore.mapEvents;
                 console.log('事件管理器已全局注册: window.historyMapApp.eventManager');
             }
         } catch (error) {
@@ -278,9 +269,6 @@ export class App {
         console.log(`开始更新到年份 ${year}`);
         
         try {
-            // 显示加载指示器
-            this.showLoader('更新年份...');
-            
             // 确保有完整数据对象传给MapCore
             const dataToUpdate = {
                 allEvents: this.eventsData || [],
@@ -298,12 +286,8 @@ export class App {
             // 让MapCore统一管理事件显示和更新
             // MapCore内部会通过MapEvents管理所有事件，包括在地图上显示和在侧边栏显示
             await this.mapCore.updateToYear(year, dataToUpdate);
-            
-            // 隐藏加载指示器
-            this.hideLoader();
         } catch (error) {
             console.error(`处理年份变化时出错: ${error}`);
-            this.hideLoader();
             this.showError(`无法加载年份 ${year} 的数据`);
         }
     }
@@ -315,10 +299,7 @@ export class App {
         console.log('正在加载初始数据...');
         
         try {
-            // 显示加载指示器
-            this.showLoader('加载历史数据...');
-            
-            // 加载数据
+            // 加载数据，但不显示加载指示器
             await this.loadData();
             
             // 设置初始年份
@@ -431,17 +412,14 @@ export class App {
         }
         
         try {
-            this.showLoader('更新年份...');
             this.isLoading = true;
             
             // 更新数据
             await this.updateYear(year);
             
-            this.hideLoader();
             this.isLoading = false;
         } catch (error) {
             console.error('处理年份变化时出错:', error);
-            this.hideLoader();
             this.isLoading = false;
             this.showError('更新年份失败: ' + error.message);
         }
