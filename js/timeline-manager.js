@@ -162,9 +162,6 @@ export class TimelineManager {
         // 设置容器直接拖动功能
         this.setupContainerDragging();
         
-        // 隐藏滑块按钮
-        this.hideSliderThumb();
-        
         // 调试输出
         console.log('时间轴元素状态:', {
             container: this.timelineContainer ? 'OK' : 'Missing',
@@ -678,7 +675,17 @@ export class TimelineManager {
         const sliderContainer = document.createElement('div');
         sliderContainer.className = 'timeline-slider-container';
         
-        // 创建滑块
+        // 创建滑块指示器（替代滑块）
+        const sliderIndicator = document.createElement('div');
+        sliderIndicator.className = 'slider-indicator';
+        
+        // 计算初始位置百分比
+        const initialPercent = (this.currentYear - this.minYear) / (this.maxYear - this.minYear) * 100;
+        sliderIndicator.style.left = `${initialPercent}%`;
+        
+        sliderContainer.appendChild(sliderIndicator);
+        
+        // 保留隐藏的滑块元素用于跟踪和保持兼容性
         const yearSlider = document.createElement('input');
         // 使用this.yearSliderId或默认值
         const sliderId = this.yearSliderId || 'year-slider';
@@ -691,6 +698,7 @@ export class TimelineManager {
         yearSlider.max = this.maxYear;
         yearSlider.value = this.currentYear;
         yearSlider.step = '10'; // 每次调整10年
+        yearSlider.style.opacity = '0'; // 确保滑块完全隐藏
         
         sliderContainer.appendChild(yearSlider);
         
@@ -957,7 +965,7 @@ export class TimelineManager {
         
         this.currentYear = year;
         
-        // 更新滑块位置
+        // 更新滑块位置（即使滑块被隐藏，也要更新值以保持状态一致）
         if (this.yearSlider) {
             this.yearSlider.value = year;
         }
@@ -1103,16 +1111,13 @@ export class TimelineManager {
     setupContainerDragging() {
         // 获取滑块容器
         const sliderContainer = document.querySelector('.timeline-slider-container');
-        if (!sliderContainer || !this.yearSlider) return;
+        if (!sliderContainer) return;
         
         // 获取滑块指示器
         const sliderIndicator = sliderContainer.querySelector('.slider-indicator');
         
         // 添加点击事件：直接点击容器上的位置就跳转到对应年份
         sliderContainer.addEventListener('click', (e) => {
-            // 忽略在滑块上的点击
-            if (e.target === this.yearSlider) return;
-            
             // 获取容器的位置和宽度信息
             const rect = sliderContainer.getBoundingClientRect();
             
@@ -1137,14 +1142,12 @@ export class TimelineManager {
         
         // 添加鼠标按下事件
         sliderContainer.addEventListener('mousedown', (e) => {
-            // 忽略在滑块上的点击
-            if (e.target === this.yearSlider) return;
-            
-            this.isTimelineDragging = true;
-            
             // 阻止默认行为和事件冒泡
             e.preventDefault();
             e.stopPropagation();
+            
+            // 设置拖动状态
+            this.isTimelineDragging = true;
             
             // 添加鼠标样式
             sliderContainer.style.cursor = 'grabbing';
@@ -1217,11 +1220,6 @@ export class TimelineManager {
             // 更新到新年份（触发回调）
             this.updateToYear(year);
             
-            // 更新滑块指示器位置
-            if (sliderIndicator) {
-                sliderIndicator.style.left = `${ratio * 100}%`;
-            }
-            
             // 重置样式
             sliderContainer.style.cursor = '';
             document.body.style.userSelect = '';
@@ -1265,41 +1263,5 @@ export class TimelineManager {
         });
         
         console.log('时间轴容器拖动功能已设置');
-    }
-    
-    /**
-     * 隐藏滑块按钮
-     * 移除滑块拖动按钮但保留其功能
-     */
-    hideSliderThumb() {
-        // 创建样式元素
-        const style = document.createElement('style');
-        style.textContent = `
-            .timeline-slider::-webkit-slider-thumb {
-                width: 1px !important;
-                height: 1px !important;
-                background: transparent !important;
-                opacity: 0 !important;
-                cursor: pointer;
-            }
-            
-            .timeline-slider::-moz-range-thumb {
-                width: 1px !important;
-                height: 1px !important;
-                background: transparent !important;
-                opacity: 0 !important;
-                cursor: pointer;
-            }
-            
-            .slider-indicator {
-                width: 4px !important;
-                background-color: #3b82f6 !important;
-                box-shadow: 0 0 5px rgba(59, 130, 246, 0.5) !important;
-            }
-        `;
-        
-        // 添加到文档头部
-        document.head.appendChild(style);
-        console.log('已隐藏滑块按钮');
     }
 } 

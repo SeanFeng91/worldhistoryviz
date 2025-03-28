@@ -106,7 +106,7 @@
     background: transparent; /* 完全透明，隐藏轨道 */
     outline: none;
     border-radius: 0;
-    opacity: 1;
+    opacity: 0; /* 完全隐藏，但保留功能 */
 }
 
 /* 滑块样式 */
@@ -574,17 +574,18 @@ body:has(#events-list.collapsed) .timeline-overlay {
 /* 滑块指示器样式 */
 .slider-indicator {
     position: absolute;
-    top: 0;
+    width: 4px;
     height: 100%;
-    width: 3px;
     background-color: #3b82f6;
-    z-index: 15;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
+    top: 0;
+    z-index: 20;
+    border-radius: 2px;
     pointer-events: none;
-    transition: left 0.1s;
-    box-shadow: 0 0 8px rgba(59, 130, 246, 0.7);
+    transform: translateX(-50%);
 }
 
 .dark .slider-indicator {
     background-color: #60a5fa;
-    box-shadow: 0 0 8px rgba(96, 165, 250, 0.7);
+    box-shadow: 0 0 10px rgba(96, 165, 250, 0.8);
 } 
