@@ -32,13 +32,31 @@ export class MapEvents {
         }
     }
 
-    async updateToYear(year) {
+    async updateToYear(year, eventsData) {
+        console.log(`MapEvents: 更新到年份 ${year}`);
+        
         this.clearEventMarkers();
-        const events = await this.getRelevantEvents(year);
-        await this.updateEventMarkers(events);
+        
+        // 如果传入了事件数据，直接使用；否则尝试从已加载的数据中获取
+        let events;
+        if (eventsData && Array.isArray(eventsData) && eventsData.length > 0) {
+            events = eventsData;
+            console.log(`使用传入的事件数据: ${events.length}条`);
+        } else {
+            // 从已加载数据中获取事件
+            events = await this.getRelevantEvents(year);
+            console.log(`从已加载数据中获取事件: ${events.length}条`);
+        }
+        
+        // 首先筛选与当前年份相关的事件
+        const relevantEvents = this.filterEventsByYear(events, year);
+        console.log(`与年份${year}相关的事件: ${relevantEvents.length}条`);
+        
+        // 更新地图上的标记
+        await this.updateEventMarkers(relevantEvents);
         
         // 更新侧边栏事件列表
-        this.updateEventsList(events);
+        this.updateEventsList(relevantEvents);
     }
 
     setFilterCategory(category) {
@@ -66,26 +84,57 @@ export class MapEvents {
     }
 
     updateEventsList(events) {
-        // 获取事件容器元素
-        const eventsContainer = document.getElementById('events-container');
-        const noEventsMessage = document.getElementById('no-events-message');
+        // 获取事件列表容器元素
+        const eventsListElement = document.getElementById('events-list');
         
-        if (!eventsContainer) return;
+        if (!eventsListElement) {
+            console.warn('找不到事件列表容器元素 events-list');
+            return;
+        }
         
-        // 清空当前事件列表
-        eventsContainer.innerHTML = '';
+        // 清空当前事件列表内容
+        eventsListElement.innerHTML = '';
+        
+        // 添加侧边栏折叠按钮
+        const toggleBtn = document.createElement('div');
+        toggleBtn.id = 'sidebar-toggle';
+        toggleBtn.className = 'sidebar-toggle';
+        toggleBtn.innerHTML = `<i class="material-icons-round">chevron_left</i>`;
+        eventsListElement.appendChild(toggleBtn);
+        
+        // 折叠按钮点击事件
+        toggleBtn.addEventListener('click', () => {
+            eventsListElement.classList.toggle('collapsed');
+            if (this.mapCore && this.mapCore.map) {
+                // 更新地图大小以适应侧边栏变化
+                this.mapCore.map.invalidateSize();
+            }
+        });
+        
+        // 添加事件列表标题
+        const listHeader = document.createElement('div');
+        listHeader.className = 'events-list-header mb-4';
+        listHeader.innerHTML = `
+            <h2 class="text-lg font-semibold text-gray-900">历史事件</h2>
+            <p class="text-sm text-gray-500">显示年份: ${this.formatYear(this.mapCore.currentYear)}</p>
+        `;
+        eventsListElement.appendChild(listHeader);
         
         // 筛选符合当前分类的事件
         const filteredEvents = events.filter(event => 
             this.filterCategory === 'all' || event.category === this.filterCategory
         );
         
-        // 显示或隐藏"无事件"消息
+        // 如果没有事件，显示提示信息
         if (filteredEvents.length === 0) {
-            if (noEventsMessage) noEventsMessage.classList.remove('hidden');
+            const messageContainer = document.createElement('div');
+            messageContainer.className = 'text-center py-8 text-gray-500';
+            messageContainer.innerHTML = `
+                <i class="material-icons-round text-3xl mb-2">history</i>
+                <p>当前年份没有相关事件</p>
+            `;
+            eventsListElement.appendChild(messageContainer);
             return;
-        } else {
-            if (noEventsMessage) noEventsMessage.classList.add('hidden');
         }
         
         // 按重要性排序事件
@@ -93,11 +142,55 @@ export class MapEvents {
             (b.importance || 0) - (a.importance || 0)
         );
         
-        // 创建事件列表项
+        // 创建事件列表容器
+        const eventsContainer = document.createElement('div');
+        eventsContainer.id = 'events-container';
+        eventsContainer.className = 'space-y-3';
+        
+        // 对事件按类别分组
+        const categories = {
+            '农业': [],
+            '技术': [],
+            '文明': [],
+            '征服': [],
+            '疾病': [],
+            '迁徙': [],
+            '其他': []
+        };
+        
+        // 将事件按类别分组
         sortedEvents.forEach(event => {
-            const eventItem = this.createEventListItem(event);
-            eventsContainer.appendChild(eventItem);
+            const category = event.category || '其他';
+            if (!categories[category]) categories[category] = [];
+            categories[category].push(event);
         });
+        
+        // 创建各类别的事件列表
+        Object.keys(categories).forEach(category => {
+            const categoryEvents = categories[category];
+            if (categoryEvents.length === 0) return;
+            
+            // 创建类别标题
+            const categoryHeader = document.createElement('div');
+            categoryHeader.className = 'category-header';
+            categoryHeader.innerHTML = `
+                <div class="category-title">
+                    <i class="material-icons-round">${this.getCategoryIcon(category)}</i>
+                    <span>${category}</span>
+                    <span class="category-count">(${categoryEvents.length})</span>
+                </div>
+            `;
+            eventsContainer.appendChild(categoryHeader);
+            
+            // 创建该类别的事件卡片
+            categoryEvents.forEach(event => {
+                const eventItem = this.createEventListItem(event);
+                eventsContainer.appendChild(eventItem);
+            });
+        });
+        
+        // 将事件列表添加到DOM
+        eventsListElement.appendChild(eventsContainer);
     }
     
     createEventListItem(event) {
@@ -599,5 +692,68 @@ export class MapEvents {
         
         // 返回空结果，将由调用方处理缺少位置的情况
         return { latitude: null, longitude: null, location: null };
+    }
+
+    /**
+     * 筛选与特定年份相关的事件
+     * @param {Array} events - 事件数组
+     * @param {number} year - 目标年份
+     * @returns {Array} 过滤后的事件数组
+     */
+    filterEventsByYear(events, year) {
+        // 如果没有有效事件数据，返回空数组
+        if (!events || !Array.isArray(events)) {
+            console.warn('无效的事件数据');
+            return [];
+        }
+        
+        return events.filter(event => {
+            // 确保数据的一致性
+            const startYear = event.startYear !== undefined ? event.startYear : event.year;
+            const endYear = event.endYear !== undefined ? event.endYear : startYear;
+            
+            // 计算事件与当前年份的距离
+            let distance = Infinity;
+            
+            // 如果事件在当前年份范围内，距离为0
+            if (year >= startYear && year <= endYear) {
+                distance = 0;
+                return true;
+            } else {
+                // 否则计算距离最近时间点的距离
+                distance = Math.min(
+                    Math.abs(startYear - year),
+                    Math.abs(endYear - year)
+                );
+            }
+            
+            // 根据距离计算相关性
+            let relevance = 1.0;
+            if (distance > 0) {
+                // 根据时代调整相关性计算的时间尺度
+                // 远古时代使用更大的时间尺度
+                let timeScale = 100; // 默认为100年
+                
+                if (Math.abs(year) > 5000) {
+                    timeScale = 1000; // 史前时代 >5000年前
+                } else if (Math.abs(year) > 2000) {
+                    timeScale = 500;  // 古代 >2000年前
+                } else if (Math.abs(year) > 500) {
+                    timeScale = 200;  // 中世纪 >500年前
+                }
+                
+                // 计算相关性，随距离增加而线性减少
+                relevance = Math.max(0, 1 - (distance / timeScale));
+                
+                // 提升重要事件的相关性
+                const importance = event.importance || 3;
+                if (importance >= 4) {
+                    relevance = Math.min(1, relevance * 1.5); // 提升50%
+                }
+            }
+            
+            // 只保留相关性足够高的事件
+            return relevance >= 0.1;
+        });
     }
 } 

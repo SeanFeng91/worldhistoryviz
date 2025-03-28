@@ -98,8 +98,9 @@ async function loadAllEvents() {
         if (eventIndex && eventIndex.categories && Array.isArray(eventIndex.categories)) {
             console.log('检测到事件索引格式，将整合所有分类事件');
             
-            // 已经在loadAllData中加载了各个具体分类的事件
-            // 这里只需返回空数组，实际事件会在adaptXXX中分别处理
+            // 不再返回空数组，而是返回一个空的结构化对象
+            // 实际事件会在loadAllData的其他分类中获取
+            console.log('注意: 全局事件数组为空，将使用分类事件数据');
             return [];
         } else if (Array.isArray(eventIndex)) {
             // 如果是直接的事件数组，使用适配器
@@ -191,7 +192,16 @@ export function getEventsForYear(events, year, range = 100) {
         
         // 如果事件有开始和结束年份，检查当前年份是否在该范围内
         if (startYear !== undefined && endYear !== undefined) {
-            return year >= startYear && year <= endYear;
+            // 在范围内
+            if (year >= startYear && year <= endYear) {
+                return true;
+            }
+            
+            // 对于范围边缘的事件，如果在range内也返回
+            return Math.min(
+                Math.abs(startYear - year), 
+                Math.abs(endYear - year)
+            ) <= range;
         }
         
         // 如果事件只有一个年份，检查与当前年份的差距是否在范围内

@@ -142,20 +142,20 @@ export class MapCore {
 
     async updateToYear(year, data) {
         this.currentYear = year;
+        console.log(`MapCore: 更新到年份 ${year}`);
         
         // 更新地图数据
         await this.loadGeoJSON();
         
-        // 更新各个子模块
+        // 统一由MapEvents管理所有事件，包括筛选、显示和侧边栏更新
         if (data) {
-            // 如果提供了数据，使用传入的数据更新
-            await Promise.all([
-                this.events.updateToYear(year, data.events || data.allEvents),
-                this.migrations.updateToYear(year, data.migrations),
-                this.features.updateToYear(year, data)
-            ]);
+            // 传入完整数据，让MapEvents自行处理筛选和显示
+            // 即使allEvents为空，也传递其他分类的事件数据
+            await this.events.updateToYear(year, data.allEvents && data.allEvents.length > 0 ? data.allEvents : null);
+            await this.migrations.updateToYear(year, data.migrations);
+            await this.features.updateToYear(year, data);
         } else {
-            // 否则，让各子模块自行加载数据
+            // 没有数据时，让各子模块自行加载数据
             await Promise.all([
                 this.events.updateToYear(year),
                 this.migrations.updateToYear(year),

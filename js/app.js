@@ -5,7 +5,6 @@
 
 import { loadAllData, getEventsForYear, getMigrationsForYear } from './data-loader.js';
 import { TimelineManager } from './timeline-manager.js';
-import { EventsManager } from './events-manager.js';
 import { IntroManager } from './intro.js';
 import { MapCore } from './map-core.js';
 import { MapUtils } from './map-utils.js';
@@ -70,7 +69,6 @@ export class App {
         });
         
         // 模块实例
-        this.eventsManager = new EventsManager('events-list', 'event-details');
         this.introManager = new IntroManager();
         
         // 侧边栏状态
@@ -79,14 +77,6 @@ export class App {
         // 绑定事件处理方法
         this.handleYearChange = this.handleYearChange.bind(this);
         this.handleYearChanged = this.handleYearChanged.bind(this);
-        this.handleEventSelected = this.handleEventSelected.bind(this);
-        this.handleToggleEvents = this.handleToggleEvents.bind(this);
-        this.handleToggleMigrations = this.handleToggleMigrations.bind(this);
-        this.handleToggleTechnologies = this.handleToggleTechnologies.bind(this);
-        this.handleToggleSpecies = this.handleToggleSpecies.bind(this);
-        this.handleToggleWars = this.handleToggleWars.bind(this);
-        this.handleToggleDiseases = this.handleToggleDiseases.bind(this);
-        this.handleToggleAgriculture = this.handleToggleAgriculture.bind(this);
         this.handleViewEventDetails = this.handleViewEventDetails.bind(this);
         this.toggleSidebar = this.toggleSidebar.bind(this);
         this.handleViewToggle = this.handleViewToggle.bind(this);
@@ -149,9 +139,8 @@ export class App {
             console.log('设置事件监听器...');
             this.setupEventListeners();
             
-            // 初始化事件管理器
-            console.log('初始化事件管理器...');
-            this.initializeEventsManager();
+            // 初始化分类筛选功能 - 现在由MapEvents处理
+            this.initCategoryFilters();
             
             // 标记初始化完成
             this.isInitialized = true;
@@ -213,33 +202,6 @@ export class App {
     }
     
     /**
-     * 初始化事件管理器
-     */
-    initializeEventsManager() {
-        console.log('初始化事件管理器...');
-        
-        // 创建事件管理器实例
-        this.eventsManager = new EventsManager('events-list', 'event-details');
-        
-        // 设置事件选择回调
-        this.eventsManager.setEventSelectedCallback((eventId) => {
-            // 找到对应事件
-            const event = this.data.allEvents.find(e => e.id === eventId);
-            if (event) {
-                // 在地图上高亮显示该事件
-                this.mapCore.highlightEvent(event);
-                // 显示详情
-                this.showEventDetails(event);
-            }
-        });
-        
-        // 初始化类别筛选
-        this.initCategoryFilters();
-        
-        console.log('事件管理器初始化完成');
-    }
-    
-    /**
      * 初始化类别筛选
      */
     initCategoryFilters() {
@@ -251,22 +213,18 @@ export class App {
                     const category = button.getAttribute('data-category');
                     console.log(`筛选类别: ${category}`);
                     
-                    // 更新事件列表
-                    this.eventsManager.setCategory(category);
-                    
-                    // 更新地图标记
-                    this.mapCore.setFilterCategory(category);
-                    
-                    // 重新加载当前年份的全部数据，确保筛选正确应用
-                    const currentYear = this.timelineManager.getCurrentYear();
-                    // 更新事件列表
-                    this.eventsManager.updateEventsList(this.data.allEvents, currentYear);
-                    // 重新更新地图内容
-                    this.mapCore.updateToYear(currentYear, this.data);
-                    
                     // 更新按钮样式
                     categoryButtons.forEach(btn => btn.classList.remove('active'));
                     button.classList.add('active');
+                    
+                    // 设置事件过滤类别 - 直接设置到MapCore的events实例
+                    if (this.mapCore && this.mapCore.events) {
+                        this.mapCore.events.setFilterCategory(category);
+                        
+                        // 重新加载当前年份的全部数据，确保筛选正确应用
+                        const currentYear = this.timelineManager.getCurrentYear();
+                        this.updateYear(currentYear);
+                    }
                 });
             });
         }
@@ -280,35 +238,12 @@ export class App {
         console.log(`开始更新到年份 ${year}`);
         
         try {
-            // 提取与当前年份相关的事件
-            const relevantEvents = getEventsForYear(this.eventsData, year);
-            console.log(`找到 ${relevantEvents.length} 个与年份 ${year} 相关的事件`);
+            // 显示加载指示器
+            this.showLoader('更新年份...');
             
-            // 提取与当前年份相关的迁徙路线
-            const activeMigrations = getMigrationsForYear(this.migrationsData, year);
-            console.log(`找到 ${activeMigrations.length} 条与年份 ${year} 相关的迁徙路线`);
-            
-            // 准备传递给地图管理器的数据
-            const mapData = {
-                allEvents: relevantEvents,
-                events: relevantEvents,  // 兼容旧版本
-                migrations: activeMigrations,
-                technologies: this.technologiesData,
-                species: this.speciesData,
-                civilizations: this.civilizationsData,
-                wars: this.warsData,
-                diseases: this.diseasesData,
-                agriculture: this.agricultureData
-            };
-            
-            // 更新地图
-            await this.mapCore.updateToYear(year, mapData);
-            
-            // 更新事件列表
-            if (this.eventsManager) {
-                console.log('更新事件管理器的事件列表');
-                this.eventsManager.updateEventsList(relevantEvents, year);
-            }
+            // 让MapCore统一管理事件显示和更新
+            // MapCore内部会通过MapEvents管理所有事件，包括在地图上显示和在侧边栏显示
+            await this.mapCore.updateToYear(year, this.data);
             
             // 隐藏加载指示器
             this.hideLoader();
@@ -391,42 +326,27 @@ export class App {
         // 设置年份变化回调
         this.timelineManager.setYearChangeCallback(this.handleYearChange.bind(this));
         
-        // 事件查看详情按钮
-        document.querySelectorAll('.view-event-btn').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const eventId = e.currentTarget.dataset.eventId;
-                this.handleViewEventDetails(eventId);
-            });
-        });
+        // 设置侧边栏折叠功能 - 现在由MapEvents处理
+        // const sidebarToggle = document.getElementById('sidebar-toggle');
+        // if (sidebarToggle) {
+        //     sidebarToggle.addEventListener('click', this.toggleSidebar.bind(this));
+        // }
         
-        // 设置侧边栏折叠功能
-        const sidebarToggle = document.getElementById('sidebar-toggle');
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', this.toggleSidebar.bind(this));
+        // 监听图层控制按钮
+        const layerButtons = document.querySelectorAll('[data-layer]');
+        if (layerButtons && layerButtons.length > 0) {
+            layerButtons.forEach(button => {
+                button.addEventListener('click', this.handleLayerToggle.bind(this));
+            });
         }
         
-        // 监听地图图层控制按钮
-        const layerControls = {
-            'toggle-events': this.handleToggleEvents.bind(this),
-            'toggle-migrations': this.handleToggleMigrations.bind(this),
-            'toggle-technologies': this.handleToggleTechnologies.bind(this),
-            'toggle-species': this.handleToggleSpecies.bind(this),
-            'toggle-wars': this.handleToggleWars.bind(this),
-            'toggle-diseases': this.handleToggleDiseases.bind(this),
-            'toggle-agriculture': this.handleToggleAgriculture.bind(this)
-        };
-        
-        Object.keys(layerControls).forEach(controlId => {
-            const controlButton = document.getElementById(controlId);
-            if (controlButton) {
-                controlButton.addEventListener('click', layerControls[controlId]);
-                
-                // 确保按钮状态与地图图层状态一致
-                const layerName = controlId.replace('toggle-', '');
-                const isActive = this.mapCore[`show${layerName.charAt(0).toUpperCase() + layerName.slice(1)}`];
-                controlButton.classList.toggle('active', isActive);
-            }
-        });
+        // 视图切换按钮
+        const viewButtons = document.querySelectorAll('[data-view]');
+        if (viewButtons && viewButtons.length > 0) {
+            viewButtons.forEach(button => {
+                button.addEventListener('click', this.handleViewToggle.bind(this));
+            });
+        }
         
         console.log('事件监听器设置完成');
     }
@@ -626,21 +546,9 @@ export class App {
         try {
             // 更新地图
             await this.mapCore.updateToYear(year, this.data);
-            
-            // 更新事件列表
-            this.eventsManager.updateEventsList(this.data.allEvents, year);
         } catch (error) {
             console.error('处理年份变化时出错:', error);
         }
-    }
-    
-    /**
-     * 处理事件选择
-     * @param {string} eventId - 被选中的事件ID
-     */
-    handleEventSelected(eventId) {
-        // 在地图上高亮显示选中的事件
-        this.mapCore.highlightEvent(eventId);
     }
     
     /**
@@ -650,135 +558,8 @@ export class App {
     handleViewEventDetails(eventId) {
         console.log(`查看事件详情: ${eventId}`);
         
-        // 找到对应的事件
-        const event = this.data.allEvents.find(e => e.id === eventId);
-        if (!event) {
-            console.warn(`未找到ID为 ${eventId} 的事件`);
-            return;
-        }
-        
-        // 在左侧事件列表中显示详情
-        this.eventsManager.showEventDetails(event);
-        
         // 在地图上高亮显示该事件
         this.mapCore.highlightEvent(eventId);
-        
-        // 确保侧边栏是打开的
-        if (this.sidebarCollapsed) {
-            this.toggleSidebar();
-        }
-    }
-    
-    /**
-     * 处理事件标记的显示/隐藏
-     */
-    handleToggleEvents() {
-        const toggleButton = document.getElementById('toggle-events');
-        if (toggleButton) {
-            toggleButton.classList.toggle('active');
-            const isActive = toggleButton.classList.contains('active');
-            
-            // 更新地图
-            this.mapCore.toggleEvents(isActive);
-            
-            console.log(`事件显示状态: ${isActive ? '显示' : '隐藏'}`);
-        }
-    }
-    
-    /**
-     * 处理迁徙路线的显示/隐藏
-     */
-    handleToggleMigrations() {
-        const toggleButton = document.getElementById('toggle-migrations');
-        if (toggleButton) {
-            toggleButton.classList.toggle('active');
-            const isActive = toggleButton.classList.contains('active');
-            
-            // 更新地图
-            this.mapCore.toggleMigrations(isActive);
-            
-            console.log(`迁徙路线显示状态: ${isActive ? '显示' : '隐藏'}`);
-        }
-    }
-    
-    /**
-     * 处理技术发展的显示/隐藏
-     */
-    handleToggleTechnologies() {
-        const toggleButton = document.getElementById('toggle-technologies');
-        if (toggleButton) {
-            toggleButton.classList.toggle('active');
-            const isActive = toggleButton.classList.contains('active');
-            
-            // 更新地图
-            this.mapCore.toggleTechnologies(isActive);
-            
-            console.log(`技术发展显示状态: ${isActive ? '显示' : '隐藏'}`);
-        }
-    }
-    
-    /**
-     * 处理物种的显示/隐藏
-     */
-    handleToggleSpecies() {
-        const toggleButton = document.getElementById('toggle-species');
-        if (toggleButton) {
-            toggleButton.classList.toggle('active');
-            const isActive = toggleButton.classList.contains('active');
-            
-            // 更新地图
-            this.mapCore.toggleSpecies(isActive);
-            
-            console.log(`物种显示状态: ${isActive ? '显示' : '隐藏'}`);
-        }
-    }
-    
-    /**
-     * 处理战争的显示/隐藏
-     */
-    handleToggleWars() {
-        const toggleButton = document.getElementById('toggle-wars');
-        if (toggleButton) {
-            toggleButton.classList.toggle('active');
-            const isActive = toggleButton.classList.contains('active');
-            
-            // 更新地图
-            this.mapCore.toggleWars(isActive);
-            
-            console.log(`战争显示状态: ${isActive ? '显示' : '隐藏'}`);
-        }
-    }
-    
-    /**
-     * 处理疾病的显示/隐藏
-     */
-    handleToggleDiseases() {
-        const toggleButton = document.getElementById('toggle-diseases');
-        if (toggleButton) {
-            toggleButton.classList.toggle('active');
-            const isActive = toggleButton.classList.contains('active');
-            
-            // 更新地图
-            this.mapCore.toggleDiseases(isActive);
-            
-            console.log(`疾病显示状态: ${isActive ? '显示' : '隐藏'}`);
-        }
-    }
-    
-    /**
-     * 处理农业的显示/隐藏
-     */
-    handleToggleAgriculture() {
-        const toggleButton = document.getElementById('toggle-agriculture');
-        if (toggleButton) {
-            toggleButton.classList.toggle('active');
-            const isActive = toggleButton.classList.contains('active');
-            
-            // 更新地图
-            this.mapCore.toggleAgriculture(isActive);
-            
-            console.log(`农业显示状态: ${isActive ? '显示' : '隐藏'}`);
-        }
     }
     
     /**
