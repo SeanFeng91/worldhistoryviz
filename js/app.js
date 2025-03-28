@@ -136,7 +136,7 @@ export class App {
             }
             
             // 设置事件监听器
-            console.log('设置事件监听器...');
+            console.log('设置事件监听器');
             this.setupEventListeners();
             
             // 初始化分类筛选功能 - 现在由MapEvents处理
@@ -326,24 +326,34 @@ export class App {
             console.log(`设置初始年份: ${initialYear}`);
             
             // 添加调试日志，查看迁移数据
-            if (this.migrationsData && this.migrationsData.length > 0) {
-                console.log(`共加载了 ${this.migrationsData.length} 条迁移数据`);
-                console.log('第一条迁移数据示例:', this.migrationsData[0]);
-            } else {
-                console.warn('没有加载到迁移数据');
-            }
+            console.log(`初始化时迁移数据数量: ${this.migrationsData ? this.migrationsData.length : 0}条`);
             
-            // 初始化地图数据
-            await this.updateYear(initialYear);
+            // 准备数据对象
+            const dataToUpdate = {
+                allEvents: this.eventsData || [],
+                migrations: this.migrationsData || [],
+                technologies: this.technologiesData || [],
+                civilizations: this.civilizationsData || [],
+                species: this.speciesData || [],
+                wars: this.warsData || [],
+                diseases: this.diseasesData || [],
+                agriculture: this.agricultureData || []
+            };
+            
+            // 直接调用一次updateToYear，而不是等待handleYearChange
+            await this.mapCore.updateToYear(initialYear, dataToUpdate);
             
             // 隐藏加载指示器
             this.hideLoader();
+            
+            // 只在初始化完成后启动年份变化处理逻辑
+            this.timelineManager.setYearChangeCallback((year) => this.handleYearChange(year));
             
             console.log('初始数据加载完成');
         } catch (error) {
             console.error('加载初始数据时出错:', error);
             this.hideLoader();
-            this.showError('加载数据失败: ' + error.message);
+            this.showError('无法加载初始数据');
         }
     }
     
@@ -371,34 +381,41 @@ export class App {
      * 设置事件监听器
      */
     setupEventListeners() {
-        console.log('设置事件监听器...');
+        console.log('设置事件监听器');
         
-        // 设置年份变化回调
-        this.timelineManager.setYearChangeCallback(this.handleYearChange.bind(this));
+        // 不在这里设置年份变化监听，而是在初始化完成后才添加
+        // 这样可以避免初始加载过程中的重复刷新
         
-        // 设置侧边栏折叠功能 - 现在由MapEvents处理
-        // const sidebarToggle = document.getElementById('sidebar-toggle');
-        // if (sidebarToggle) {
-        //     sidebarToggle.addEventListener('click', this.toggleSidebar.bind(this));
-        // }
+        // 设置视图切换
+        document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.handleViewToggle(e));
+        });
         
-        // 监听图层控制按钮
-        const layerButtons = document.querySelectorAll('[data-layer]');
-        if (layerButtons && layerButtons.length > 0) {
-            layerButtons.forEach(button => {
-                button.addEventListener('click', this.handleLayerToggle.bind(this));
-            });
+        // 设置图层切换
+        document.querySelectorAll('.layer-toggle').forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => this.handleLayerToggle(e));
+        });
+        
+        // 设置搜索功能
+        const searchForm = document.querySelector('#search-form');
+        if (searchForm) {
+            searchForm.addEventListener('submit', (e) => this.handleSearch(e));
         }
         
-        // 视图切换按钮
-        const viewButtons = document.querySelectorAll('[data-view]');
-        if (viewButtons && viewButtons.length > 0) {
-            viewButtons.forEach(button => {
-                button.addEventListener('click', this.handleViewToggle.bind(this));
-            });
+        // 设置侧边栏切换
+        const sidebarToggle = document.querySelector('#sidebar-toggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => this.toggleSidebar());
         }
         
-        console.log('事件监听器设置完成');
+        // 设置播放按钮
+        const playButton = document.querySelector('#timeline-play');
+        if (playButton) {
+            playButton.addEventListener('click', () => this.togglePlayback());
+        }
+        
+        // 其他事件监听器
+        this.setupThemeToggle();
     }
     
     /**

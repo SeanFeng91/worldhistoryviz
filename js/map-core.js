@@ -12,9 +12,9 @@ export class MapCore {
         this.currentYear = options.initialYear || -10000;
         
         this.styles = new MapStyles();
-        this.events = new MapEvents(this);
-        this.migrations = new MapMigrations(this);
-        this.features = new MapFeatures(this);
+        this.mapEvents = new MapEvents(this);
+        this.mapMigrations = new MapMigrations(this);
+        this.mapFeatures = new MapFeatures(this);
         this.utils = new MapUtils();
         
         this.map = null;
@@ -117,9 +117,9 @@ export class MapCore {
             console.log('初始化地图子模块...');
             try {
                 await Promise.all([
-                    this.events.initialize(),
-                    this.migrations.initialize(),
-                    this.features.initialize()
+                    this.mapEvents.initialize(),
+                    this.mapMigrations.initialize(),
+                    this.mapFeatures.initialize()
                 ]);
                 console.log('地图子模块初始化成功');
             } catch (moduleError) {
@@ -140,27 +140,47 @@ export class MapCore {
         }
     }
 
+    /**
+     * 将地图更新到指定年份的数据
+     * @param {number} year - 要更新到的年份
+     * @param {Object} data - 包含各种数据类型的对象
+     */
     async updateToYear(year, data) {
+        console.log(`MapCore: 更新到${year}年的数据`);
         this.currentYear = year;
-        console.log(`MapCore: 更新到年份 ${year}`);
         
-        // 更新地图数据
-        await this.loadGeoJSON();
-        
-        // 统一由MapEvents管理所有事件，包括筛选、显示和侧边栏更新
+        // 有传入数据时直接使用
         if (data) {
-            // 传入完整数据，让MapEvents自行处理筛选和显示
-            // 即使allEvents为空，也传递其他分类的事件数据
-            await this.events.updateToYear(year, data.allEvents && data.allEvents.length > 0 ? data.allEvents : null);
-            await this.migrations.updateToYear(year, data.migrations);
-            await this.features.updateToYear(year, data);
+            console.log(`MapCore: 使用传入的数据更新到${year}年`);
+            
+            // 阻止地图重新渲染，提高性能
+            this.map.setZoom(this.map.getZoom(), {animate: false});
+            
+            // 更新各模块数据
+            try {
+                // 同步更新各模块，减少地图重绘次数
+                if (this.mapEvents) {
+                    await this.mapEvents.updateToYear(year, data.allEvents);
+                }
+                
+                if (this.mapMigrations) {
+                    await this.mapMigrations.updateToYear(year, data.migrations);
+                }
+                
+                if (this.mapFeatures) {
+                    await this.mapFeatures.updateToYear(year, data);
+                }
+                
+                console.log(`MapCore: 年份${year}的数据更新完成`);
+            } catch (error) {
+                console.error(`MapCore: 更新数据时出错:`, error);
+            }
         } else {
-            // 没有数据时，让各子模块自行加载数据
-            await Promise.all([
-                this.events.updateToYear(year),
-                this.migrations.updateToYear(year),
-                this.features.updateToYear(year)
-            ]);
+            console.log(`MapCore: 没有提供数据更新，尝试调用callback`);
+            // 如果没有传入数据，调用回调来获取数据
+            if (this.yearChangeCallback) {
+                this.yearChangeCallback(year);
+            }
         }
     }
 
@@ -362,43 +382,43 @@ export class MapCore {
 
     // 地图操作公共方法
     highlightEvent(eventId) {
-        this.events.highlightEvent(eventId);
+        this.mapEvents.highlightEvent(eventId);
     }
 
     toggleEvents(isActive) {
-        this.events.toggleEvents(isActive);
+        this.mapEvents.toggleEvents(isActive);
     }
 
     toggleMigrations(isActive) {
-        this.migrations.toggleMigrations(isActive);
+        this.mapMigrations.toggleMigrations(isActive);
     }
 
     toggleTechnologies(isActive) {
-        this.features.toggleTechnologies(isActive);
+        this.mapFeatures.toggleTechnologies(isActive);
     }
 
     toggleSpecies(isActive) {
-        this.features.toggleSpecies(isActive);
+        this.mapFeatures.toggleSpecies(isActive);
     }
 
     toggleWars(isActive) {
-        this.features.toggleWars(isActive);
+        this.mapFeatures.toggleWars(isActive);
     }
 
     toggleDiseases(isActive) {
-        this.features.toggleDiseases(isActive);
+        this.mapFeatures.toggleDiseases(isActive);
     }
 
     toggleAgriculture(isActive) {
-        this.features.toggleAgriculture(isActive);
+        this.mapFeatures.toggleAgriculture(isActive);
     }
 
     highlightSearchResults(results) {
-        this.events.highlightSearchResults(results);
+        this.mapEvents.highlightSearchResults(results);
     }
 
     setFilterCategory(category) {
-        this.events.setFilterCategory(category);
+        this.mapEvents.setFilterCategory(category);
     }
 
     // 添加一个方法处理所有类型的地图弹窗
