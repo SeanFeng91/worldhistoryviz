@@ -1,6 +1,6 @@
 /**
  * 时间轴管理器模块
- * 负责管理时间轴和年份控制
+ * 负责管理时间轴和年份控制，以及处理时间轴区域内的所有事件
  */
 
 /**
@@ -41,6 +41,11 @@ export class TimelineManager {
         this.yearSlider = null;
         this.yearDisplay = null;
         this.playBtn = null;
+        this.timelineContainer = null;
+        this.timelineOverlay = null;
+        
+        // 时间轴区域高度 - 用于处理事件
+        this.timelineHeight = 140;
         
         // 时间段配置
         this.periods = [
@@ -68,9 +73,13 @@ export class TimelineManager {
     
     /**
      * 初始化时间轴
+     * @param {Object} mapInstance - 地图实例，用于协调时间轴区域和地图交互
      */
-    initialize() {
+    initialize(mapInstance) {
         console.log('初始化时间轴...');
+        
+        // 保存地图实例引用
+        this.mapInstance = mapInstance;
         
         // 创建时间轴容器（如果不存在）
         this.createTimelineContainer();
@@ -127,22 +136,261 @@ export class TimelineManager {
         // 添加关键历史年份标记
         this.addKeyYearMarkers();
         
+        // 设置滑块事件处理
+        this.setupSliderEvents();
+        
+        // 添加控制按钮
+        this.createControls();
+        
+        // 设置时间轴区域的事件处理
+        this.setupTimelineAreaEvents();
+        
+        console.log('时间轴初始化完成');
+    }
+    
+    /**
+     * 设置滑块事件处理
+     */
+    setupSliderEvents() {
         // 监听滑块输入事件
         this.yearSlider.addEventListener('input', (e) => {
             const year = parseInt(e.target.value);
             this.updateYearDisplay(year);
-        });
+            // 阻止事件冒泡，但不阻止滑块的默认行为
+            e.stopPropagation();
+        }, { passive: true });
         
         // 监听滑块变化事件
         this.yearSlider.addEventListener('change', (e) => {
             const year = parseInt(e.target.value);
             this.updateToYear(year);
+            // 阻止事件冒泡，但不阻止滑块的默认行为
+            e.stopPropagation();
+        }, { passive: true });
+    }
+    
+    /**
+     * 设置时间轴区域的事件处理
+     * 这是集中处理所有时间轴区域事件的地方
+     */
+    setupTimelineAreaEvents() {
+        // 如果没有时间轴容器或遮罩层，则无法设置事件
+        if (!this.timelineContainer || !this.timelineOverlay) {
+            console.error('无法设置时间轴区域事件：缺少容器或遮罩层');
+            return;
+        }
+        
+        // 标记是否正在时间轴区域内拖动
+        let isDraggingInTimeline = false;
+        
+        // 检查元素是否是滑块或其子元素
+        const isSliderElement = (element) => {
+            if (!element) return false;
+            
+            // 检查是否是滑块元素
+            if (element.id === 'year-slider') return true;
+            
+            // 检查是否是时间轴控件
+            if (element.closest && element.closest('.timeline-slider-container')) return true;
+            if (element.closest && element.closest('.timeline-controls')) return true;
+            
+            return false;
+        };
+        
+        // 检查点击是否发生在时间轴容器内
+        const isInTimelineContainer = (e) => {
+            const rect = this.timelineContainer.getBoundingClientRect();
+            const x = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : null);
+            const y = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : null);
+            
+            if (x === null || y === null) return false;
+            
+            return (
+                x >= rect.left &&
+                x <= rect.right &&
+                y >= rect.top &&
+                y <= rect.bottom
+            );
+        };
+        
+        // 1. 时间轴容器事件处理
+        const stopEvents = (e) => {
+            // 仅阻止事件冒泡，但不阻止默认行为
+            e.stopPropagation();
+            
+            // 对于滑块元素，不应该阻止任何默认行为
+            if (isSliderElement(e.target)) {
+                return;
+            }
+            
+            // 只有对于鼠标移动和拖动事件才阻止默认行为，防止地图拖动
+            if (e.type === 'mousemove' || e.type.includes('drag')) {
+                e.preventDefault();
+            }
+        };
+        
+        // 为时间轴容器添加事件监听
+        const containerEvents = ['mousedown', 'mouseup', 'mousemove', 
+                        'touchstart', 'touchmove', 'touchend',
+                        'wheel', 'click', 'dblclick', 'contextmenu',
+                        'dragstart', 'drag', 'dragend',
+                        'pointerdown', 'pointermove', 'pointerup'];
+        
+        containerEvents.forEach(eventType => {
+            this.timelineContainer.addEventListener(eventType, stopEvents, { passive: false });
         });
         
-        // 添加控制按钮
-        this.createControls();
+        // 2. 时间轴遮罩层事件处理
+        this.timelineOverlay.addEventListener('mousedown', (e) => {
+            // 如果是滑块元素，不干预其事件
+            if (isSliderElement(e.target)) {
+                return;
+            }
+            
+            // 如果点击发生在时间轴容器内，不阻止事件
+            if (isInTimelineContainer(e)) {
+                return;
+            }
+            
+            // 否则阻止事件冒泡到地图
+            e.stopPropagation();
+            isDraggingInTimeline = true;
+        });
         
-        console.log('时间轴初始化完成');
+        // 添加document级别的mousemove事件处理，防止拖动地图
+        document.addEventListener('mousemove', (e) => {
+            if (isDraggingInTimeline) {
+                // 如果是滑块元素，不干预其事件
+                if (isSliderElement(e.target)) {
+                    return;
+                }
+                
+                // 如果在时间轴容器内移动，不阻止事件
+                if (isInTimelineContainer(e)) {
+                    return;
+                }
+                
+                e.stopPropagation();
+                // 阻止默认行为，防止拖动选择文本
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        // 监听mouseup事件，重置拖动状态
+        document.addEventListener('mouseup', () => {
+            isDraggingInTimeline = false;
+        });
+        
+        // 触摸事件处理
+        this.timelineOverlay.addEventListener('touchstart', (e) => {
+            // 获取触摸位置
+            const touch = e.touches[0];
+            if (!touch) return;
+            
+            // 检查触摸的元素
+            const touchElement = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            // 如果是滑块元素，不干预其事件
+            if (isSliderElement(touchElement)) {
+                return;
+            }
+            
+            // 如果触摸发生在时间轴容器内，不阻止事件
+            if (isInTimelineContainer(e)) {
+                return;
+            }
+            
+            // 否则阻止触摸事件冒泡到地图
+            e.stopPropagation();
+            isDraggingInTimeline = true;
+        });
+        
+        // 添加document级别的touchmove事件处理
+        document.addEventListener('touchmove', (e) => {
+            if (isDraggingInTimeline) {
+                const touch = e.touches[0];
+                if (!touch) return;
+                
+                // 检查触摸的元素
+                const touchElement = document.elementFromPoint(touch.clientX, touch.clientY);
+                
+                // 如果是滑块元素，不干预其事件
+                if (isSliderElement(touchElement)) {
+                    return;
+                }
+                
+                // 如果在时间轴容器内移动，不阻止事件
+                if (isInTimelineContainer(e)) {
+                    return;
+                }
+                
+                e.stopPropagation();
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        // 监听touchend事件，重置拖动状态
+        document.addEventListener('touchend', () => {
+            isDraggingInTimeline = false;
+        });
+        
+        // 滚轮事件处理
+        this.timelineOverlay.addEventListener('wheel', (e) => {
+            // 如果是滑块元素，不干预其事件
+            if (isSliderElement(e.target)) {
+                return;
+            }
+            
+            // 如果滚轮事件发生在时间轴容器内，不阻止事件
+            if (isInTimelineContainer(e)) {
+                return;
+            }
+            
+            // 阻止滚轮事件冒泡到地图
+            e.stopPropagation();
+        });
+        
+        // 如果有地图实例，通知它时间轴区域已准备好
+        if (this.mapInstance && typeof this.mapInstance.onTimelineAreaReady === 'function') {
+            this.mapInstance.onTimelineAreaReady(this);
+        }
+        
+        console.log('时间轴区域事件处理已初始化');
+    }
+    
+    /**
+     * 获取时间轴区域的边界信息
+     * 提供给地图和其他组件使用，以协调交互
+     */
+    getTimelineAreaInfo() {
+        if (!this.timelineContainer) return null;
+        
+        const rect = this.timelineContainer.getBoundingClientRect();
+        return {
+            left: rect.left,
+            right: rect.right,
+            top: rect.top,
+            bottom: rect.bottom,
+            height: this.timelineHeight
+        };
+    }
+    
+    /**
+     * 检查指定位置是否在时间轴区域内
+     * @param {number} x - 客户端X坐标
+     * @param {number} y - 客户端Y坐标
+     * @returns {boolean} 是否在时间轴区域内
+     */
+    isPointInTimelineArea(x, y) {
+        if (!this.timelineContainer) return false;
+        
+        const rect = this.timelineContainer.getBoundingClientRect();
+        return (
+            x >= rect.left &&
+            x <= rect.right &&
+            y >= rect.top &&
+            y <= rect.bottom
+        );
     }
     
     /**
@@ -155,6 +403,8 @@ export class TimelineManager {
         let timelineContainer = document.getElementById('timeline-container');
         if (timelineContainer) {
             console.log('时间轴容器已存在，无需重新创建');
+            this.timelineContainer = timelineContainer;
+            this.timelineOverlay = document.querySelector('.timeline-overlay');
             return;
         }
         
@@ -162,19 +412,7 @@ export class TimelineManager {
         timelineContainer = document.createElement('div');
         timelineContainer.id = 'timeline-container';
         timelineContainer.className = 'timeline-container';
-        
-        // 阻止事件冒泡，防止地图拖动
-        timelineContainer.addEventListener('mousedown', (e) => {
-            e.stopPropagation();
-        });
-        
-        timelineContainer.addEventListener('touchstart', (e) => {
-            e.stopPropagation();
-        });
-        
-        timelineContainer.addEventListener('wheel', (e) => {
-            e.stopPropagation();
-        });
+        this.timelineContainer = timelineContainer;
         
         // 创建年份显示
         const yearDisplay = document.createElement('div');
@@ -214,32 +452,25 @@ export class TimelineManager {
         timelineContainer.appendChild(yearDisplay);
         timelineContainer.appendChild(sliderContainer);
         
+        // 创建遮罩层（如果不存在）
+        let overlay = document.querySelector('.timeline-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.className = 'timeline-overlay';
+            overlay.style.pointerEvents = 'auto';
+        }
+        this.timelineOverlay = overlay;
+        
         // 添加到地图容器
         const mapElement = document.getElementById('map');
         if (mapElement) {
             mapElement.appendChild(timelineContainer);
-            
-            // 调整时间轴遮罩层
-            const overlay = document.querySelector('.timeline-overlay');
-            if (overlay) {
-                // 激活遮罩层以捕获时间轴区域外的点击事件
-                overlay.addEventListener('mousedown', (e) => {
-                    // 检查点击位置是否在时间轴内
-                    const timelineRect = timelineContainer.getBoundingClientRect();
-                    if (e.clientY < timelineRect.top) {
-                        // 如果点击位置在时间轴上方，允许事件传递到地图
-                        return true;
-                    } else {
-                        // 否则阻止事件传递
-                        e.stopPropagation();
-                    }
-                });
-            }
-            
+            mapElement.appendChild(overlay);
             console.log('时间轴添加到地图元素');
         } else {
             console.error('找不到地图元素，时间轴无法添加');
             document.body.appendChild(timelineContainer);
+            document.body.appendChild(overlay);
         }
         
         console.log('时间轴容器创建完成');

@@ -145,7 +145,7 @@
     width: 100%;
     height: 120px; /* 时间轴高度加上一些额外空间 */
     z-index: 999; /* 低于时间轴但高于地图 */
-    pointer-events: none; /* 默认不阻拦事件 */
+    pointer-events: auto; /* 允许捕获事件 */
 }
 
 /* 暗色模式时间轴 */

@@ -122,7 +122,7 @@ export class App {
             
             // 初始化时间轴
             console.log('初始化时间轴...');
-            this.timelineManager.initialize();
+            this.timelineManager.initialize(this.mapCore); // 传入地图实例
             
             // 设置年份变化回调
             this.timelineManager.setYearChangeCallback(this.handleYearChange.bind(this));
