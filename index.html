@@ -273,7 +273,7 @@
             
             <!-- 右侧地图 -->
             <div id="map-container" class="map-container flex-1 relative overflow-hidden">
-                <div id="map" class="w-full h-full"></div>
+                <div id="map" class="w-full h-full z-0"></div>
                 
                 <!-- 时间轴遮罩层，防止地图在时间轴区域的拖动 -->
                 <div class="timeline-overlay" style="pointer-events: auto;"></div>
@@ -306,11 +306,30 @@
         </main>
     </div>
     
+    <!-- 时间轴容器 -->
+    <div id="timeline-container" class="timeline-container">
+        <!-- 年份显示 -->
+        <div id="year-display" class="current-year-display"></div>
+        
+        <!-- 滑块容器 -->
+        <div class="timeline-slider-container">
+            <!-- 时间轴滑块将由JS插入 -->
+            <!-- 时期标记容器 -->
+            <div id="timeline-periods" class="timeline-period-markers"></div>
+        </div>
+        
+        <!-- 控制按钮容器 -->
+        <div class="timeline-controls"></div>
+    </div>
+    
     <!-- 加载指示器 -->
-    <div id="loading-indicator" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 backdrop-filter backdrop-blur-sm">
-        <div class="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center animate__animated animate__fadeIn">
-            <div class="spinner mb-3"></div>
-            <p class="text-gray-900">加载中...</p>
+    <div id="app-loader" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 shadow-xl flex flex-col items-center">
+            <div class="lds-ripple">
+                <div></div>
+                <div></div>
+            </div>
+            <p class="mt-4 text-lg font-medium text-gray-800">正在加载历史地图...</p>
         </div>
     </div>
     
@@ -330,8 +349,18 @@
         </div>
     </div>
     
-    <!-- 脚本 -->
+    <!-- 必须先加载Leaflet库 -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script type="module" src="js/app.js"></script>
+    
+    <!-- 添加调试输出 -->
+    <script>
+        console.log('正在加载页面脚本...');
+        window.addEventListener('error', function(event) {
+            console.error('全局错误:', event.error);
+        });
+    </script>
+    
+    <!-- 使用type="module"确保ES模块正确加载 -->
+    <script type="module" src="js/main.js"></script>
 </body>
 </html> 

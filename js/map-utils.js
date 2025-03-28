@@ -4,7 +4,12 @@
  */
 
 export class MapUtils {
-    constructor() {}
+    constructor() {
+        /**
+         * 本地历史地图路径
+         */
+        this.localHistoryMapPath = './maps/geojson/';
+    }
 
     /**
      * 存储地图文件年份映射 - 使用所有可用的地图文件
@@ -66,11 +71,6 @@ export class MapUtils {
         { year: 2000, file: 'world_2000.geojson' },
         { year: 2010, file: 'world_2010.geojson' }
     ];
-    
-    /**
-     * 本地历史地图路径
-     */
-    localHistoryMapPath = './maps/geojson/';
     
     /**
      * 查找最接近指定年份的地图数据文件

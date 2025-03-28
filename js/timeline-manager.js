@@ -32,6 +32,9 @@ export class TimelineManager {
             this.currentYear = options.initialYear || 1; // 使用公元1年作为默认初始年份
         }
         
+        // 设置时间轴容器ID
+        this.container = 'timeline-container';
+        
         this.isPlaying = false;
         this.playInterval = null;
         this.playSpeed = 50; // 默认每帧前进50年
@@ -83,6 +86,30 @@ export class TimelineManager {
         
         // 创建时间轴容器（如果不存在）
         this.createTimelineContainer();
+        
+        // 获取时间轴容器
+        const container = document.getElementById('timeline-container');
+        if (!container) {
+            console.error(`找不到时间轴容器: #timeline-container`);
+            return;
+        }
+        
+        // 检查滑块元素是否存在，如果不存在则创建
+        let sliderElement = document.getElementById(this.yearSliderId);
+        if (!sliderElement) {
+            console.log('找不到时间轴滑块元素，正在创建...');
+            // 创建滑块元素
+            sliderElement = document.createElement('input');
+            sliderElement.id = this.yearSliderId;
+            sliderElement.type = 'range';
+            sliderElement.min = this.minYear;
+            sliderElement.max = this.maxYear;
+            sliderElement.value = this.currentYear;
+            sliderElement.className = 'timeline-slider';
+            
+            // 将滑块添加到容器
+            container.appendChild(sliderElement);
+        }
         
         // 获取DOM元素
         if (this.yearSliderId) {
@@ -144,6 +171,21 @@ export class TimelineManager {
         
         // 设置时间轴区域的事件处理
         this.setupTimelineAreaEvents();
+        
+        // 设置容器直接拖动功能
+        this.setupContainerDragging();
+        
+        // 隐藏滑块按钮
+        this.hideSliderThumb();
+        
+        // 调试输出
+        console.log('时间轴元素状态:', {
+            container: this.timelineContainer ? 'OK' : 'Missing',
+            yearSlider: this.yearSlider ? 'OK' : 'Missing',
+            yearDisplay: this.yearDisplay ? 'OK' : 'Missing',
+            playBtn: this.playBtn ? 'OK' : 'Missing',
+            overlay: this.timelineOverlay ? 'OK' : 'Missing'
+        });
         
         console.log('时间轴初始化完成');
     }
@@ -426,7 +468,11 @@ export class TimelineManager {
         
         // 创建滑块
         const yearSlider = document.createElement('input');
-        yearSlider.id = 'year-slider';
+        // 使用this.yearSliderId或默认值
+        const sliderId = this.yearSliderId || 'year-slider';
+        yearSlider.id = sliderId;
+        // 更新this.yearSliderId以确保一致性
+        this.yearSliderId = sliderId;
         yearSlider.className = 'timeline-slider';
         yearSlider.type = 'range';
         yearSlider.min = this.minYear;
@@ -486,6 +532,32 @@ export class TimelineManager {
         // 创建时间刻度容器
         const ticksContainer = document.createElement('div');
         ticksContainer.className = 'timeline-ticks';
+        
+        // 添加一个滑块指示器（垂直线），显示当前位置
+        const sliderIndicator = document.createElement('div');
+        sliderIndicator.className = 'slider-indicator';
+        sliderIndicator.style.position = 'absolute';
+        sliderIndicator.style.top = '0';
+        sliderIndicator.style.height = '100%';
+        sliderIndicator.style.width = '2px';
+        sliderIndicator.style.backgroundColor = '#3b82f6';
+        sliderIndicator.style.zIndex = '15';
+        sliderIndicator.style.pointerEvents = 'none';
+        sliderIndicator.style.transition = 'left 0.1s';
+        
+        // 初始位置
+        const initialPercent = (this.currentYear - this.minYear) / (this.maxYear - this.minYear) * 100;
+        sliderIndicator.style.left = `${initialPercent}%`;
+        
+        sliderContainer.appendChild(sliderIndicator);
+        
+        // 在滑块移动时更新指示器位置
+        if (this.yearSlider) {
+            this.yearSlider.addEventListener('input', (e) => {
+                const percent = (parseInt(e.target.value) - this.minYear) / (this.maxYear - this.minYear) * 100;
+                sliderIndicator.style.left = `${percent}%`;
+            });
+        }
         
         // 计算刻度间隔
         const range = this.maxYear - this.minYear;
@@ -678,6 +750,16 @@ export class TimelineManager {
             this.yearSlider.value = year;
         }
         
+        // 更新滑块指示器位置
+        const sliderContainer = document.querySelector('.timeline-slider-container');
+        if (sliderContainer) {
+            const sliderIndicator = sliderContainer.querySelector('.slider-indicator');
+            if (sliderIndicator) {
+                const percent = (year - this.minYear) / (this.maxYear - this.minYear) * 100;
+                sliderIndicator.style.left = `${percent}%`;
+            }
+        }
+        
         // 更新年份显示
         this.updateYearDisplay();
         
@@ -800,5 +882,212 @@ export class TimelineManager {
      */
     getCurrentYear() {
         return this.currentYear;
+    }
+    
+    /**
+     * 设置容器直接拖动功能
+     * 允许用户直接在滑块容器区域拖动来改变时间
+     */
+    setupContainerDragging() {
+        // 获取滑块容器
+        const sliderContainer = document.querySelector('.timeline-slider-container');
+        if (!sliderContainer || !this.yearSlider) return;
+        
+        // 获取滑块指示器
+        const sliderIndicator = sliderContainer.querySelector('.slider-indicator');
+        
+        // 添加点击事件：直接点击容器上的位置就跳转到对应年份
+        sliderContainer.addEventListener('click', (e) => {
+            // 忽略在滑块上的点击
+            if (e.target === this.yearSlider) return;
+            
+            // 获取容器的位置和宽度信息
+            const rect = sliderContainer.getBoundingClientRect();
+            
+            // 计算点击位置相对于容器左边缘的距离占容器总宽度的比例
+            const ratio = (e.clientX - rect.left) / rect.width;
+            
+            // 计算对应的年份值
+            const range = this.maxYear - this.minYear;
+            const year = Math.round(this.minYear + (ratio * range));
+            
+            // 更新到新年份
+            this.updateToYear(year);
+            
+            // 更新滑块指示器位置
+            if (sliderIndicator) {
+                sliderIndicator.style.left = `${ratio * 100}%`;
+            }
+        });
+        
+        // 将拖动状态变量提升为类实例属性，使其在所有方法中可访问
+        this.isTimelineDragging = false;
+        
+        // 添加鼠标按下事件
+        sliderContainer.addEventListener('mousedown', (e) => {
+            // 忽略在滑块上的点击
+            if (e.target === this.yearSlider) return;
+            
+            this.isTimelineDragging = true;
+            
+            // 阻止默认行为和事件冒泡
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // 添加鼠标样式
+            sliderContainer.style.cursor = 'grabbing';
+            document.body.style.userSelect = 'none'; // 防止文本选择
+            
+            // 记录开始拖动的位置
+            this.dragStartX = e.clientX;
+        });
+        
+        // 统一处理拖动逻辑的函数
+        const handleDragMove = (e) => {
+            if (!this.isTimelineDragging) return;
+            
+            // 获取容器的位置和宽度信息
+            const rect = sliderContainer.getBoundingClientRect();
+            
+            // 限制拖动范围在容器内
+            let clientX = e.clientX;
+            if (clientX < rect.left) clientX = rect.left;
+            if (clientX > rect.right) clientX = rect.right;
+            
+            // 计算拖动位置对应的比例
+            const ratio = (clientX - rect.left) / rect.width;
+            
+            // 计算对应的年份值
+            const range = this.maxYear - this.minYear;
+            const year = Math.round(this.minYear + (ratio * range));
+            
+            // 更新年份显示（但不立即触发回调）
+            this.updateYearDisplay(year);
+            
+            // 更新滑块位置
+            if (this.yearSlider) {
+                this.yearSlider.value = year;
+            }
+            
+            // 更新滑块指示器位置
+            if (sliderIndicator) {
+                sliderIndicator.style.left = `${ratio * 100}%`;
+            }
+            
+            // 阻止事件冒泡和默认行为
+            e.stopPropagation();
+            e.preventDefault();
+        };
+        
+        // 统一处理拖动结束的函数
+        const handleDragEnd = (e) => {
+            // 如果不在拖动状态，直接返回
+            if (!this.isTimelineDragging) return;
+            
+            // 立即设置拖动状态为false
+            this.isTimelineDragging = false;
+            
+            // 获取容器的位置和宽度信息
+            const rect = sliderContainer.getBoundingClientRect();
+            
+            // 限制拖动范围在容器内
+            let clientX = e.clientX;
+            if (clientX < rect.left) clientX = rect.left;
+            if (clientX > rect.right) clientX = rect.right;
+            
+            // 计算最终位置对应的比例
+            const ratio = (clientX - rect.left) / rect.width;
+            
+            // 计算对应的年份值
+            const range = this.maxYear - this.minYear;
+            const year = Math.round(this.minYear + (ratio * range));
+            
+            // 更新到新年份（触发回调）
+            this.updateToYear(year);
+            
+            // 更新滑块指示器位置
+            if (sliderIndicator) {
+                sliderIndicator.style.left = `${ratio * 100}%`;
+            }
+            
+            // 重置样式
+            sliderContainer.style.cursor = '';
+            document.body.style.userSelect = '';
+            
+            // 阻止事件冒泡和默认行为
+            e.stopPropagation();
+        };
+        
+        // 使用捕获模式添加事件监听器，确保它们先于其他事件处理程序执行
+        document.addEventListener('mousemove', handleDragMove, { capture: true, passive: false });
+        document.addEventListener('mouseup', handleDragEnd, { capture: true });
+        
+        // 添加鼠标样式
+        sliderContainer.addEventListener('mouseover', () => {
+            if (!this.isTimelineDragging) {
+                sliderContainer.style.cursor = 'grab';
+            }
+        });
+        
+        sliderContainer.addEventListener('mouseout', () => {
+            if (!this.isTimelineDragging) {
+                sliderContainer.style.cursor = '';
+            }
+        });
+        
+        // 添加鼠标离开窗口和窗口失焦的处理
+        document.addEventListener('mouseleave', () => {
+            if (this.isTimelineDragging) {
+                this.isTimelineDragging = false;
+                sliderContainer.style.cursor = '';
+                document.body.style.userSelect = '';
+            }
+        });
+        
+        window.addEventListener('blur', () => {
+            if (this.isTimelineDragging) {
+                this.isTimelineDragging = false;
+                sliderContainer.style.cursor = '';
+                document.body.style.userSelect = '';
+            }
+        });
+        
+        console.log('时间轴容器拖动功能已设置');
+    }
+    
+    /**
+     * 隐藏滑块按钮
+     * 移除滑块拖动按钮但保留其功能
+     */
+    hideSliderThumb() {
+        // 创建样式元素
+        const style = document.createElement('style');
+        style.textContent = `
+            .timeline-slider::-webkit-slider-thumb {
+                width: 1px !important;
+                height: 1px !important;
+                background: transparent !important;
+                opacity: 0 !important;
+                cursor: pointer;
+            }
+            
+            .timeline-slider::-moz-range-thumb {
+                width: 1px !important;
+                height: 1px !important;
+                background: transparent !important;
+                opacity: 0 !important;
+                cursor: pointer;
+            }
+            
+            .slider-indicator {
+                width: 4px !important;
+                background-color: #3b82f6 !important;
+                box-shadow: 0 0 5px rgba(59, 130, 246, 0.5) !important;
+            }
+        `;
+        
+        // 添加到文档头部
+        document.head.appendChild(style);
+        console.log('已隐藏滑块按钮');
     }
 } 

@@ -21,150 +21,219 @@ export class MapCore {
         this.geoJSONLayer = null;
         this.currentGeoJSON = null;
         
-        // 所有可用的地图年份 - 与MapUtils.mapYears保持一致
-        this.availableMapYears = [
-            -123000, -10000, -8000, -5000, -4000, -3000, -2000, -1500, -1000, -700, -500, -400, -323, -300, -200, -100, -1,
-            100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1279, 1300, 1400, 1492, 1500, 1530, 1600, 1650, 
-            1700, 1715, 1783, 1800, 1815, 1880, 1900, 1914, 1920, 1930, 1938, 1945, 1960, 1994, 2000, 2010
-        ];
+        // 不再直接定义年份列表，而是从 MapUtils 引用
+        console.log('MapCore 已初始化');
     }
 
     async initialize() {
-        // 初始化地图
-        this.map = L.map(this.mapContainer, {
-            center: this.defaultCenter,
-            zoom: this.defaultZoom,
-            zoomControl: false,
-            minZoom: 2,
-            maxZoom: 8,
-            // 禁止水平循环
-            worldCopyJump: false,
-            maxBoundsViscosity: 1.0,
-            // 限制地图缩放范围
-            bounceAtZoomLimits: true
-        });
-        
-        // 设置地图边界，调整为更紧凑的边界
-        // [-90, -180]到[90, 180]是地球的实际坐标范围
-        const southWest = L.latLng(-90, -185);
-        const northEast = L.latLng(90, 185);
-        const bounds = L.latLngBounds(southWest, northEast);
-        this.map.setMaxBounds(bounds);
+        console.log('开始初始化 MapCore...');
+        try {
+            // 检查地图容器
+            const mapContainer = document.getElementById(this.mapContainer);
+            if (!mapContainer) {
+                throw new Error(`找不到地图容器: #${this.mapContainer}`);
+            }
+            console.log(`找到地图容器元素: #${this.mapContainer}，尺寸: ${mapContainer.clientWidth}x${mapContainer.clientHeight}`);
 
-        // 添加底图，使用noWrap选项防止地图水平重复
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            noWrap: true,
-            bounds: bounds
-        }).addTo(this.map);
-        
-        // 添加缩放控件，但放在右下角
-        L.control.zoom({
-            position: 'bottomright'
-        }).addTo(this.map);
+            // 初始化地图
+            console.log('创建Leaflet地图实例...');
+            this.map = L.map(this.mapContainer, {
+                center: this.defaultCenter,
+                zoom: this.defaultZoom,
+                zoomControl: false,
+                minZoom: 2,
+                maxZoom: 8,
+                // 禁止水平循环
+                worldCopyJump: false,
+                maxBoundsViscosity: 1.0,
+                // 限制地图缩放范围
+                bounceAtZoomLimits: true
+            });
+            console.log('Leaflet地图实例创建成功');
+            
+            // 设置地图边界，调整为更紧凑的边界
+            // [-90, -180]到[90, 180]是地球的实际坐标范围
+            const southWest = L.latLng(-90, -185);
+            const northEast = L.latLng(90, 185);
+            const bounds = L.latLngBounds(southWest, northEast);
+            this.map.setMaxBounds(bounds);
+            console.log('地图边界设置成功');
 
-        // 监听缩放事件，确保地图视图始终保持在合适的显示范围内
-        this.map.on('zoom', () => {
-            this.enforceMapConstraints();
-        });
-        
-        // 监听拖动结束事件，确保地图边界正确
-        this.map.on('moveend', () => {
-            this.enforceMapConstraints();
-        });
+            // 添加底图，使用noWrap选项防止地图水平重复
+            console.log('添加底图图层...');
+            try {
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    noWrap: true,
+                    bounds: bounds
+                }).addTo(this.map);
+                console.log('底图图层添加成功');
+            } catch (tileError) {
+                console.error('添加底图图层失败:', tileError);
+                // 尝试使用备用底图
+                try {
+                    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap contributors',
+                        noWrap: true,
+                        bounds: bounds
+                    }).addTo(this.map);
+                    console.log('备用底图图层添加成功');
+                } catch (backupTileError) {
+                    console.error('添加备用底图图层也失败:', backupTileError);
+                    throw new Error('无法加载地图底图');
+                }
+            }
+            
+            // 添加缩放控件，但放在右下角
+            console.log('添加缩放控件...');
+            L.control.zoom({
+                position: 'bottomright'
+            }).addTo(this.map);
+            console.log('缩放控件添加成功');
 
-        // 加载初始GeoJSON数据
-        await this.loadGeoJSON();
-        
-        // 初始化子模块
-        await Promise.all([
-            this.events.initialize(),
-            this.migrations.initialize(),
-            this.features.initialize()
-        ]);
-        
-        // 确保地图初始视图是一个全球视图
-        this.resetMapView();
+            // 监听缩放事件，确保地图视图始终保持在合适的显示范围内
+            console.log('设置地图事件监听器...');
+            this.map.on('zoom', () => {
+                this.enforceMapConstraints();
+            });
+            
+            // 监听拖动结束事件，确保地图边界正确
+            this.map.on('moveend', () => {
+                this.enforceMapConstraints();
+            });
+            console.log('地图事件监听器设置成功');
+
+            // 加载初始GeoJSON数据
+            console.log('加载初始GeoJSON数据...');
+            try {
+                await this.loadGeoJSON();
+                console.log('初始GeoJSON数据加载成功');
+            } catch (geoJSONError) {
+                console.error('加载初始GeoJSON数据失败，但将继续初始化:', geoJSONError);
+                // 不中断初始化过程
+            }
+            
+            // 初始化子模块
+            console.log('初始化地图子模块...');
+            try {
+                await Promise.all([
+                    this.events.initialize(),
+                    this.migrations.initialize(),
+                    this.features.initialize()
+                ]);
+                console.log('地图子模块初始化成功');
+            } catch (moduleError) {
+                console.error('初始化地图子模块时出错，但将继续初始化:', moduleError);
+                // 不中断初始化过程
+            }
+            
+            // 确保地图初始视图是一个全球视图
+            console.log('重置地图视图...');
+            this.resetMapView();
+            console.log('地图视图已重置');
+            
+            console.log('MapCore 初始化完成');
+        } catch (error) {
+            console.error('MapCore 初始化失败:', error);
+            console.error('错误堆栈:', error.stack);
+            throw error;
+        }
     }
 
-    async updateToYear(year) {
+    async updateToYear(year, data) {
         this.currentYear = year;
         
         // 更新地图数据
         await this.loadGeoJSON();
         
         // 更新各个子模块
-        await Promise.all([
-            this.events.updateToYear(year),
-            this.migrations.updateToYear(year),
-            this.features.updateToYear(year)
-        ]);
+        if (data) {
+            // 如果提供了数据，使用传入的数据更新
+            await Promise.all([
+                this.events.updateToYear(year, data.events || data.allEvents),
+                this.migrations.updateToYear(year, data.migrations),
+                this.features.updateToYear(year, data)
+            ]);
+        } else {
+            // 否则，让各子模块自行加载数据
+            await Promise.all([
+                this.events.updateToYear(year),
+                this.migrations.updateToYear(year),
+                this.features.updateToYear(year)
+            ]);
+        }
     }
 
-    // 找到最接近当前年份的可用地图
+    // 使用 MapUtils 的方法，不再自己维护逻辑
     findClosestMapYear(year) {
-        // 对于公元前年份，转换为负数表示
-        const normalizedYear = year < 0 ? year : year;
-        
-        // 找到最接近的年份
-        return this.availableMapYears.reduce((prev, curr) => {
-            return (Math.abs(curr - normalizedYear) < Math.abs(prev - normalizedYear)) ? curr : prev;
-        });
+        const mapData = this.utils.findClosestMapFile(year);
+        return mapData.year;
     }
     
-    // 将年份转换为地图文件名
+    // 使用 MapUtils 的命名转换方法
     yearToMapFilename(year) {
-        // 对于公元前的年份
-        if (year < 0) {
-            return `world_bc${Math.abs(year)}.geojson`;
-        }
-        // 对于公元后的年份
-        return `world_${year}.geojson`;
+        const mapData = this.utils.findClosestMapFile(year);
+        return mapData.file;
     }
 
     async loadGeoJSON() {
         try {
-            // 找到最接近当前年份的地图文件
-            const closestYear = this.findClosestMapYear(this.currentYear);
-            const mapFilename = this.yearToMapFilename(closestYear);
-            const mapPath = `maps/geojson/${mapFilename}`;
+            // 直接使用 MapUtils 加载地图
+            console.log(`尝试加载年份 ${this.currentYear} 的地图数据`);
+            const geoJSONData = await this.utils.loadHistoricalMap(this.currentYear);
             
-            console.log(`加载地图文件: ${mapPath}, 对应年份: ${closestYear}`);
-            
-            // 先尝试使用MapUtils的方法加载，它有更健壮的错误处理
-            try {
-                const geoJSONData = await this.utils.loadHistoricalMap(this.currentYear);
-                if (geoJSONData && geoJSONData.features && geoJSONData.features.length > 0) {
-                    this.currentGeoJSON = geoJSONData;
-                    await this.updateGeoJSONLayer();
-                    return;
-                }
-            } catch (utilsError) {
-                console.warn('使用MapUtils加载地图失败，尝试直接加载:', utilsError);
+            if (!geoJSONData || !geoJSONData.features) {
+                console.error('加载的地图数据无效，使用空地图数据');
+                this.currentGeoJSON = { 
+                    type: 'FeatureCollection', 
+                    features: [] 
+                };
+            } else {
+                this.currentGeoJSON = geoJSONData;
+                console.log(`成功加载地图数据，包含 ${geoJSONData.features.length} 个特征`);
             }
             
-            // 如果MapUtils方法失败，尝试直接加载
-            const response = await fetch(mapPath);
-            if (!response.ok) {
-                throw new Error(`无法加载地图文件: ${mapPath}, 状态码: ${response.status}`);
-            }
-            this.currentGeoJSON = await response.json();
             await this.updateGeoJSONLayer();
         } catch (error) {
             console.error('加载地图GeoJSON数据失败:', error);
-            throw error;
+            // 使用空地图数据
+            this.currentGeoJSON = { 
+                type: 'FeatureCollection', 
+                features: [] 
+            };
+            await this.updateGeoJSONLayer();
         }
     }
 
     async updateGeoJSONLayer() {
+        // 如果当前有图层，先移除
         if (this.geoJSONLayer) {
             this.map.removeLayer(this.geoJSONLayer);
         }
 
-        this.geoJSONLayer = L.geoJSON(this.currentGeoJSON, {
-            style: (feature) => this.styles.getGeoJSONStyle(feature),
-            onEachFeature: (feature, layer) => this.styles.onEachFeature(feature, layer, this)
-        }).addTo(this.map);
+        // 确保有有效的GeoJSON数据
+        if (!this.currentGeoJSON || !this.currentGeoJSON.features) {
+            console.warn('没有有效的GeoJSON数据可显示');
+            this.currentGeoJSON = { 
+                type: 'FeatureCollection', 
+                features: [] 
+            };
+        }
+
+        // 创建新的GeoJSON图层
+        try {
+            this.geoJSONLayer = L.geoJSON(this.currentGeoJSON, {
+                style: (feature) => this.styles.getGeoJSONStyle(feature),
+                onEachFeature: (feature, layer) => this.styles.onEachFeature(feature, layer, this)
+            }).addTo(this.map);
+        } catch (error) {
+            console.error('创建GeoJSON图层失败:', error);
+            // 创建一个空图层
+            this.geoJSONLayer = L.geoJSON({
+                type: 'FeatureCollection',
+                features: []
+            }).addTo(this.map);
+        }
     }
 
     // 强制执行地图约束，确保地图视图在合理范围内
@@ -227,5 +296,101 @@ export class MapCore {
         this.enforceMapConstraints();
     }
 
-    // 其他核心方法...
+    /**
+     * 时间轴区域准备就绪的回调函数
+     * 此方法由TimelineManager调用，用于协调地图与时间轴的交互
+     * @param {TimelineManager} timelineManager - 时间轴管理器实例
+     */
+    onTimelineAreaReady(timelineManager) {
+        this.timelineManager = timelineManager;
+        
+        // 添加地图鼠标事件处理，在时间轴区域禁用地图拖动
+        this.setupMapDragDisable();
+        
+        console.log('地图与时间轴交互协调已设置');
+    }
+    
+    /**
+     * 设置地图拖动禁用功能
+     * 在时间轴区域禁用地图拖动，但不干扰时间轴内部控件的操作
+     */
+    setupMapDragDisable() {
+        if (!this.timelineManager) {
+            console.warn('无法设置地图拖动禁用：缺少时间轴管理器引用');
+            return;
+        }
+        
+        // 保存原始的地图拖动状态
+        let mapDraggingEnabled = true;
+        
+        // 在拖动开始前检查鼠标位置
+        this.map.on('mousedown', (e) => {
+            // 检查点击位置是否在时间轴区域
+            if (this.timelineManager.isPointInTimelineArea(
+                e.originalEvent.clientX, 
+                e.originalEvent.clientY
+            )) {
+                if (mapDraggingEnabled) {
+                    // 禁用地图拖动
+                    this.map.dragging.disable();
+                    mapDraggingEnabled = false;
+                }
+            } else if (!mapDraggingEnabled) {
+                // 如果不在时间轴区域，确保拖动已启用
+                this.map.dragging.enable();
+                mapDraggingEnabled = true;
+            }
+        });
+        
+        // 在鼠标释放时重新启用地图拖动
+        document.addEventListener('mouseup', () => {
+            if (!mapDraggingEnabled) {
+                this.map.dragging.enable();
+                mapDraggingEnabled = true;
+            }
+        });
+        
+        console.log('地图拖动禁用功能设置完成');
+    }
+
+    // 地图操作公共方法
+    highlightEvent(eventId) {
+        this.events.highlightEvent(eventId);
+    }
+
+    toggleEvents(isActive) {
+        this.events.toggleEvents(isActive);
+    }
+
+    toggleMigrations(isActive) {
+        this.migrations.toggleMigrations(isActive);
+    }
+
+    toggleTechnologies(isActive) {
+        this.features.toggleTechnologies(isActive);
+    }
+
+    toggleSpecies(isActive) {
+        this.features.toggleSpecies(isActive);
+    }
+
+    toggleWars(isActive) {
+        this.features.toggleWars(isActive);
+    }
+
+    toggleDiseases(isActive) {
+        this.features.toggleDiseases(isActive);
+    }
+
+    toggleAgriculture(isActive) {
+        this.features.toggleAgriculture(isActive);
+    }
+
+    highlightSearchResults(results) {
+        this.events.highlightSearchResults(results);
+    }
+
+    setFilterCategory(category) {
+        this.events.setFilterCategory(category);
+    }
 } 

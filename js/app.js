@@ -4,7 +4,6 @@
  */
 
 import { loadAllData, getEventsForYear, getMigrationsForYear } from './data-loader.js';
-import { MapManager } from './map-manager.js';
 import { TimelineManager } from './timeline-manager.js';
 import { EventsManager } from './events-manager.js';
 import { IntroManager } from './intro.js';
@@ -63,9 +62,8 @@ export class App {
         
         // 创建时间轴管理器
         this.timelineManager = new TimelineManager({
-            container: this.timelineContainer,
-            yearInput: 'year-input',
-            yearSlider: 'year-slider',
+            sliderId: 'year-slider',
+            inputId: 'year-input',
             minYear: -12000,  // 公元前12000年
             maxYear: 2023,    // 当前年份
             initialYear: 1    // 默认从公元1年开始
@@ -111,37 +109,57 @@ export class App {
         
         try {
             // 创建UI元素
+            console.log('创建UI元素...');
             this.createUIElements();
             
             // 显示加载指示器
+            console.log('显示加载指示器...');
             this.showLoader();
             
             // 初始化地图
-            console.log('初始化地图...');
+            console.log('开始初始化地图...');
             await this.initializeMap();
+            console.log('地图初始化完成');
+            
+            // 确认地图实例已创建
+            if (!this.mapCore || !this.mapCore.map) {
+                throw new Error('地图实例未正确创建');
+            }
             
             // 初始化时间轴
-            console.log('初始化时间轴...');
+            console.log('开始初始化时间轴...');
             this.timelineManager.initialize(this.mapCore); // 传入地图实例
+            console.log('时间轴初始化完成');
             
             // 设置年份变化回调
+            console.log('设置年份变化回调...');
             this.timelineManager.setYearChangeCallback(this.handleYearChange.bind(this));
             
             // 加载数据
-            console.log('加载数据...');
+            console.log('开始加载数据...');
             await this.loadData();
+            console.log('数据加载完成');
+            
+            // 确认数据已加载
+            if (!this.data || !this.data.allEvents) {
+                console.warn('数据可能未完全加载，但将继续初始化');
+            }
             
             // 设置事件监听器
+            console.log('设置事件监听器...');
             this.setupEventListeners();
             
             // 初始化事件管理器
+            console.log('初始化事件管理器...');
             this.initializeEventsManager();
             
             // 标记初始化完成
             this.isInitialized = true;
             
             // 设置初始年份
+            console.log('设置初始年份...');
             const initialYear = this.timelineManager.getCurrentYear();
+            console.log(`初始年份为: ${initialYear}`);
             await this.updateYear(initialYear);
             
             // 隐藏加载指示器
@@ -150,8 +168,10 @@ export class App {
             console.log('应用初始化完成');
         } catch (error) {
             console.error('初始化应用时出错:', error);
+            console.error('错误堆栈:', error.stack);
             this.hideLoader();
             this.showError('初始化应用失败: ' + error.message);
+            throw error; // 重新抛出错误，允许main.js捕获
         }
     }
     
@@ -159,11 +179,37 @@ export class App {
      * 初始化地图
      */
     async initializeMap() {
-        this.mapCore = new MapCore({
-            mapContainer: this.mapContainer,
-            initialYear: this.currentYear
-        });
-        await this.mapCore.initialize();
+        try {
+            console.log('创建地图核心实例...');
+            this.mapCore = new MapCore({
+                mapContainer: this.mapContainer,
+                initialYear: this.currentYear
+            });
+            
+            console.log('地图容器ID:', this.mapContainer);
+            console.log('初始年份:', this.currentYear);
+            
+            // 确认地图容器存在
+            const mapContainerElement = document.getElementById(this.mapContainer);
+            if (!mapContainerElement) {
+                throw new Error(`找不到地图容器元素，ID: ${this.mapContainer}`);
+            }
+            
+            console.log('调用地图核心初始化方法...');
+            await this.mapCore.initialize();
+            console.log('地图核心初始化完成');
+            
+            // 确认地图实例已创建
+            if (!this.mapCore.map) {
+                throw new Error('Leaflet地图实例未创建');
+            }
+            
+            console.log('地图初始化成功');
+        } catch (error) {
+            console.error('初始化地图时出错:', error);
+            console.error('错误堆栈:', error.stack);
+            throw error;
+        }
     }
     
     /**
@@ -538,14 +584,14 @@ export class App {
             this.agricultureData = this.data.agriculture || [];
             
             // 打印加载的数据量
-            console.log(`加载了 ${this.eventsData.length} 个事件`);
-            console.log(`加载了 ${this.migrationsData.length} 条迁徙路线`);
-            console.log(`加载了 ${this.technologiesData.length} 项技术发展`);
-            console.log(`加载了 ${this.civilizationsData.length} 项文明数据`);
-            console.log(`加载了 ${this.speciesData.length} 项物种数据`);
-            console.log(`加载了 ${this.warsData.length} 项战争数据`);
-            console.log(`加载了 ${this.diseasesData.length} 项疾病数据`);
-            console.log(`加载了 ${this.agricultureData.length} 项农业数据`);
+            // console.log(`加载了 ${this.eventsData.length} 个事件`);
+            // console.log(`加载了 ${this.migrationsData.length} 条迁徙路线`);
+            // console.log(`加载了 ${this.technologiesData.length} 项技术发展`);
+            // console.log(`加载了 ${this.civilizationsData.length} 项文明数据`);
+            // console.log(`加载了 ${this.speciesData.length} 项物种数据`);
+            // console.log(`加载了 ${this.warsData.length} 项战争数据`);
+            // console.log(`加载了 ${this.diseasesData.length} 项疾病数据`);
+            // console.log(`加载了 ${this.agricultureData.length} 项农业数据`);
             
             return this.data;
         } catch (error) {
@@ -863,13 +909,15 @@ export class App {
         this.updateYear(newYear);
         requestAnimationFrame(() => this.animate());
     }
-}
-
-// DOM加载完成后初始化应用
-document.addEventListener('DOMContentLoaded', function() {
-    // 主题切换功能
-    const themeToggleBtn = document.getElementById('theme-toggle');
-    if (themeToggleBtn) {
+    
+    /**
+     * 主题切换功能
+     * 为了被main.js调用而提供
+     */
+    setupThemeToggle() {
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        if (!themeToggleBtn) return;
+        
         themeToggleBtn.addEventListener('click', function() {
             const icon = themeToggleBtn.querySelector('i');
             const isDark = !document.body.classList.contains('dark');
@@ -901,8 +949,4 @@ document.addEventListener('DOMContentLoaded', function() {
             themeToggleBtn.querySelector('i').textContent = 'light_mode';
         }
     }
-
-    // 创建并初始化应用
-    window.historyMapApp = new App();
-    window.historyMapApp.initialize();
-}); 
+} 

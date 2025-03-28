@@ -184,7 +184,7 @@ export class MapStyles {
         
         // 缓存分配的颜色
         this.colorCache.set(regionId, color);
-        console.log(`为区域 "${regionName}" (ID: ${regionId}) 分配颜色: ${color}`);
+        // console.log(`为区域 "${regionName}" (ID: ${regionId}) 分配颜色: ${color}`);
         
         return color;
     }
