@@ -360,12 +360,21 @@ export class MapEvents {
             // 位置信息处理
             const { latitude, longitude, location } = this.extractLocationInfo(tech);
             
+            // 确保有标题
+            const title = tech.title || tech.name || '未命名技术';
+            
+            // 确保有年份，如果startYear和year都未定义，则默认为0
+            const year = tech.year !== undefined ? tech.year : 0;
+            const startYear = tech.startYear !== undefined ? tech.startYear : year;
+            
             return {
                 ...tech,
                 id: tech.id || `tech-${Math.random().toString(36).substring(2, 9)}`,
-                title: tech.title || tech.name || '未命名技术',
+                title: title,
                 category: '技术',
-                description: tech.description || `${tech.title || tech.name}出现于${this.formatYear(tech.startYear || tech.year)}`,
+                year: year, // 确保有year字段
+                startYear: startYear, // 确保有startYear字段
+                description: tech.description || `${title}出现于${this.formatYear(startYear)}`,
                 location: location,
                 latitude: latitude,
                 longitude: longitude
@@ -596,11 +605,10 @@ export class MapEvents {
         // 尝试从coordinates字段获取
         if (item.coordinates) {
             if (Array.isArray(item.coordinates) && item.coordinates.length >= 2) {
-                // 假设格式是 [lat, lng]
-                latitude = item.coordinates[0];
-                longitude = item.coordinates[1];
-                console.log(`事件 "${item.title || item.name}" 使用coordinates数组: lat=${latitude}, lng=${longitude}`);
-                return { latitude, longitude, location: [latitude, longitude] };
+                event.latitude = item.coordinates[0];
+                event.longitude = item.coordinates[1];
+                console.log(`事件 "${item.title || item.name}" 使用coordinates数组: lat=${event.latitude}, lng=${event.longitude}`);
+                return { latitude: event.latitude, longitude: event.longitude, location: [event.latitude, event.longitude] };
             } else if (typeof item.coordinates === 'object') {
                 // 尝试对象格式
                 if (item.coordinates.lat !== undefined && item.coordinates.lng !== undefined) {

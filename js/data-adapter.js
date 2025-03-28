@@ -227,7 +227,38 @@ export function adaptTechnologies(technologies) {
     }
     
     return technologies.map(tech => {
-        // 解析年份
+        // 首先检查是否是新格式数据（直接包含startYear和title字段）
+        if (tech.title && tech.startYear !== undefined) {
+            // 确保有year字段，防止undefined值
+            const startYear = tech.startYear;
+            const endYear = tech.endYear || startYear;
+            
+            // 确保位置信息格式正确
+            let location;
+            if (tech.location) {
+                if (typeof tech.location === 'object' && tech.location.lat !== undefined) {
+                    location = {lat: tech.location.lat, lng: tech.location.lng};
+                } else if (Array.isArray(tech.location)) {
+                    location = {lat: tech.location[0], lng: tech.location[1]};
+                } else {
+                    location = tech.location;  // 保持原始格式
+                }
+            } else {
+                // 默认位置
+                location = {lat: 0, lng: 0};
+            }
+            
+            return {
+                ...tech,
+                year: startYear,  // 确保有year字段
+                endYear: endYear,
+                location: location,
+                // 其他字段保持原样
+                category: tech.category || '技术'
+            };
+        }
+        
+        // 处理旧格式数据（带有'发明时间'字段）
         const timeStr = tech['发明时间'] || '';
         let startYear = 0, endYear = 0;
         
@@ -243,24 +274,29 @@ export function adaptTechnologies(technologies) {
         }
         
         // 转换位置信息
-        let location = [0, 0]; // 默认位置
+        let location = {lat: 0, lng: 0}; // 默认位置
         if (tech['发明地点'] && typeof tech['发明地点'] === 'object') {
-            location = [tech['发明地点']['经度'], tech['发明地点']['纬度']];
+            if (tech['发明地点']['纬度'] !== undefined && tech['发明地点']['经度'] !== undefined) {
+                location = {
+                    lat: tech['发明地点']['纬度'],
+                    lng: tech['发明地点']['经度']
+                };
+            }
         }
         
-        // 返回适配后的技术对象
+        // 返回适配后的技术对象，确保必要字段都存在且有有效值
         return {
-            id: tech['技术ID'],
-            title: tech['技术名称'],
-            year: startYear,
+            id: tech['技术ID'] || tech.id || `tech-${Math.random().toString(36).substring(2, 9)}`,
+            title: tech['技术名称'] || tech.title || '未命名技术',
+            year: startYear,        // 确保有year字段
+            startYear: startYear,   // 确保有startYear字段
             endYear: endYear,
-            description: tech['技术描述'],
-            category: tech['技术类型'],
+            description: tech['技术描述'] || tech.description || '',
+            category: tech['技术类型'] || tech.category || '技术',
             location: location,
-            diffusion: tech['技术扩散'],
-            impact: tech['影响描述'],
-            relatedEvents: tech['关联事件'] || [],
-            period: tech['时期']
+            importance: tech['重要性'] || tech.importance || 3,
+            impact: tech['影响描述'] || tech.impact || '',
+            region: tech['地区'] || tech.region || ''
         };
     });
 }
