@@ -1,125 +1,182 @@
 # 世界历史地图可视化项目
 
-这是一个交互式世界历史地图可视化项目，展示了从史前到现代的重要历史事件、人口迁徙、技术发展、物种驯化和文明演变。
+这是一个交互式世界历史地图可视化项目，展示了从史前到现代的重要历史事件、人口迁徙、技术发展、物种驯化和文明演变。通过直观的时间轴和地图界面，您可以探索人类历史的地理变迁。
 
 ## 项目特点
 
-- 按时间轴浏览世界历史变迁
-- 查看各个时期的历史事件、迁徙路线、科技发展
-- 多种数据类型：历史事件、人口迁徙、技术发展、物种驯化、文明演变、战争、疾病和农业
-- 支持黑暗模式和浅色模式
-- 交互式地图界面，支持缩放和平移
+- 📅 按时间轴浏览世界历史变迁
+- 🌍 交互式地图界面，支持缩放和平移
+- 📚 多种数据类型：历史事件、人口迁徙、技术发展、物种驯化、文明演变、战争和疾病
+- 🌙 支持暗色模式和浅色模式，自动适应系统设置
+- 📱 响应式设计，适配桌面和移动设备
+- 🔍 分类筛选功能，快速查找感兴趣的历史内容
 
-## 直接从 GitHub 部署到 Cloudflare Pages
+## 系统架构
 
-### 准备工作
+### 架构概述
+
+本项目采用模块化设计，将功能划分为不同的模块，每个模块负责特定的功能域。模块之间通过明确定义的接口进行通信，降低了耦合度，提高了代码的可维护性和可扩展性。
+
+### 核心模块
+
+#### 1. 应用核心 (`app.js` 和 `main.js`)
+
+- 应用的入口点和核心协调器
+- 初始化各个功能模块并协调它们之间的通信
+- 处理全局状态和用户交互事件
+- 提供错误处理和主题切换功能
+
+#### 2. 数据处理模块 (`data-loader.js` 和 `data-adapter.js`)
+
+- 负责加载和处理历史事件、迁徙路线等JSON数据
+- 提供数据过滤、转换和适配功能
+- 处理数据缓存和异步加载
+
+#### 3. 地图核心模块 (`map-core.js`)
+
+- 初始化和管理Leaflet地图实例
+- 提供基础地图功能和配置
+- 协调不同地图功能层的交互
+
+#### 4. 地图功能模块
+- **地图工具** (`map-utils.js`): 提供地图数据处理和样式工具
+- **地图样式** (`map-styles.js`): 定义地图视觉风格和主题
+- **地图事件** (`map-events.js`): 管理地图上的历史事件标记
+- **地图迁徙** (`map-migrations.js`): 处理人口迁徙路线的显示
+- **地图特性** (`map-features.js`): 提供额外的地图交互功能
+
+#### 5. 时间轴管理器 (`timeline-manager.js`)
+
+- 管理时间轴UI和年份控制
+- 处理年份变化事件和播放控制
+- 提供时间定位和导航功能
+
+#### 6. 事件管理器 (`events-manager.js`)
+
+- 管理事件列表显示和交互
+- 处理事件筛选、搜索和排序
+- 提供事件详情显示功能
+
+#### 7. 用户界面模块 (`intro.js`)
+
+- 提供应用介绍和引导功能
+- 管理用户首次体验流程
+
+### 数据流
+
+1. 用户交互（如滑动时间轴）产生事件
+2. 事件被相应的管理器捕获（如TimelineManager）
+3. 管理器通知应用核心(`app.js`)
+4. 应用核心协调其他模块更新状态：
+   - 更新地图显示（通过MapCore）
+   - 更新事件列表（通过MapEvents）
+   - 更新迁徙路线（通过MapMigrations）
+5. 各模块通过DataLoader获取所需数据
+6. UI更新完成，呈现给用户
+
+### 模块依赖关系
+
+```
+main.js
+ └── app.js
+      ├── data-loader.js
+      │    └── data-adapter.js
+      ├── map-core.js
+      │    ├── map-utils.js
+      │    ├── map-styles.js
+      │    ├── map-events.js
+      │    ├── map-migrations.js
+      │    └── map-features.js
+      ├── timeline-manager.js
+      ├── events-manager.js
+      └── intro.js
+```
+
+## 数据说明
+
+项目包含多种历史数据，存储在 `data/` 目录下：
+
+- `all_events.json`: 主要历史事件
+- `migrations.json`: 人口迁徙路线
+- `technologies.json`: 技术发展事件
+- `species.json`: 物种驯化历史
+- `civilizations.json`: 文明演变数据
+- `wars.json`: 主要战争数据
+- `diseases.json`: 疾病传播历史
+- `agriculture.json`: 农业发展历史
+
+## 部署指南
+
+### 从 GitHub 部署到 Cloudflare Pages
+
+#### 准备工作
 
 1. 确保您有一个 Cloudflare 账号
 2. 将项目推送到 GitHub 仓库
-3. 确保项目结构如下：
 
-```
-WorldHistoryViz/
-├── css/                # 样式文件
-├── data/               # 数据文件
-├── js/                 # JavaScript文件
-├── maps/               # 地图文件
-│   └── geojson/        # GeoJSON地图数据
-├── _headers            # HTTP头部配置
-├── _redirects          # 路由重定向配置
-├── 404.html            # 自定义404页面
-├── robots.txt          # 搜索引擎配置
-└── index.html          # 主页面
-```
-
-### 部署步骤
+#### 部署步骤
 
 1. 登录到 Cloudflare 控制面板
-2. 前往 "Pages" 部分
-3. 点击 "连接到 Git"
-4. 选择您的 GitHub 账号并授权 Cloudflare 访问
-5. 选择您的历史地图仓库
-6. 配置部署设置：
+2. 前往 "Pages" 部分，点击 "连接到 Git"
+3. 选择您的 GitHub 账号并授权 Cloudflare 访问
+4. 选择您的历史地图仓库
+5. 配置部署设置：
    - 构建设置: 无需设置 (静态网站)
    - 构建命令: 留空
    - 构建输出目录: 留空 (使用根目录)
-   - 环境变量: 通常不需要设置
-7. 点击 "保存并部署"
+6. 点击 "保存并部署"
 
-### 关键配置
+#### 关键配置文件
 
-以下文件确保应用在Cloudflare Pages上正常运行：
+项目已包含以下重要配置文件：
 
-1. `_headers` 文件：配置HTTP响应头，解决CORS问题
-```
-/*
-  Access-Control-Allow-Origin: *
-  Access-Control-Allow-Methods: GET, OPTIONS
-  Access-Control-Allow-Headers: Content-Type
-```
-
-2. `_redirects` 文件：确保单页应用(SPA)的路由功能正常工作
-```
-/* /index.html 200
-```
-
-3. `404.html`：当访问不存在的路径时显示的自定义错误页面
-
-4. `robots.txt`：指导搜索引擎如何爬取您的站点
-```
-User-agent: *
-Allow: /
-
-Sitemap: https://你的域名/sitemap.xml
-```
-
-5. 确保所有资源使用相对路径，避免部署后路径问题
-
-## 地图文件准备
-
-为了确保应用程序可以找到地图文件，请将历史地图复制到 `maps/geojson/` 目录：
-
-```bash
-mkdir -p maps/geojson
-cp -r historical-basemaps/geojson/* maps/geojson/
-```
-
-## 文件结构说明
-
-- `css/`: 包含所有样式文件
-- `data/`: 包含历史数据JSON文件
-- `js/`: 包含应用程序的JavaScript代码
-- `maps/geojson/`: 包含历史时期的GeoJSON地图数据
-- `_headers`: Cloudflare Pages HTTP头部配置
-- `_redirects`: 单页应用路由重定向配置
+- `_headers`: 配置HTTP响应头，解决CORS问题
+- `_redirects`: 确保单页应用的路由功能正常工作
 - `404.html`: 自定义404错误页面
-- `robots.txt`: 搜索引擎爬虫配置
-- `index.html`: 主HTML页面
-
-## 部署后的域名设置
-
-部署成功后，Cloudflare Pages会自动分配一个`*.pages.dev`的域名。您可以：
-
-1. 使用这个自动分配的域名
-2. 在Cloudflare控制面板中设置自定义域名：
-   - 进入项目设置 → 自定义域
-   - 添加您自己的域名并按照指引完成DNS设置
+- `robots.txt`: 指导搜索引擎爬取规则
 
 ## 本地开发
 
-1. 安装本地服务器（如http-server）：
-
+1. 克隆仓库到本地
 ```bash
-npm install -g http-server
+git clone https://github.com/yourusername/worldhistoryviz.git
+cd worldhistoryviz
 ```
 
-2. 启动本地服务器：
-
+2. 安装并启动本地服务器（如http-server）：
 ```bash
+npm install -g http-server
 http-server -p 8080
 ```
 
 3. 在浏览器中打开 [http://localhost:8080](http://localhost:8080)
+
+## 扩展开发
+
+### 添加新数据类型
+
+1. 在 `data/` 目录中添加新的JSON数据文件
+2. 在 `data-loader.js` 中添加相应的加载函数
+3. 在 `app.js` 中更新数据加载流程
+4. 根据需要在相应的管理器中添加处理新数据类型的函数
+
+### 添加新视图或交互模式
+
+1. 创建新的管理器模块（如 `analysis-view.js`）
+2. 在 `app.js` 中集成该模块
+3. 更新 HTML 添加必要的UI元素
+4. 在 CSS 中添加相应的样式
+
+### 自定义地图样式
+
+修改 `js/map-styles.js` 中的样式配置，调整地图显示效果。
+
+### 性能优化
+
+- 大型GeoJSON文件可能影响性能，考虑使用简化版地图或预处理
+- 项目已使用异步加载和懒加载技术减少初始加载时间
+- 对频繁的用户输入事件使用节流和防抖技术
+- 通过缓存机制避免重复加载相同的地图数据
 
 ## 许可证
 
