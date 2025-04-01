@@ -2051,4 +2051,56 @@ body:-ms-fullscreen .timeline-container {
     will-change: transform;
     transform: translateZ(0);
     backface-visibility: hidden;
+}
+
+/* 强制地图容器和地图元素的布局样式 */
+#map-container {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 145px);
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+#map {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    background-color: transparent;
+}
+
+/* 确保Leaflet地图图块正确填充 */
+.leaflet-tile-container {
+    width: 100%;
+    height: 100%;
+}
+
+.leaflet-container {
+    background-color: transparent !important;
+}
+
+/* 消除灰色区域 */
+.leaflet-container .leaflet-tile-pane {
+    width: 100%;
+    height: 100%;
+}
+
+/* 修复移动端视图 */
+@media (max-width: 1024px) {
+    #map-container {
+        width: 100% !important;
+        height: calc(100vh - 145px) !important;
+        margin-left: 0 !important;
+    }
+    
+    #map {
+        width: 100% !important;
+        height: 100% !important;
+    }
 } 

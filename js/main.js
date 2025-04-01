@@ -112,11 +112,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             mapContainer.style.height = `${mapHeight}px`;
             mapElement.style.height = `${mapHeight}px`;
             
-            // 防止可能的溢出
+            // 强制使用固定布局，防止可能的溢出
             mapContainer.style.overflow = 'hidden';
+            mapContainer.style.position = 'relative';
             
-            // 确保地图元素有明确的尺寸
+            // 确保地图元素完全填充容器
             mapElement.style.width = '100%';
+            mapElement.style.height = '100%';
+            mapElement.style.position = 'absolute';
+            mapElement.style.top = '0';
+            mapElement.style.left = '0';
+            mapElement.style.right = '0';
+            mapElement.style.bottom = '0';
             mapElement.style.minHeight = '400px';
             
             // 处理侧边栏折叠/展开状态
@@ -152,17 +159,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // 单独抽取invalidateMapSize函数用于频繁调用
     const invalidateMapSize = () => {
-        if (window.historyMapApp && window.historyMapApp.map) {
+        if (window.historyMapApp && window.historyMapApp.mapCore && window.historyMapApp.mapCore.map) {
             console.log('重新计算地图尺寸');
-            window.historyMapApp.map.invalidateSize(true);
+            // 直接引用mapCore对象中的map实例
+            window.historyMapApp.mapCore.map.invalidateSize(true);
             
             // 延迟执行以确保渲染完成后再次调整
             setTimeout(() => {
-                if (window.historyMapApp && window.historyMapApp.map) {
+                if (window.historyMapApp && window.historyMapApp.mapCore && window.historyMapApp.mapCore.map) {
                     console.log('延迟100ms重新计算地图尺寸');
-                    window.historyMapApp.map.invalidateSize(true);
+                    window.historyMapApp.mapCore.map.invalidateSize(true);
+                    
+                    // 再次延迟，确保完全渲染
+                    setTimeout(() => {
+                        if (window.historyMapApp && window.historyMapApp.mapCore && window.historyMapApp.mapCore.map) {
+                            console.log('延迟300ms第三次重新计算地图尺寸');
+                            window.historyMapApp.mapCore.map.invalidateSize(true);
+                        }
+                    }, 200);
                 }
             }, 100);
+        } else {
+            console.warn('地图实例不可用，无法重新计算尺寸');
         }
     };
     
