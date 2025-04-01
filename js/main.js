@@ -97,6 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const enforceMapSize = () => {
         const mapContainer = document.getElementById('map-container');
         const mapElement = document.getElementById('map');
+        const eventsList = document.getElementById('events-list');
         
         if (mapContainer && mapElement) {
             const viewportHeight = window.innerHeight;
@@ -107,17 +108,60 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             console.log(`设置地图高度: ${mapHeight}px (视口高度: ${viewportHeight}px)`);
             
+            // 确保容器尺寸正确
             mapContainer.style.height = `${mapHeight}px`;
             mapElement.style.height = `${mapHeight}px`;
+            
+            // 防止可能的溢出
+            mapContainer.style.overflow = 'hidden';
             
             // 确保地图元素有明确的尺寸
             mapElement.style.width = '100%';
             mapElement.style.minHeight = '400px';
             
+            // 处理侧边栏折叠/展开状态
+            if (eventsList) {
+                if (window.innerWidth <= 1024) {
+                    // 移动端和平板 - 不论侧边栏状态如何，地图宽度都是100%
+                    mapContainer.style.width = '100%';
+                    mapContainer.style.marginLeft = '0';
+                } else {
+                    // 桌面端 - 根据侧边栏状态调整
+                    if (eventsList.classList.contains('collapsed') || eventsList.classList.contains('-translate-x-full')) {
+                        // 侧边栏折叠
+                        mapContainer.style.width = '100%';
+                        mapContainer.style.marginLeft = '0';
+                    } else {
+                        // 侧边栏展开
+                        mapContainer.style.width = 'calc(100% - 300px)';
+                        mapContainer.style.marginLeft = '300px';
+                    }
+                }
+            }
+            
             // 在开发者控制台显示实际高度
             setTimeout(() => {
                 console.log(`地图容器实际尺寸: ${mapContainer.offsetWidth}x${mapContainer.offsetHeight}`);
                 console.log(`地图实际尺寸: ${mapElement.offsetWidth}x${mapElement.offsetHeight}`);
+            }, 100);
+            
+            // 强制重新计算地图尺寸
+            invalidateMapSize();
+        }
+    };
+    
+    // 单独抽取invalidateMapSize函数用于频繁调用
+    const invalidateMapSize = () => {
+        if (window.historyMapApp && window.historyMapApp.map) {
+            console.log('重新计算地图尺寸');
+            window.historyMapApp.map.invalidateSize(true);
+            
+            // 延迟执行以确保渲染完成后再次调整
+            setTimeout(() => {
+                if (window.historyMapApp && window.historyMapApp.map) {
+                    console.log('延迟100ms重新计算地图尺寸');
+                    window.historyMapApp.map.invalidateSize(true);
+                }
             }, 100);
         }
     };
@@ -148,6 +192,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
         }
+        
+        // 每次更新侧边栏状态后强制刷新地图大小
+        invalidateMapSize();
     };
     
     // 立即执行一次
@@ -159,7 +206,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         enforceMapSize();
         
         // 检查eventsList和mobileToggle
-        if (eventsList) {
+        if (eventsList && mobileToggle) {
             const width = window.innerWidth;
             console.log('窗口大小变化:', width, 'x', window.innerHeight);
             
@@ -167,11 +214,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.log('窗口变化为桌面尺寸，显示侧边栏');
                 eventsList.classList.remove('-translate-x-full');
                 eventsList.classList.remove('show-mobile');
+                // 隐藏mobile-toggle按钮
+                mobileToggle.style.display = 'none';
             } else {
                 console.log('窗口变化为移动端/平板尺寸，隐藏侧边栏');
                 eventsList.classList.add('-translate-x-full');
                 eventsList.classList.remove('show-mobile');
-                if (mobileToggle && mobileToggle.querySelector('i')) {
+                // 确保mobile-toggle按钮可见
+                mobileToggle.style.display = 'block';
+                if (mobileToggle.querySelector('i')) {
                     mobileToggle.querySelector('i').textContent = 'menu';
                 }
             }
@@ -181,45 +232,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateSidebarTogglePosition();
         
         // 强制重新计算地图尺寸 - 多次尝试确保成功
-        if (window.historyMapApp && window.historyMapApp.map) {
-            console.log('立即重新计算地图尺寸');
-            window.historyMapApp.map.invalidateSize(true);
-            
-            // 延迟执行以确保渲染完成后再次调整
-            setTimeout(() => {
-                if (window.historyMapApp && window.historyMapApp.map) {
-                    console.log('延迟100ms重新计算地图尺寸');
-                    window.historyMapApp.map.invalidateSize(true);
-                }
-            }, 100);
-            
-            // 再次延迟执行
-            setTimeout(() => {
-                if (window.historyMapApp && window.historyMapApp.map) {
-                    console.log('延迟500ms重新计算地图尺寸');
-                    window.historyMapApp.map.invalidateSize(true);
-                }
-            }, 500);
-        }
+        invalidateMapSize();
+        
+        // 添加额外延迟刷新
+        setTimeout(() => {
+            invalidateMapSize();
+        }, 500);
     });
     
     // 确保地图在视图准备好时加载
     // 有时页面需要渲染时间，添加延迟初始化
     setTimeout(() => {
         enforceMapSize();
-        if (window.historyMapApp && window.historyMapApp.map) {
-            console.log('延迟重新计算地图尺寸');
-            window.historyMapApp.map.invalidateSize(true);
-        }
     }, 1000);
     
     // 更多的延迟尝试，确保地图在各种情况下都能正确显示
     setTimeout(() => {
         enforceMapSize();
-        if (window.historyMapApp && window.historyMapApp.map) {
-            console.log('延迟2秒重新计算地图尺寸');
-            window.historyMapApp.map.invalidateSize(true);
-        }
     }, 2000);
     
     // 移动端菜单控制
@@ -231,28 +260,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log('初始化移动端菜单控制');
         mobileToggle.addEventListener('click', () => {
             console.log('切换移动端菜单');
+            // 在小屏幕下，添加或移除这些类来控制显示
             eventsList.classList.toggle('-translate-x-full');
             eventsList.classList.toggle('show-mobile');
             
-            // 更新Mobile-toggle图标
-            mobileToggle.querySelector('i').textContent = 
-                eventsList.classList.contains('-translate-x-full') ? 'menu' : 'close';
-                
-            // 更新sidebar-toggle图标旋转
-            if (sidebarToggle && sidebarToggle.querySelector('i')) {
-                if (eventsList.classList.contains('-translate-x-full')) {
-                    sidebarToggle.querySelector('i').style.transform = '';
-                } else {
-                    sidebarToggle.querySelector('i').style.transform = 'rotate(180deg)';
-                }
+            // 如果有collapsed类，移除它（确保不冲突）
+            if (eventsList.classList.contains('collapsed')) {
+                eventsList.classList.remove('collapsed');
             }
             
-            // 更新地图大小
-            if (window.historyMapApp && window.historyMapApp.map) {
-                setTimeout(() => {
-                    window.historyMapApp.map.invalidateSize(true);
-                }, 300);
+            // 更新Mobile-toggle图标
+            if (mobileToggle.querySelector('i')) {
+                mobileToggle.querySelector('i').textContent = 
+                    eventsList.classList.contains('-translate-x-full') ? 'menu' : 'close';
             }
+            
+            // 强制重新计算地图尺寸
+            setTimeout(() => {
+                invalidateMapSize();
+            }, 300); // 给300ms时间让过渡动画完成
         });
 
         // 点击地图区域时自动关闭移动端菜单
@@ -260,83 +286,99 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (mapElement) {
             mapElement.addEventListener('click', () => {
                 console.log('点击地图，检查是否需要关闭菜单');
-                if (window.innerWidth <= 768) {
+                if (window.innerWidth <= 1024) { // 扩大到平板尺寸
                     eventsList.classList.add('-translate-x-full');
                     eventsList.classList.remove('show-mobile');
-                    mobileToggle.querySelector('i').textContent = 'menu';
-                }
-            });
-        }
-
-        // 侧边栏折叠按钮点击事件
-        if (sidebarToggle && eventsList) {
-            console.log('初始化侧边栏折叠按钮');
-            sidebarToggle.addEventListener('click', () => {
-                console.log('侧边栏切换按钮点击');
-                
-                // 切换侧边栏折叠状态
-                eventsList.classList.toggle('collapsed');
-                
-                // 在移动设备上同时切换 -translate-x-full 和 show-mobile 类
-                if (window.innerWidth <= 768) {
-                    eventsList.classList.toggle('-translate-x-full');
-                    eventsList.classList.toggle('show-mobile');
-                    if (mobileToggle && mobileToggle.querySelector('i')) {
-                        mobileToggle.querySelector('i').textContent = 
-                            eventsList.classList.contains('-translate-x-full') ? 'menu' : 'close';
+                    if (mobileToggle.querySelector('i')) {
+                        mobileToggle.querySelector('i').textContent = 'menu';
                     }
-                }
-                
-                // 立即更新 sidebar-toggle 的位置
-                updateSidebarTogglePosition();
-                
-                // 更新地图大小
-                if (window.historyMapApp && window.historyMapApp.map) {
+                    // 地图点击关闭菜单后刷新地图大小
                     setTimeout(() => {
-                        window.historyMapApp.map.invalidateSize();
-                        
-                        // 更新时间轴宽度
-                        const timelineContainer = document.querySelector('.timeline-container');
-                        const timelineOverlay = document.querySelector('.timeline-overlay');
-                        if (timelineContainer) {
-                            timelineContainer.style.transition = 'all 0.3s ease';
-                            if (eventsList.classList.contains('collapsed')) {
-                                timelineContainer.style.width = 'calc(100% - 40px)';
-                                timelineContainer.style.left = '20px';
-                                if (timelineOverlay) {
-                                    timelineOverlay.style.width = '100%';
-                                    timelineOverlay.style.left = '0';
-                                }
-                            } else {
-                                if (window.innerWidth > 1024) {
-                                    timelineContainer.style.width = 'calc(100% - 300px)';
-                                    timelineContainer.style.marginLeft = '300px';
-                                } else {
-                                    timelineContainer.style.width = '100%';
-                                    timelineContainer.style.left = '0';
-                                }
-                                if (timelineOverlay) {
-                                    timelineOverlay.style.width = 'calc(100% - 300px)';
-                                    timelineOverlay.style.left = 'auto';
-                                }
-                            }
-                        }
-                        
-                        window.dispatchEvent(new Event('resize'));
+                        invalidateMapSize();
                     }, 300);
                 }
             });
         }
+    }
+    
+    // 监听侧边栏切换按钮点击
+    if (sidebarToggle && eventsList) {
+        console.log('初始化侧边栏折叠按钮');
+        sidebarToggle.addEventListener('click', () => {
+            console.log('侧边栏切换按钮点击');
+            
+            // 切换侧边栏折叠状态
+            eventsList.classList.toggle('collapsed');
+            
+            // 在移动设备上同时切换 -translate-x-full 和 show-mobile 类
+            if (window.innerWidth <= 768) {
+                eventsList.classList.toggle('-translate-x-full');
+                eventsList.classList.toggle('show-mobile');
+                if (mobileToggle && mobileToggle.querySelector('i')) {
+                    mobileToggle.querySelector('i').textContent = 
+                        eventsList.classList.contains('-translate-x-full') ? 'menu' : 'close';
+                }
+            }
+            
+            // 立即更新 sidebar-toggle 的位置
+            updateSidebarTogglePosition();
+            
+            // 强制重新计算地图尺寸 - 菜单状态变化后
+            setTimeout(() => {
+                invalidateMapSize();
+                
+                // 更新时间轴宽度
+                const timelineContainer = document.querySelector('.timeline-container');
+                const timelineOverlay = document.querySelector('.timeline-overlay');
+                if (timelineContainer) {
+                    timelineContainer.style.transition = 'all 0.3s ease';
+                    if (eventsList.classList.contains('collapsed')) {
+                        timelineContainer.style.width = 'calc(100% - 40px)';
+                        timelineContainer.style.left = '20px';
+                        if (timelineOverlay) {
+                            timelineOverlay.style.width = '100%';
+                            timelineOverlay.style.left = '0';
+                        }
+                    } else {
+                        if (window.innerWidth > 1024) {
+                            timelineContainer.style.width = 'calc(100% - 300px)';
+                            timelineContainer.style.marginLeft = '300px';
+                        } else {
+                            timelineContainer.style.width = '100%';
+                            timelineContainer.style.left = '0';
+                        }
+                        if (timelineOverlay) {
+                            timelineOverlay.style.width = 'calc(100% - 300px)';
+                            timelineOverlay.style.left = 'auto';
+                        }
+                    }
+                }
+                
+                window.dispatchEvent(new Event('resize'));
+            }, 300); // 给过渡动画时间完成
+        });
+    }
 
-        // 立即设置初始状态
-        if (window.innerWidth <= 768) {
-            console.log('移动端视图：隐藏侧边栏');
-            eventsList.classList.add('-translate-x-full');
-            eventsList.classList.remove('show-mobile');
-        } else {
-            console.log('桌面视图：显示侧边栏');
-            eventsList.classList.remove('-translate-x-full');
-        }
+    // 立即设置初始状态
+    if (window.innerWidth <= 1024) { // 扩大到平板尺寸
+        console.log('移动端/平板视图：隐藏侧边栏');
+        eventsList.classList.add('-translate-x-full');
+        eventsList.classList.remove('show-mobile');
+        // 确保mobile-toggle按钮可见
+        mobileToggle.style.display = 'block';
+    } else {
+        console.log('桌面视图：显示侧边栏');
+        eventsList.classList.remove('-translate-x-full');
+        // 隐藏mobile-toggle按钮
+        mobileToggle.style.display = 'none';
+    }
+    
+    // 直接监听侧边栏的transitionend事件
+    if (eventsList) {
+        eventsList.addEventListener('transitionend', () => {
+            console.log('侧边栏过渡动画结束，重新计算地图尺寸');
+            invalidateMapSize();
+        });
     }
 
     // 检查CSS样式表是否加载

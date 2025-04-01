@@ -64,7 +64,7 @@ export class App {
             sliderId: 'year-slider',
             inputId: 'year-input',
             minYear: -12000,  // 公元前12000年
-            maxYear: 2023,    // 当前年份
+            maxYear: 2025,    // 当前年份
             initialYear: 1    // 默认从公元1年开始
         });
         
@@ -629,7 +629,7 @@ export class App {
                     timelineContainer.style.transition = 'all 0.3s ease';
                     if (sidebar.classList.contains('collapsed')) {
                         timelineContainer.style.width = 'calc(100% - 40px)';
-                        timelineContainer.style.left = '20px';
+                        timelineContainer.style.left = '0 px';
                         if (timelineOverlay) {
                             timelineOverlay.style.width = '100%';
                             timelineOverlay.style.left = '0';

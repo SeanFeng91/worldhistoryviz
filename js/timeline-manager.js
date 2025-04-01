@@ -933,7 +933,7 @@ export class TimelineManager {
             
             // 公元前区域 - 主要刻度
             // 确保公元前区域有足够的刻度且分布更均匀
-            const bcMajorIntervals = [-12000, -10000, -8000, -6000, -4000, -3000, -2000, -1000, -500, -200, -50];
+            const bcMajorIntervals = [-12000, -10000, -8000, -6000, -4000, -3000, -2000, -1000, -500, -200, -25];
             bcMajorIntervals.forEach(year => {
                 if (year >= this.minYear && year < 0) {
                     tickYears.push({
@@ -944,7 +944,7 @@ export class TimelineManager {
             });
             
             // 公元前区域 - 次要刻度，在-2000年到0年之间添加更多刻度
-            const bcMinorIntervals = [-9000, -7000, -5000, -3500, -2500, -1500, -750, -350 , -125];
+            const bcMinorIntervals = [-9000, -7000, -5000, -3500, -2500, -1500, -750, -350 ];
             bcMinorIntervals.forEach(year => {
                 if (year >= this.minYear && year < 0) {
                     tickYears.push({
