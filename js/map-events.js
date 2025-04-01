@@ -108,48 +108,6 @@ export class MapEvents {
         // 清空当前事件列表内容
         eventsListElement.innerHTML = '';
         
-        // 添加侧边栏折叠按钮
-        const toggleBtn = document.createElement('div');
-        toggleBtn.id = 'sidebar-toggle';
-        toggleBtn.className = 'sidebar-toggle';
-        toggleBtn.innerHTML = `<i class="material-icons-round">chevron_left</i>`;
-        eventsListElement.appendChild(toggleBtn);
-        
-        // 折叠按钮点击事件
-        toggleBtn.addEventListener('click', () => {
-            eventsListElement.classList.toggle('collapsed');
-            if (this.mapCore && this.mapCore.map) {
-                // 更新地图大小以适应侧边栏变化
-                setTimeout(() => {
-                    this.mapCore.map.invalidateSize();
-                    // 触发窗口resize事件，确保时间轴也能更新
-                    window.dispatchEvent(new Event('resize'));
-                    
-                    // 通知时间轴容器需要更新宽度
-                    const timelineContainer = document.querySelector('.timeline-container');
-                    const timelineOverlay = document.querySelector('.timeline-overlay');
-                    if (timelineContainer) {
-                        timelineContainer.style.transition = 'all 0.3s ease';
-                        if (eventsListElement.classList.contains('collapsed')) {
-                            timelineContainer.style.width = 'calc(100% - 40px)';
-                            timelineContainer.style.left = '20px';
-                            if (timelineOverlay) {
-                                timelineOverlay.style.width = '100%';
-                                timelineOverlay.style.left = '0';
-                            }
-                        } else {
-                            timelineContainer.style.width = 'calc(100% - 340px)';
-                            timelineContainer.style.left = 'auto';
-                            if (timelineOverlay) {
-                                timelineOverlay.style.width = 'calc(100% - 300px)';
-                                timelineOverlay.style.left = 'auto';
-                            }
-                        }
-                    }
-                }, 300); // 等待过渡动画完成
-            }
-        });
-        
         // 添加事件列表标题
         const listHeader = document.createElement('div');
         listHeader.className = 'events-list-header mb-4';

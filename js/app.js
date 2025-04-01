@@ -383,11 +383,11 @@ export class App {
             searchForm.addEventListener('submit', (e) => this.handleSearch(e));
         }
         
-        // 设置侧边栏切换
-        const sidebarToggle = document.querySelector('#sidebar-toggle');
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', () => this.toggleSidebar());
-        }
+        // 不再设置侧边栏切换，改由main.js统一管理
+        // const sidebarToggle = document.querySelector('#sidebar-toggle');
+        // if (sidebarToggle) {
+        //     sidebarToggle.addEventListener('click', () => this.toggleSidebar());
+        // }
         
         // 设置播放按钮
         const playButton = document.querySelector('#timeline-play');

@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>全球历史地图 - 地理视角下的世界历史变迁</title>
     <!-- Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
@@ -29,9 +29,99 @@
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.documentElement.classList.add('dark');
         }
+
+        // 添加调试信息
+        console.log('页面加载中...');
+        window.addEventListener('load', function() {
+            console.log('页面完全加载，窗口尺寸:', window.innerWidth, 'x', window.innerHeight);
+            
+            // 检查关键元素
+            ['events-list', 'map', 'mobile-toggle', 'timeline-container'].forEach(id => {
+                const el = document.getElementById(id);
+                console.log(`元素 #${id} ${el ? '存在' : '不存在'} ${el ? `尺寸: ${el.offsetWidth}x${el.offsetHeight}` : ''}`);
+            });
+        });
     </script>
     
     <style>
+        /* 调试边框 */
+        .debug-border {
+            border: 2px solid red !important;
+        }
+        
+        /* 隐藏滚动条但保留滚动功能 */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
+        .no-scrollbar::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+        }
+        
+        /* 更强的响应式样式 - 确保这些样式优先级高于其他样式 */
+        @media (max-width: 768px) {
+            #events-list {
+                position: fixed !important;
+                left: 0 !important;
+                top: 0 !important;
+                bottom: 0 !important;
+                width: 85% !important;
+                max-width: 350px !important;
+                z-index: 1000 !important;
+                transform: translateX(-100%) !important;
+            }
+            
+            #events-list.show-mobile {
+                transform: translateX(0) !important;
+            }
+            
+            #map-container {
+                width: 100% !important;
+                height: calc(100vh - 120px) !important;
+            }
+            
+            .timeline-container {
+                height: auto !important;
+                padding: 10px !important;
+            }
+            
+            /* 确保过滤器可滚动不换行 */
+            .category-filters {
+                display: flex !important;
+                flex-wrap: nowrap !important;
+                overflow-x: auto !important;
+                padding-bottom: 5px !important;
+                -webkit-overflow-scrolling: touch !important;
+            }
+            
+            .category-btn {
+                flex: 0 0 auto !important;
+                white-space: nowrap !important;
+            }
+        }
+        
+        /* 强制设置地图容器尺寸，解决平板尺寸地图不加载问题 */
+        #map-container, #map {
+            min-height: 400px !important;
+            height: calc(100vh - 145px) !important; 
+            width: 100% !important;
+            position: relative !important;
+        }
+        
+        /* 适应不同屏幕尺寸的地图大小 */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            #map-container, #map {
+                height: calc(100vh - 150px) !important;
+            }
+        }
+        
+        @media (min-width: 1025px) {
+            #map-container, #map {
+                height: calc(100vh - 145px) !important;
+            }
+        }
+        
         /* 基础样式重置 */
         body {
             background-color: #f8fafc;
@@ -203,75 +293,62 @@
 </head>
 <body class="bg-gray-50">
     <div class="flex flex-col h-screen max-h-screen overflow-hidden">
-        <!-- 顶部导航栏 - 降低高度 -->
-        <header class="bg-white bg-opacity-80 border-b border-gray-200 py-2 px-4 backdrop-filter backdrop-blur-sm">
+        <!-- 顶部导航栏 - 简化版本匹配图片 -->
+        <header class="bg-white border-b border-gray-200 py-2 px-2">
             <div class="container mx-auto flex justify-between items-center">
-                <div class="flex items-center space-x-4">
-                    <h1 class="text-lg font-semibold text-gray-900">
-                        全球历史地图
-                        <span class="text-sm font-normal text-gray-500 ml-2">
-                            枪炮、病毒与钢铁的视角
-                        </span>
-                    </h1>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <button id="theme-toggle" class="btn btn-secondary !p-2" title="切换主题">
-                        <i class="material-icons-round text-xl">dark_mode</i>
+                <h1 class="text-lg font-semibold text-gray-900">全球历史地图</h1>
+                <div class="flex items-center space-x-1">
+                    <button id="theme-toggle" class="p-2 rounded-full bg-gray-100" title="切换主题">
+                        <i class="material-icons-round text-lg">dark_mode</i>
                     </button>
-                    <button id="help-button" class="btn btn-secondary">
-                        <i class="material-icons-round mr-1">help_outline</i>
-                        帮助
+                    <button id="help-button" class="p-2 rounded-full bg-blue-500 text-white">
+                        <i class="material-icons-round text-lg">help_outline</i>
                     </button>
                 </div>
             </div>
         </header>
         
-        <!-- 事件类别过滤器 - 降低高度 -->
-        <div class="bg-white bg-opacity-50 border-b border-gray-200 py-1 backdrop-filter backdrop-blur-sm">
-            <div class="container mx-auto flex justify-center items-center space-x-4">
-                <div class="text-sm font-medium text-gray-500">显示类别:</div>
-                <div class="flex flex-wrap justify-center gap-2">
-                    <button class="category-btn active btn btn-secondary !py-1 !px-3" data-category="all">
-                        <i class="material-icons-round text-blue-600 !text-sm">public</i>
-                        <span class="ml-1">全部</span>
+        <!-- 事件类别过滤器 - 更简洁的版本 -->
+        <div class="bg-gray-50 border-b border-gray-200 py-1">
+            <div class="flex items-center w-full overflow-x-auto no-scrollbar px-2">
+                <span class="text-xs text-gray-500 mr-2 whitespace-nowrap">显示类别:</span>
+                <div class="flex flex-nowrap gap-1 pb-1">
+                    <button class="category-btn active flex items-center px-2 py-1 rounded-full bg-blue-100 hover:bg-blue-200 text-xs" data-category="all">
+                        <i class="material-icons-round text-blue-600 text-sm">public</i>
+                        <span class="ml-1 hidden sm:inline">全部</span>
                     </button>
-                    <button class="category-btn btn btn-secondary !py-1 !px-3" data-category="农业">
-                        <i class="material-icons-round text-green-600 !text-sm">grass</i>
-                        <span class="ml-1">农业</span>
+                    <button class="category-btn flex items-center px-2 py-1 rounded-full bg-gray-100 hover:bg-gray-200 text-xs" data-category="农业">
+                        <i class="material-icons-round text-green-600 text-sm">grass</i>
+                        <span class="ml-1 hidden sm:inline">农业</span>
                     </button>
-                    <button class="category-btn btn btn-secondary !py-1 !px-3" data-category="技术">
-                        <i class="material-icons-round text-blue-600 !text-sm">precision_manufacturing</i>
-                        <span class="ml-1">技术</span>
+                    <button class="category-btn flex items-center px-2 py-1 rounded-full bg-gray-100 hover:bg-gray-200 text-xs" data-category="技术">
+                        <i class="material-icons-round text-blue-600 text-sm">precision_manufacturing</i>
+                        <span class="ml-1 hidden sm:inline">技术</span>
                     </button>
-                    <button class="category-btn btn btn-secondary !py-1 !px-3" data-category="文明">
-                        <i class="material-icons-round text-purple-600 !text-sm">account_balance</i>
-                        <span class="ml-1">文明</span>
+                    <button class="category-btn flex items-center px-2 py-1 rounded-full bg-gray-100 hover:bg-gray-200 text-xs" data-category="文明">
+                        <i class="material-icons-round text-purple-600 text-sm">account_balance</i>
+                        <span class="ml-1 hidden sm:inline">文明</span>
                     </button>
-                    <button class="category-btn btn btn-secondary !py-1 !px-3" data-category="征服">
-                        <i class="material-icons-round text-red-600 !text-sm">gavel</i>
-                        <span class="ml-1">征服</span>
+                    <button class="category-btn flex items-center px-2 py-1 rounded-full bg-gray-100 hover:bg-gray-200 text-xs" data-category="征服">
+                        <i class="material-icons-round text-red-600 text-sm">gavel</i>
+                        <span class="ml-1 hidden sm:inline">征服</span>
                     </button>
-                    <button class="category-btn btn btn-secondary !py-1 !px-3" data-category="疾病">
-                        <i class="material-icons-round text-yellow-600 !text-sm">coronavirus</i>
-                        <span class="ml-1">疾病</span>
+                    <button class="category-btn flex items-center px-2 py-1 rounded-full bg-gray-100 hover:bg-gray-200 text-xs" data-category="疾病">
+                        <i class="material-icons-round text-yellow-600 text-sm">coronavirus</i>
+                        <span class="ml-1 hidden sm:inline">疾病</span>
                     </button>
-                    <button class="category-btn btn btn-secondary !py-1 !px-3" data-category="迁徙">
-                        <i class="material-icons-round text-purple-600 !text-sm">timeline</i>
-                        <span class="ml-1">迁徙</span>
+                    <button class="category-btn flex items-center px-2 py-1 rounded-full bg-gray-100 hover:bg-gray-200 text-xs" data-category="迁徙">
+                        <i class="material-icons-round text-purple-600 text-sm">timeline</i>
+                        <span class="ml-1 hidden sm:inline">迁徙</span>
                     </button>
                 </div>
             </div>
         </div>
                 
         <!-- 主要内容区域：左侧事件列表和右侧地图 -->
-        <main class="flex-1 flex overflow-hidden">
+        <main class="flex-1 flex overflow-hidden relative">
             <!-- 左侧事件列表 -->
-            <aside id="events-list" class="w-[300px] h-full border-r border-gray-200 bg-white bg-opacity-50 overflow-y-auto p-4">
-                <!-- 侧边栏切换按钮 -->
-                <div id="sidebar-toggle" class="sidebar-toggle">
-                    <i class="material-icons-round">chevron_left</i>
-                </div>
-                
+            <aside id="events-list" class="w-full max-w-[300px] md:max-w-[350px] h-full border-r border-gray-200 bg-white bg-opacity-50 overflow-y-auto p-4 absolute inset-y-0 left-0 z-20 transform md:transform-none -translate-x-full md:translate-x-0 transition-all duration-300 ease-in-out md:relative">
                 <div class="events-list-header mb-4">
                     <h2 class="text-lg font-semibold text-gray-900">历史事件</h2>
                     <p class="text-sm text-gray-500">显示当前年份的相关历史事件</p>
@@ -283,55 +360,36 @@
                 <div id="events-container" class="space-y-3"></div>
             </aside>
             
+            <!-- 侧边栏切换按钮 - 移到events-list外部 -->
+            <div id="sidebar-toggle" class="sidebar-toggle">
+                <i class="material-icons-round">chevron_left</i>
+            </div>
+            
+            <!-- 移动端展开/折叠按钮 -->
+            <button id="mobile-toggle" class="md:hidden fixed top-16 left-4 z-30 bg-white rounded-full p-2 shadow-lg">
+                <i class="material-icons-round">menu</i>
+            </button>
+            
             <!-- 右侧地图 -->
-            <div id="map-container" class="map-container flex-1 relative overflow-hidden">
+            <div id="map-container" class="flex-1 relative overflow-hidden w-full">
                 <div id="map" class="w-full h-full z-0"></div>
                 
-                <!-- 时间轴遮罩层，防止地图在时间轴区域的拖动 -->
-                <div class="timeline-overlay" style="pointer-events: auto;"></div>
-                
-                <!-- 地图控件 -->
-                <!-- <div class="map-control-container">
-                    <button id="toggle-events" class="control-btn active" title="显示/隐藏事件">
-                        <i class="material-icons-round">event</i>
-                    </button>
-                    <button id="toggle-migrations" class="control-btn active" title="显示/隐藏迁徙路线">
-                        <i class="material-icons-round">timeline</i>
-                    </button>
-                    <button id="toggle-technologies" class="control-btn active" title="显示/隐藏技术发展">
-                        <i class="material-icons-round">lightbulb</i>
-                    </button>
-                    <button id="toggle-species" class="control-btn active" title="显示/隐藏物种">
-                        <i class="material-icons-round">pets</i>
-                    </button>
-                    <button id="toggle-wars" class="control-btn active" title="显示/隐藏战争">
-                        <i class="material-icons-round">gavel</i>
-                    </button>
-                    <button id="toggle-diseases" class="control-btn active" title="显示/隐藏疾病">
-                        <i class="material-icons-round">coronavirus</i>
-                    </button>
-                    <button id="toggle-agriculture" class="control-btn active" title="显示/隐藏农业">
-                        <i class="material-icons-round">eco</i>
-                    </button>
-                </div> -->
+                <!-- 时间轴遮罩层 -->
+                <div class="timeline-overlay absolute bottom-0 left-0 right-0 h-24 pointer-events-none"></div>
             </div>
         </main>
     </div>
     
     <!-- 时间轴容器 -->
     <div id="timeline-container" class="timeline-container">
-        <!-- 年份显示 -->
+        <!-- 年份显示 - 现在是绝对定位在时间轴上方 -->
         <div id="year-display" class="current-year-display"></div>
         
         <!-- 滑块容器 -->
         <div class="timeline-slider-container">
             <!-- 时间轴滑块将由JS插入 -->
-            <!-- 时期标记容器 -->
             <div id="timeline-periods" class="timeline-period-markers"></div>
         </div>
-        
-        <!-- 控制按钮容器 -->
-        <!-- <div class="timeline-controls"></div> -->
     </div>
     
     <!-- 加载指示器 -->
@@ -369,6 +427,14 @@
         console.log('正在加载页面脚本...');
         window.addEventListener('error', function(event) {
             console.error('全局错误:', event.error);
+        });
+        
+        // 手动触发响应式布局调整
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                console.log('手动触发窗口大小变化事件');
+                window.dispatchEvent(new Event('resize'));
+            }, 500);
         });
     </script>
     

@@ -86,19 +86,21 @@ main {
 /* 侧边栏切换按钮 */
 .sidebar-toggle {
     position: absolute;
-    top: 10px;
-    right: -12px;
-    width: 24px;
-    height: 24px;
+    top: 45px;
+    left: 300px;
+    width: 30px;
+    height: 60px;
     background-color: #fff;
-    border-radius: 50%;
+    border-radius: 0 4px 4px 0;
+    border: 1px solid #e5e7eb;
+    border-left: none;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    z-index: 20;
-    transition: transform 0.3s ease;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    /* transition: all 0.3s ease-in-out; */
 }
 
 .sidebar-toggle:hover {
@@ -119,38 +121,29 @@ main {
     overflow: visible;
 }
 
-#events-list.collapsed .sidebar-toggle {
-    transform: translateX(calc(100% + 12px));
-    right: -36px;
-    z-index: 1001;
-    visibility: visible;
+#events-list.collapsed ~ #sidebar-toggle {
+    left: 0;
 }
 
-#events-list.collapsed .sidebar-toggle i {
+#events-list.collapsed ~ #sidebar-toggle i {
     transform: rotate(180deg);
 }
 
 /* 地图容器 */
-.map-container {
+.map-container, #map-container {
     flex: 1;
     position: relative;
-    border-radius: 0;
-    overflow: hidden;
-    box-shadow: none;
-    background-color: #fff;
+    height: 100%;
     min-height: 500px;
-    display: flex;
-    flex-direction: column;
     width: 100%;
+    overflow: hidden;
 }
 
-.map {
-    flex: 1;
-    height: 100%;
-    min-height: 600px;
-    width: 100%;
-    z-index: 10;
-    background-color: #f8f8f8;
+#map {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 400px;
+    z-index: 5;
 }
 
 /* 确保Leaflet地图正确显示 */
@@ -1640,13 +1633,376 @@ body.dark .popup-impact {
 
 /* 时间轴容器，确保与地图对齐 */
 .timeline-container {
-    width: 100%;
-    position: relative;
-    z-index: 100;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border-top: 1px solid #e2e8f0;
+    padding: 5px 0 15px 0;
+    margin-bottom: 5px;
+    z-index: 1000;
 }
 
 /* 确保地图即使在侧边栏折叠后也对齐时间轴 */
 #events-list.collapsed + .map-container {
     width: 100%;
     transition: width 0.3s ease;
+}
+
+/* 响应式布局基础样式 */
+@media (max-width: 768px) {
+    .app-container {
+        padding: 5px;
+    }
+
+    header h1 {
+        font-size: 18px;
+    }
+
+    .subtitle {
+        font-size: 12px;
+    }
+}
+
+/* 移动设备下的侧边栏切换按钮样式 */
+@media (max-width: 768px) {
+    .sidebar-toggle {
+        top: 60px;
+        left: 0;
+        z-index: 1010;
+    }
+    
+    #events-list.show-mobile ~ #sidebar-toggle {
+        left: 85%;
+    }
+    
+    #events-list.show-mobile ~ #sidebar-toggle i {
+        transform: rotate(180deg);
+    }
+    
+    #mobile-toggle {
+        display: block;
+    }
+}
+
+/* 平板设备下的侧边栏切换按钮 */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .sidebar-toggle {
+        top: 60px;
+        left: 0;
+        z-index: 1010;
+    }
+    
+    #events-list.show-mobile ~ #sidebar-toggle {
+        left: 85%;
+        max-left: 350px;
+    }
+}
+
+/* 时间轴响应式样式 */
+@media (max-width: 768px) {
+    .timeline-container {
+        padding: 8px 4px;
+    }
+
+    .current-year-display {
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    .timeline-slider-container {
+        height: 40px;
+    }
+
+    #year-slider {
+        margin: 0 10px;
+    }
+}
+
+/* 地图容器响应式样式 */
+@media (max-width: 768px) {
+    .map-container, #map-container {
+        min-height: calc(100vh - 150px);
+        height: calc(100vh - 150px);
+        width: 100vw;
+    }
+    
+    #map {
+        min-height: calc(100vh - 150px);
+        height: calc(100vh - 150px) !important;
+        width: 100vw !important;
+    }
+    
+    /* 确保Leaflet容器在移动端正确显示 */
+    .leaflet-container {
+        height: 100% !important;
+        width: 100% !important;
+    }
+    
+    /* 确保移动端按钮可见 */
+    #mobile-toggle {
+        display: block !important;
+        z-index: 1500 !important;
+    }
+    
+    /* 调整时间轴位置，确保不遮挡地图内容 */
+    .timeline-container {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        padding: 5px;
+        height: auto;
+    }
+}
+
+/* 桌面样式覆盖 */
+@media (min-width: 769px) {
+    #events-list {
+        transform: translateX(0) !important;
+    }
+    
+    #mobile-toggle {
+        display: none !important;
+    }
+}
+
+/* 事件卡片响应式样式 */
+@media (max-width: 480px) {
+    .event-card {
+        padding: 8px;
+    }
+
+    .event-title {
+        font-size: 13px;
+    }
+
+    .event-meta {
+        font-size: 11px;
+    }
+
+    .event-description {
+        font-size: 12px;
+        -webkit-line-clamp: 2;
+    }
+}
+
+/* 弹窗响应式样式 */
+@media (max-width: 768px) {
+    .custom-popup {
+        max-width: 250px;
+    }
+
+    .popup-title {
+        font-size: 14px;
+    }
+
+    .popup-content p {
+        font-size: 12px;
+    }
+}
+
+/* 类别过滤器响应式样式 */
+@media (max-width: 768px) {
+    .category-btn {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+
+    .category-btn i {
+        font-size: 16px;
+    }
+}
+
+/* 暗色模式响应式调整 */
+@media (max-width: 768px) {
+    .dark #events-list {
+        background-color: #1e293b;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .dark #mobile-toggle {
+        background-color: #1e293b;
+        color: #f1f5f9;
+    }
+}
+
+/* 修改响应式断点，让平板使用和移动端相同的样式 */
+@media (max-width: 1024px) {
+    #events-list {
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        width: 85% !important;
+        max-width: 350px !important;
+        z-index: 1000 !important;
+        transform: translateX(-100%) !important;
+    }
+    
+    #events-list.show-mobile {
+        transform: translateX(0) !important;
+    }
+    
+    #map-container {
+        width: 100% !important;
+        height: calc(100vh - 120px) !important;
+    }
+    
+    .timeline-container {
+        height: auto !important;
+        padding: 5px !important;
+        width: 100% !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+    }
+    
+    /* 确保过滤器可滚动不换行 */
+    .category-filters {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        padding-bottom: 5px !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    .category-btn {
+        flex: 0 0 auto !important;
+        white-space: nowrap !important;
+    }
+    
+    #mobile-toggle {
+        display: block !important;
+        z-index: 1500 !important;
+    }
+    
+    .sidebar-toggle {
+        display: none !important;
+    }
+}
+
+/* 强制设置地图容器尺寸 */
+#map-container, #map {
+    min-height: 400px !important;
+    width: 100% !important;
+    position: relative !important;
+}
+
+/* 不同屏幕尺寸的地图高度调整 */
+@media (max-width: 1024px) {
+    #map-container, #map {
+        height: calc(100vh - 165px) !important;
+    }
+    
+    /* 确保Leaflet容器在移动端和平板正确显示 */
+    .leaflet-container {
+        height: 100% !important;
+        width: 100% !important;
+    }
+    
+    /* 时间轴样式 */
+    .timeline-container {
+        position: fixed !important;
+        z-index: 1000 !important;
+        width: 100% !important;
+    }
+}
+
+/* 桌面样式覆盖 */
+@media (min-width: 1025px) {
+    #events-list {
+        transform: translateX(0) !important;
+    }
+    
+    #mobile-toggle {
+        display: none !important;
+    }
+    
+    #map-container, #map {
+        height: calc(100vh - 165px) !important;
+    }
+    
+    /* 确保桌面端时间轴宽度匹配地图 */
+    .timeline-container {
+        width: calc(100% - 300px) !important;
+        margin-left: 300px !important;
+    }
+    
+    /* 桌面端sidebar-toggle位置 */
+    .sidebar-toggle {
+        left: 300px;
+    }
+    
+    #events-list.collapsed ~ .sidebar-toggle {
+        left: 0;
+    }
+}
+
+/* 全屏模式样式 */
+body.fullscreen .timeline-container,
+.fullscreen .timeline-container,
+body:fullscreen .timeline-container,
+body:-webkit-full-screen .timeline-container,
+body:-ms-fullscreen .timeline-container {
+    width: 100% !important;
+    margin-left: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+}
+
+/* 针对移动端/平板调整时间轴位置 */
+@media (max-width: 1024px) {
+    #map-container, #map {
+        height: calc(100vh - 165px) !important;
+    }
+    
+    /* 时间轴位置始终在底部 */
+    .timeline-container {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+    }
+}
+
+/* 考虑浏览器导航栏的全屏模式 */
+@media (display-mode: fullscreen) {
+    #map-container, #map {
+        height: calc(100vh - 165px) !important;
+    }
+    
+    .timeline-container {
+        bottom: env(safe-area-inset-bottom, 5px) !important;
+    }
+}
+
+/* 侧边栏响应式样式 */
+@media (max-width: 768px) {
+    #events-list {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 85%;
+        max-width: 350px;
+        z-index: 1000;
+        background-color: white;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    #events-list.collapsed {
+        transform: translateX(-100%);
+    }
+}
+
+@media (min-width: 769px) {
+    #mobile-toggle {
+        display: none;
+    }
 } 
