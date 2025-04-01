@@ -13,6 +13,9 @@ export class MapCore {
         
         this.styles = new MapStyles();
         this.mapEvents = new MapEvents(this);
+        // 确保events引用指向mapEvents，解决category-btn筛选问题
+        this.events = this.mapEvents;
+        
         this.mapMigrations = new MapMigrations(this);
         this.mapFeatures = new MapFeatures(this);
         this.utils = new MapUtils();
@@ -22,7 +25,7 @@ export class MapCore {
         this.currentGeoJSON = null;
         
         // 不再直接定义年份列表，而是从 MapUtils 引用
-        console.log('MapCore 已初始化');
+        console.log('MapCore 已初始化，events引用已创建');
     }
 
     async initialize() {

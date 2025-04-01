@@ -112,6 +112,19 @@ export class App {
                 throw new Error('地图实例未正确创建');
             }
             
+            // 确保mapCore.events和this.mapCore.mapEvents都存在
+            console.log('检查地图事件管理器:', {
+                mapCore: !!this.mapCore,
+                mapEvents: this.mapCore ? !!this.mapCore.mapEvents : false,
+                events: this.mapCore ? !!this.mapCore.events : false
+            });
+            
+            // 如果events属性不存在但mapEvents存在，则创建引用
+            if (this.mapCore && this.mapCore.mapEvents && !this.mapCore.events) {
+                console.log('创建mapCore.events引用到mapEvents');
+                this.mapCore.events = this.mapCore.mapEvents;
+            }
+            
             // 初始化时间轴
             console.log('开始初始化时间轴...');
             this.timelineManager.initialize(this.mapCore); // 传入地图实例
@@ -136,7 +149,16 @@ export class App {
             this.setupEventListeners();
             
             // 初始化分类筛选功能 - 现在由MapEvents处理
+            console.log('初始化类别筛选功能');
             this.initCategoryFilters();
+            
+            // 再次检查事件管理器
+            console.log('最终检查地图事件管理器:', {
+                mapCore: !!this.mapCore,
+                mapEvents: this.mapCore ? !!this.mapCore.mapEvents : false,
+                events: this.mapCore ? !!this.mapCore.events : false,
+                eventsIsMapEvents: this.mapCore && this.mapCore.events === this.mapCore.mapEvents
+            });
             
             // 标记初始化完成
             this.isInitialized = true;
@@ -156,6 +178,9 @@ export class App {
             if (this.mapCore && this.mapCore.mapEvents) {
                 window.historyMapApp.eventManager = this.mapCore.mapEvents;
                 console.log('事件管理器已全局注册: window.historyMapApp.eventManager');
+            } else if (this.mapCore && this.mapCore.events) {
+                window.historyMapApp.eventManager = this.mapCore.events;
+                console.log('事件管理器(events)已全局注册: window.historyMapApp.eventManager');
             }
         } catch (error) {
             console.error('初始化应用时出错:', error);
@@ -238,26 +263,58 @@ export class App {
     initCategoryFilters() {
         // 获取所有类别筛选按钮
         const categoryButtons = document.querySelectorAll('.category-btn');
-        if (categoryButtons) {
+        if (categoryButtons && categoryButtons.length > 0) {
+            console.log('找到类别筛选按钮:', categoryButtons.length);
+            
+            // 先移除已有的事件监听器以避免重复绑定
             categoryButtons.forEach(button => {
+                const newButton = button.cloneNode(true);
+                button.parentNode.replaceChild(newButton, button);
+            });
+            
+            // 重新获取新的按钮元素
+            const newCategoryButtons = document.querySelectorAll('.category-btn');
+            
+            // 为新按钮添加监听器
+            newCategoryButtons.forEach(button => {
                 button.addEventListener('click', (e) => {
                     const category = button.getAttribute('data-category');
-                    console.log(`筛选类别: ${category}`);
+                    console.log(`[点击筛选] 类别: ${category}`);
                     
                     // 更新按钮样式
-                    categoryButtons.forEach(btn => btn.classList.remove('active'));
+                    newCategoryButtons.forEach(btn => btn.classList.remove('active'));
                     button.classList.add('active');
                     
-                    // 设置事件过滤类别 - 直接设置到MapCore的events实例
-                    if (this.mapCore && this.mapCore.events) {
-                        this.mapCore.events.setFilterCategory(category);
+                    // 直接尝试所有可能的引用路径
+                    try {
+                        if (this.mapCore && typeof this.mapCore.setFilterCategory === 'function') {
+                            console.log('[方法1] 使用mapCore.setFilterCategory');
+                            this.mapCore.setFilterCategory(category);
+                        } else if (this.mapCore && this.mapCore.events && typeof this.mapCore.events.setFilterCategory === 'function') {
+                            console.log('[方法2] 使用mapCore.events.setFilterCategory');
+                            this.mapCore.events.setFilterCategory(category);
+                        } else if (this.mapCore && this.mapCore.mapEvents && typeof this.mapCore.mapEvents.setFilterCategory === 'function') {
+                            console.log('[方法3] 使用mapCore.mapEvents.setFilterCategory');
+                            this.mapCore.mapEvents.setFilterCategory(category);
+                        } else if (window.historyMapApp && window.historyMapApp.eventManager && typeof window.historyMapApp.eventManager.setFilterCategory === 'function') {
+                            console.log('[方法4] 使用window.historyMapApp.eventManager.setFilterCategory');
+                            window.historyMapApp.eventManager.setFilterCategory(category);
+                        } else {
+                            console.error('无法找到可用的setFilterCategory方法');
+                        }
                         
-                        // 重新加载当前年份的全部数据，确保筛选正确应用
+                        // 无论使用哪种方法，都确保重新加载当前年份的数据
                         const currentYear = this.timelineManager.getCurrentYear();
                         this.updateYear(currentYear);
+                    } catch (error) {
+                        console.error('筛选类别时出错:', error);
                     }
                 });
             });
+            
+            console.log('类别筛选按钮事件绑定完成');
+        } else {
+            console.warn('找不到类别筛选按钮');
         }
     }
     
